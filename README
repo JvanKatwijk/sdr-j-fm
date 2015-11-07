@@ -1,0 +1,72 @@
+OBSOLETE FILW
+Current Version 4.2a
+
+A simple FM receiver
+
+The FM receiver will operate in conjunction with rtl2832u based DAB sticks.
+
+Control for the dongles is based on osmocom software (see
+their site for details). 
+the gui and control is based on the jsdr-fm receiver.
+
+Software is tested with dongles with the fc0012, fc0013 and rt820 tuner.
+
+Operation of the FM receiver is quite straight forward. It supports
+as input devices:
+a. no rig, the software will process whatever is coming in on the input selected sound card 
+b. file input, the software will process the contents of a previously
+recorded data file
+c. the "dongle", the software will process the data coming in from the
+dongle - decimated though - and will give control on settings of the dongle.
+
+On start-up  various switches, sliders and buttons will be set according to
+a suitable default which can be ovverruled by settings in an ".ini" file.
+The default ".ini" file is $(HOME)/.jsdr-fm.ini. Its structure is
+quite simple <key = value>, where the key is the internal name of the
+switch, slider or button.
+
+Starting the program
+
+When an output device is selected, in relevant cases an input device is selected
+and a "rig" is selected pressing the start button will actually start the program.
+
+Two spectrum displays show resp. the incoming data unprocessed and demodulated.
+The two average buttons average the spectral values, one for the HF spectrum,
+the other one for the LF spectrum.
+
+Selecting a frequency is easy: just key in the frequency in KHz.
+The "f--" and "f++" buttons cause the frequency to step to a next
+value.
+The "cf--" and "cf++" buttons start a timer changing the frequency
+on a timer base. Pressing the buttons again change the time, as shown
+in the middle. 
+
+The range of frequencies for the RTL2832U based dab sticks is app 64MHz to
+app 1700 MHz, depending on the tuner in the stick. Currently, there is support
+for the FC0012 and FC0013 as well as for the E4000 tuners. Support for the 2580 tuner is in preparation.
+
+Note that since these sticks have 8 bit samples as output, resolution is
+insufficient to decode rds.
+
+A variety of options and switches is available when decoding FM, decoders
+may be selected, rds decoders may be selected, a selection may be made
+of what data is showed on the display. Of particular interest is the "log"
+option, that allows some log data to be written out into a file.
+
+A second interesting option is selecting a bandfilter on the incoming data.
+The filterwidth as well as the filterstrength (it is a FIR filter) can be
+set.
+
+
+Note that the permissions are needed to write to the usb gate!!!
+
+look at "what is needed" (and run it on Ubuntu) when you want to
+ensure the availability of the various libs that are needed.
+
+When all libraries are available, just run qmake and make
+
+
+have fun,
+
+jan
+
