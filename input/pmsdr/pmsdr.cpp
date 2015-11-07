@@ -149,7 +149,7 @@ int32_t	pmsdrHandler::getVFOFrequency (void) {
 	if (!radioOK)
 	   return Khz (94700);
 
-	if (thirdHarmonic)
+	if (thirdHarmonic)		// likely when processing fm
 	   return 3 * LOfreq - vfoOffset ;
 	else
 	   return LOfreq - vfoOffset;
@@ -168,7 +168,7 @@ int32_t	pmsdrHandler::getRate		(void) {
 }
 
 int16_t	pmsdrHandler::bitDepth		(void) {
-	return 16;
+	return 16;		// has to be reconsidered !!!
 }
 
 bool	pmsdrHandler::restartReader	(void) {

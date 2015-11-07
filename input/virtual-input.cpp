@@ -29,7 +29,7 @@
 #include	"virtual-input.h"
 
 	virtualInput::virtualInput (void) {
-	lastFrequency	= 100000;
+	lastFrequency	= Mhz (100);
 }
 
 	virtualInput::~virtualInput (void) {
