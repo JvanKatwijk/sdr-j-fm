@@ -434,12 +434,12 @@ void	RadioInterface::set_ExtLO	(int f) {
 }
 
 void	RadioInterface::set_lockLO	(void) {
-	fprintf (stderr, "ExtioLock is true\n");
+//	fprintf (stderr, "ExtioLock is true\n");
 	ExtioLock	= true;
 }
 
 void	RadioInterface::set_unlockLO	(void) {
-	fprintf (stderr, "ExtioLock is false\n");
+//	fprintf (stderr, "ExtioLock is false\n");
 	ExtioLock	= false;
 }
 

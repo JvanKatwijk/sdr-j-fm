@@ -54,6 +54,13 @@ using namespace std;
 //	Our context here is the instance of the class, stored in
 //	a static variable
 //
+//	Note that when requesting a change in frequency from within
+//	the program, the SDRplay extio responds with a lock command, directly
+//	followed by an unlock command. The lack of latency between the
+//	commands makes that  when signaling the GUI directly, the GUI
+//	crashes, so we build a small thread only for handling the extio
+//	requests, then that thread is capable of sending the requests
+//	to the GUI thread.
 static
 ExtioHandler	*myContext	= NULL;
 

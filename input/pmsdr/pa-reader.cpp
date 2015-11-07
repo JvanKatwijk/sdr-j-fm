@@ -173,7 +173,8 @@ PaError	err;
 	err = Pa_StartStream (istream);
 	if (err == paNoError)
 	   readerRunning	= true;
-	if (err != paNoError) 
+	else
+//	if (err != paNoError) 
 	   fprintf (stderr, "ERROR = %s\n", Pa_GetErrorText (err));
 	return readerRunning;
 }

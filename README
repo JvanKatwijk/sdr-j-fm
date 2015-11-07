@@ -6,7 +6,7 @@ The FM receiver will operate with AIRSPY, SDRplay and dabsticks.
 For creating an executable: install the required libraries and use
 either qmake or CMake
 
-Note that the software is made for Qt5 and qwt6. Unfortnately, some
+Note that the software is made for Qt5 and qwt6. Unfortunately, some
 linux distributions do not support qwt in cooperation with Qt5.
 
 For details:
