@@ -120,7 +120,7 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
-DESTDIR		= ../../linux-bin
+DESTDIR		= ../linux-bin
 INCLUDEPATH 	+= /usr/include/qwt
 #INCLUDEPATH 	+= /usr/include/ 
 LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl

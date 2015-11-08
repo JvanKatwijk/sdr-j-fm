@@ -139,10 +139,10 @@ LIBS	+= -lwinpthread
 #for fedora and ubuntu  we use
 unix { 
 CONFIG		+= pmsdr
-#CONFIG		+= sdrplay
-#CONFIG		+= airspy
-#CONFIG		+= dabstick
-DESTDIR		= ../../linux-bin
+CONFIG		+= sdrplay
+CONFIG		+= airspy
+CONFIG		+= dabstick
+DESTDIR		= ../linux-bin
 INCLUDEPATH 	+= /usr/include/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
