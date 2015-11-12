@@ -54,6 +54,9 @@
 #ifdef	HAVE_EXTIO
 #include	"extio-handler.h"
 #endif
+#ifdef	HAVE_ELAD_S1
+#include	"elad-s1.h"
+#endif
 #ifdef __MINGW32__
 #include	<iostream>
 #include	<windows.h>
@@ -144,6 +147,9 @@ int	k;
 #endif
 #ifdef	HAVE_AIRSPY
 	deviceSelector	-> addItem ("airspy");
+#endif
+#ifdef	HAVE_ELAD_S1
+	deviceSelector	-> addItem ("elad-s1");
 #endif
 	myFMprocessor		= NULL;
 	our_audioSink		= new audioSink (this -> audioRate, 16384);
@@ -519,6 +525,11 @@ bool	success;
 #ifdef	HAVE_AIRSPY
 	if (s == "airspy")
 	   myRig	= new airspyHandler (fmSettings, true, &success);
+	else
+#endif
+#ifdef	HAVE_ELAD_S1
+	if (s == "elad-s1")
+	   myRig	= new eladHandler (fmSettings, true, &success);
 	else
 #endif
 #ifdef	HAVE_DABSTICK

@@ -142,6 +142,7 @@ CONFIG		+= pmsdr
 CONFIG		+= sdrplay
 CONFIG		+= airspy
 CONFIG		+= dabstick
+CONFIG		+= elad_s1
 DESTDIR		= ../linux-bin
 INCLUDEPATH 	+= /usr/include/qwt
 #for ubuntu the first line
@@ -187,6 +188,21 @@ airspy {
 	                   /usr/local/include/libairspy
 	HEADERS		+= ../input/airspy/airspy-handler.h 
 	SOURCES		+= ../input/airspy/airspy-handler.cpp 
+}
+#
+#	the elad-s1
+#
+elad_s1 {
+	DEFINES		+= HAVE_ELAD_S1
+	FORMS		+= ../input/sw-elad-s1/elad_widget.ui
+	DEPENDPATH	+= ../input/sw-elad-s1
+	INCLUDEPATH	+= ../input/sw-elad-s1 
+	HEADERS		+= ../input/sw-elad-s1/elad-s1.h \
+	                   ../input/sw-elad-s1/elad-worker.h \
+	                   ../input/sw-elad-s1/elad-loader.h
+	SOURCES		+= ../input/sw-elad-s1/elad-s1.cpp \
+	                   ../input/sw-elad-s1/elad-worker.cpp \
+	                   ../input/sw-elad-s1/elad-loader.cpp
 }
 #
 #	extio dependencies, windows only
