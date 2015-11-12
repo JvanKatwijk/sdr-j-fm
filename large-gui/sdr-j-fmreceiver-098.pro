@@ -138,11 +138,11 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
-CONFIG		+= pmsdr
+#CONFIG		+= pmsdr
 CONFIG		+= sdrplay
 CONFIG		+= airspy
 CONFIG		+= dabstick
-CONFIG		+= elad_s1
+#CONFIG		+= elad_s1
 DESTDIR		= ../linux-bin
 INCLUDEPATH 	+= /usr/include/qwt
 #for ubuntu the first line
