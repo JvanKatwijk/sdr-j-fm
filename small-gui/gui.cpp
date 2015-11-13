@@ -150,9 +150,16 @@ int32_t	startFreq;
 	restoreGUIsettings	(fmSettings);
 //
 //	Display the version
-	QString v = "sdrJ-FM -V";
-	v. append (CURRENT_VERSION);
-	systemindicator	-> setText (v. toLatin1 (). data ());
+#ifdef	HAVE_SDRPLAY
+	QString v = "sdrJ-FM-sdrplay";
+#elif	HAVE_AIRSPY
+	QString v = "sdrJ-FM-airspy";
+#else
+	QString v = "sdrJ-FM-dabstick";
+#endif
+	
+//	v. append (CURRENT_VERSION);
+	systemindicator	-> setText (v);
 
 	pauseButton		-> setText (QString ("Pause"));
 	currentPIcode		= 0;

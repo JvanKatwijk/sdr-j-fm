@@ -120,7 +120,7 @@ CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
 CONFIG	+= airspy
-DESTDIR	= ../../../windows-bin-dab
+DESTDIR	= ../windows-bin-dab
 # includes in mingw differ from the includes in fedora linux
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
@@ -142,7 +142,7 @@ unix {
 CONFIG		+= sdrplay
 CONFIG		+= airspy
 CONFIG		+= dabstick
-#CONFIG		+= elad_s1
+CONFIG		+= elad_s1
 DESTDIR		= ../linux-bin
 INCLUDEPATH 	+= /usr/include/qwt
 #for ubuntu the first line

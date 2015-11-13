@@ -332,9 +332,7 @@ int32_t	eladHandler::Samples	(void) {
 //	plus a marge it is app 120 a 130 db, so the bit depth for the scope
 //	is 21
 int16_t	eladHandler::bitDepth	(void) {
-	return theRate <= 3072000 ? 21 : 15;
-	return theRate == 192000 ? 31 :
-	       theRate <= 3072000 ? 30 : 15;
+	return 15;		// subject to discussion
 }
 
 //
