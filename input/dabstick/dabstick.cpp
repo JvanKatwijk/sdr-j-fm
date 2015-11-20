@@ -184,7 +184,7 @@ int	k;
 	fprintf(stderr, "Supported gain values (%d): ", gainsCount);
 	gains		= new int [gainsCount];
 	gainsCount = rtlsdr_get_tuner_gains (device, gains);
-	externalGain	-> setMaximum (gainsCount);
+	gainSlider	-> setMaximum (gainsCount);
 	for (i = gainsCount; i > 0; i--)
 		fprintf(stderr, "%.1f ", gains [i - 1] / 10.0);
 	rtlsdr_set_tuner_gain_mode (device, 1);
@@ -192,8 +192,10 @@ int	k;
 
 	_I_Buffer		= new RingBuffer<uint8_t>(1024 * 1024);
 	workerHandle		= NULL;
-	connect (externalGain, SIGNAL (valueChanged (int)),
-	         this, SLOT (setExternalGain (int)));
+	connect (gainSlider, SIGNAL (valueChanged (int)),
+	         this, SLOT (set_gainSlider (int)));
+	connect (agcChecker, SIGNAL (stateChanged (int)),
+	         this, SLOT (set_Agc (int)));
 	connect (f_correction, SIGNAL (valueChanged (int)),
 	         this, SLOT (freqCorrection  (int)));
 	connect (rateSelector, SIGNAL (activated (const QString &)),
@@ -203,7 +205,7 @@ int	k;
 	connect (HzOffset, SIGNAL (valueChanged (int)),
 	         this, SLOT (setHzOffset (int)));
 	dabSettings	-> beginGroup ("dabstick");
-	externalGain -> setValue (dabSettings -> value ("externalGain", 10). toInt ());
+	gainSlider -> setValue (dabSettings -> value ("gainSlider", 10). toInt ());
 	f_correction -> setValue (dabSettings -> value ("f_correction", 0). toInt ());
 	KhzOffset	-> setValue (dabSettings -> value ("KhzOffset", 0). toInt ());
 	HzOffset	-> setValue (dabSettings -> value ("HzOffset", 0). toInt ());
@@ -234,7 +236,7 @@ err:
 	   delete[] gains;
 
 	dabSettings	-> beginGroup ("dabstick");
-	dabSettings	-> setValue ("externalGain", externalGain -> value ());
+	dabSettings	-> setValue ("gainSlider", gainSlider -> value ());
 	dabSettings	-> setValue ("f_correction", f_correction -> value ());
 	dabSettings	-> setValue ("KhzOffset", KhzOffset -> value ());
 	dabSettings	-> setValue ("HzOffset", HzOffset -> value ());
@@ -329,7 +331,7 @@ int32_t	r;
 	return r;
 }
 
-void	dabStick::setExternalGain	(int gain) {
+void	dabStick::set_gainSlider	(int gain) {
 static int	oldGain	= 0;
 
 	if (gain == oldGain)
@@ -339,8 +341,7 @@ static int	oldGain	= 0;
 
 	oldGain	= gain;
 	rtlsdr_set_tuner_gain (device, gains [gainsCount - gain]);
-//	return rtlsdr_get_tuner_gain (device);
-	return;
+	showGain	-> display (gainsCount - gain);
 }
 //
 //	correction is in Hz
@@ -529,5 +530,13 @@ int32_t v	= s. toInt ();
 
 	setExternalRate (Khz (v));
 	set_changeRate (Khz (v));
+}
+
+
+void	dabStick::set_Agc	(int state) {
+	if (agcChecker -> isChecked ())
+	   (void)rtlsdr_set_agc_mode (device, 1);
+	else
+	   (void)rtlsdr_set_agc_mode (device, 0);
 }
 

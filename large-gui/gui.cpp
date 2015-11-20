@@ -570,7 +570,7 @@ bool	success;
 //
 //	ask the new rig for the frequency
 	fmRate			= mapRates (inputRate);
-	currentFreq		= myRig -> getVFOFrequency () + fmRate / 4;
+	currentFreq		= myRig -> defaultFrequency () + fmRate / 4;
 	Display (currentFreq);
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);

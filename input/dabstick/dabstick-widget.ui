@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>159</width>
-    <height>226</height>
+    <width>261</width>
+    <height>295</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QFrame" name="contents">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>151</width>
-     <height>191</height>
+     <x>10</x>
+     <y>10</y>
+     <width>241</width>
+     <height>271</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -37,7 +37,7 @@
       <height>21</height>
      </rect>
     </property>
-    <property name="numDigits">
+    <property name="digitCount">
      <number>7</number>
     </property>
     <property name="segmentStyle">
@@ -55,22 +55,6 @@
     </property>
     <property name="text">
      <string>dabstick</string>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="externalGain">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>91</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="maximum">
-     <number>103</number>
-    </property>
-    <property name="value">
-     <number>10</number>
     </property>
    </widget>
    <widget class="QSpinBox" name="f_correction">
@@ -154,19 +138,6 @@
      <string>ppm</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>0</y>
-      <width>41</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>gain</string>
-    </property>
-   </widget>
    <widget class="QComboBox" name="rateSelector">
     <property name="geometry">
      <rect>
@@ -206,6 +177,48 @@
       <string>3000</string>
      </property>
     </item>
+   </widget>
+   <widget class="QCheckBox" name="agcChecker">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>230</y>
+      <width>61</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>agc</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="gainSlider">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>50</y>
+      <width>18</width>
+      <height>160</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="showGain">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>10</y>
+      <width>41</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="digitCount">
+     <number>2</number>
+    </property>
+    <property name="segmentStyle">
+     <enum>QLCDNumber::Flat</enum>
+    </property>
    </widget>
   </widget>
  </widget>

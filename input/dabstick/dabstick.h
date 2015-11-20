@@ -126,7 +126,8 @@ private:
 	pfnrtlsdr_set_freq_correction rtlsdr_set_freq_correction;
 	pfnrtlsdr_get_device_name rtlsdr_get_device_name;
 private slots:
-	void		setExternalGain	(int);
+	void		set_gainSlider	(int);
+	void		set_Agc		(int);
 	void		freqCorrection	(int);
 	void		setKhzOffset	(int);
 	void		setHzOffset	(int);

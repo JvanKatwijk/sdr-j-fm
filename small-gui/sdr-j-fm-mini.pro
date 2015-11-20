@@ -153,6 +153,7 @@ sdrplay {
 	SOURCES		+= ../input/sdrplay/sdrplay.cpp \
 	                   ../input/sdrplay/sdrplay-loader.cpp \
 	                   ../input/sdrplay/sdrplay-worker.cpp 
+	DEFINES		+= SDRPLAY_LIBRARY_NEW
 }
 #
 #	the AIRSPY

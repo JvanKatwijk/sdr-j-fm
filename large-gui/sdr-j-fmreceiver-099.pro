@@ -138,7 +138,7 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
-#CONFIG		+= pmsdr
+CONFIG		+= pmsdr
 CONFIG		+= sdrplay
 CONFIG		+= airspy
 CONFIG		+= dabstick
