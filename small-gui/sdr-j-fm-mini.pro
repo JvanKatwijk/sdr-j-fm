@@ -13,11 +13,11 @@ QMAKE_CXXFLAGS	+= -flto -ffast-math
 QMAKE_LFLAGS	+= -flto
 ########################
 #
-#	choose the device
+#	choose ONE device
 #
-#CONFIG	+= airspy
+CONFIG	+= airspy
 #CONFIG	+= sdrplay
-CONFIG	+= dabstick
+#CONFIG	+= dabstick
 
 DEPENDPATH += . \
 	      ..\
@@ -102,7 +102,7 @@ SOURCES += ./main.cpp \
 #
 # for windows32 we use:
 win32 {
-DESTDIR	= ../windows-bin-dab
+DESTDIR	= ../../../windows-bin-dab
 # includes in mingw differ from the includes in fedora linux
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt

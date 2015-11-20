@@ -418,13 +418,19 @@ bool	dabStick::load_rtlFunctions (void) {
 	   return false;
 	}
 
+	rtlsdr_set_agc_mode =
+	    (pfnrtlsdr_set_agc_mode)GETPROCADDRESS (Handle, "rtlsdr_set_agc_mode");
+	if (rtlsdr_set_agc_mode == NULL) {
+	   fprintf (stderr, "Could not find rtlsdr_set_agc_mode\n");
+	   return false;
+	}
+
 	rtlsdr_get_tuner_gains		= (pfnrtlsdr_get_tuner_gains)
 	                     GETPROCADDRESS (Handle, "rtlsdr_get_tuner_gains");
 	if (rtlsdr_get_tuner_gains == NULL) {
 	   fprintf (stderr, "Could not find rtlsdr_get_tuner_gains\n");
 	   return false;
 	}
-
 
 	rtlsdr_set_tuner_gain_mode	= (pfnrtlsdr_set_tuner_gain_mode)
 	                     GETPROCADDRESS (Handle, "rtlsdr_set_tuner_gain_mode");
