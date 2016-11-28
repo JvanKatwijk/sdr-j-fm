@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>874</width>
-    <height>489</height>
+    <height>544</height>
    </rect>
   </property>
   <property name="palette">
@@ -90,8 +90,8 @@
   <widget class="QPushButton" name="add_one">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>220</y>
+     <x>60</x>
+     <y>270</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -116,8 +116,8 @@
   <widget class="QPushButton" name="add_two">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>220</y>
+     <x>100</x>
+     <y>270</y>
      <width>41</width>
      <height>31</height>
     </rect>
@@ -136,8 +136,8 @@
   <widget class="QPushButton" name="add_four">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>250</y>
+     <x>60</x>
+     <y>300</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -156,8 +156,8 @@
   <widget class="QPushButton" name="add_five">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>250</y>
+     <x>100</x>
+     <y>300</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -176,8 +176,8 @@
   <widget class="QPushButton" name="add_six">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>250</y>
+     <x>140</x>
+     <y>300</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -196,8 +196,8 @@
   <widget class="QPushButton" name="add_seven">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>280</y>
+     <x>60</x>
+     <y>330</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -216,8 +216,8 @@
   <widget class="QPushButton" name="add_eight">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>280</y>
+     <x>100</x>
+     <y>330</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -236,8 +236,8 @@
   <widget class="QPushButton" name="add_nine">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>280</y>
+     <x>140</x>
+     <y>330</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -257,8 +257,8 @@
   <widget class="QPushButton" name="add_zero">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>310</y>
+     <x>100</x>
+     <y>360</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -277,8 +277,8 @@
   <widget class="QPushButton" name="dec_50">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>280</y>
+     <x>10</x>
+     <y>330</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -295,8 +295,8 @@
   <widget class="QPushButton" name="dec_5">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>310</y>
+     <x>10</x>
+     <y>360</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -313,8 +313,8 @@
   <widget class="QPushButton" name="inc_500">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>250</y>
+     <x>180</x>
+     <y>300</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -331,8 +331,8 @@
   <widget class="QPushButton" name="inc_50">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>280</y>
+     <x>180</x>
+     <y>330</y>
      <width>50</width>
      <height>31</height>
     </rect>
@@ -349,8 +349,8 @@
   <widget class="QPushButton" name="inc_5">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>310</y>
+     <x>180</x>
+     <y>360</y>
      <width>50</width>
      <height>31</height>
     </rect>
@@ -367,8 +367,8 @@
   <widget class="QLCDNumber" name="lcd_Frequency">
    <property name="geometry">
     <rect>
-     <x>480</x>
-     <y>280</y>
+     <x>240</x>
+     <y>270</y>
      <width>191</width>
      <height>31</height>
     </rect>
@@ -491,103 +491,11 @@
     <enum>QLCDNumber::Flat</enum>
    </property>
   </widget>
-  <widget class="QLCDNumber" name="attenuationLevelDisplay">
-   <property name="geometry">
-    <rect>
-     <x>750</x>
-     <y>240</y>
-     <width>41</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>255</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-      <colorrole role="Window">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>255</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::NoFrame</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-   <property name="lineWidth">
-    <number>2</number>
-   </property>
-   <property name="digitCount">
-    <number>3</number>
-   </property>
-   <property name="segmentStyle">
-    <enum>QLCDNumber::Flat</enum>
-   </property>
-  </widget>
   <widget class="QPushButton" name="dec_500">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>250</y>
+     <x>10</x>
+     <y>300</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -604,8 +512,8 @@
   <widget class="QPushButton" name="add_three">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>220</y>
+     <x>140</x>
+     <y>270</y>
      <width>40</width>
      <height>31</height>
     </rect>
@@ -624,8 +532,8 @@
   <widget class="QPushButton" name="add_correct">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>220</y>
+     <x>10</x>
+     <y>270</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -643,8 +551,8 @@
   <widget class="QPushButton" name="add_clear">
    <property name="geometry">
     <rect>
-     <x>430</x>
-     <y>220</y>
+     <x>180</x>
+     <y>270</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -662,9 +570,9 @@
   <widget class="QComboBox" name="inputModeSelect">
    <property name="geometry">
     <rect>
-     <x>400</x>
-     <y>200</y>
-     <width>81</width>
+     <x>210</x>
+     <y>250</y>
+     <width>111</width>
      <height>21</height>
     </rect>
    </property>
@@ -703,10 +611,10 @@
   <widget class="QComboBox" name="deviceSelector">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>200</y>
-     <width>111</width>
-     <height>21</height>
+     <x>520</x>
+     <y>360</y>
+     <width>171</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="palette">
@@ -823,8 +731,8 @@
   <widget class="QLabel" name="systemindicator">
    <property name="geometry">
     <rect>
-     <x>630</x>
-     <y>220</y>
+     <x>230</x>
+     <y>340</y>
      <width>161</width>
      <height>21</height>
     </rect>
@@ -850,10 +758,10 @@
   <widget class="QLCDNumber" name="lcd_fmRate">
    <property name="geometry">
     <rect>
-     <x>580</x>
-     <y>190</y>
-     <width>131</width>
-     <height>31</height>
+     <x>620</x>
+     <y>280</y>
+     <width>91</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="palette">
@@ -1007,8 +915,8 @@
   <widget class="QComboBox" name="streamOutSelector">
    <property name="geometry">
     <rect>
-     <x>490</x>
-     <y>310</y>
+     <x>690</x>
+     <y>360</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -1030,8 +938,8 @@
   <widget class="QLCDNumber" name="IQBalanceDisplay">
    <property name="geometry">
     <rect>
-     <x>750</x>
-     <y>260</y>
+     <x>460</x>
+     <y>370</y>
      <width>41</width>
      <height>21</height>
     </rect>
@@ -1119,8 +1027,8 @@
   <widget class="QPushButton" name="khzSelector">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>310</y>
+     <x>60</x>
+     <y>360</y>
      <width>41</width>
      <height>31</height>
     </rect>
@@ -1140,8 +1048,8 @@
     <rect>
      <x>40</x>
      <y>10</y>
-     <width>811</width>
-     <height>171</height>
+     <width>821</width>
+     <height>221</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -1160,8 +1068,8 @@
   <widget class="QLabel" name="timeDisplay">
    <property name="geometry">
     <rect>
-     <x>480</x>
-     <y>220</y>
+     <x>390</x>
+     <y>340</y>
      <width>151</width>
      <height>20</height>
     </rect>
@@ -1182,10 +1090,10 @@
   <widget class="QPushButton" name="quitButton">
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>260</y>
+     <x>810</x>
+     <y>300</y>
      <width>51</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="palette">
@@ -1241,8 +1149,8 @@
   <widget class="QPushButton" name="dumpButton">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>200</y>
+     <x>320</x>
+     <y>250</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -1260,10 +1168,10 @@
   <widget class="QLCDNumber" name="lcd_OutputRate">
    <property name="geometry">
     <rect>
-     <x>480</x>
-     <y>190</y>
+     <x>500</x>
+     <y>280</y>
      <width>101</width>
-     <height>31</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="palette">
@@ -1350,8 +1258,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>340</y>
-     <width>861</width>
+     <y>390</y>
+     <width>871</width>
      <height>141</height>
     </rect>
    </property>
@@ -1951,9 +1859,9 @@
     <widget class="QComboBox" name="fmMode">
      <property name="geometry">
       <rect>
-       <x>300</x>
+       <x>290</x>
        <y>10</y>
-       <width>71</width>
+       <width>81</width>
        <height>21</height>
       </rect>
      </property>
@@ -2006,9 +1914,9 @@
     <widget class="QComboBox" name="fmRdsSelector">
      <property name="geometry">
       <rect>
-       <x>50</x>
+       <x>0</x>
        <y>40</y>
-       <width>71</width>
+       <width>121</width>
        <height>21</height>
       </rect>
      </property>
@@ -2031,7 +1939,7 @@
     <widget class="QComboBox" name="fmDecoder">
      <property name="geometry">
       <rect>
-       <x>70</x>
+       <x>60</x>
        <y>10</y>
        <width>111</width>
        <height>21</height>
@@ -2160,7 +2068,7 @@
     <widget class="QLabel" name="decoderDisplay">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>170</x>
        <y>10</y>
        <width>121</width>
        <height>20</height>
@@ -2318,7 +2226,7 @@
     <widget class="QComboBox" name="fmFilterSelect">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>10</y>
        <width>61</width>
        <height>21</height>
@@ -2718,9 +2626,9 @@
     <widget class="QSpinBox" name="fmFilterDegree">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>-2</x>
        <y>70</y>
-       <width>59</width>
+       <width>71</width>
        <height>21</height>
       </rect>
      </property>
@@ -2832,8 +2740,8 @@
   <widget class="QPushButton" name="fc_plus">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>220</y>
+     <x>390</x>
+     <y>300</y>
      <width>51</width>
      <height>21</height>
     </rect>
@@ -2845,8 +2753,8 @@
   <widget class="QPushButton" name="fc_minus">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>220</y>
+     <x>310</x>
+     <y>300</y>
      <width>51</width>
      <height>21</height>
     </rect>
@@ -2858,8 +2766,8 @@
   <widget class="QLabel" name="incrementingFlag">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>220</y>
+     <x>360</x>
+     <y>300</y>
      <width>31</width>
      <height>21</height>
     </rect>
@@ -2877,8 +2785,8 @@
   <widget class="QPushButton" name="f_minus">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>220</y>
+     <x>250</x>
+     <y>300</y>
      <width>61</width>
      <height>21</height>
     </rect>
@@ -2890,8 +2798,8 @@
   <widget class="QPushButton" name="f_plus">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>220</y>
+     <x>440</x>
+     <y>300</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -2903,9 +2811,9 @@
   <widget class="QSpinBox" name="fm_increment">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>240</y>
-     <width>61</width>
+     <x>340</x>
+     <y>320</y>
+     <width>81</width>
      <height>21</height>
     </rect>
    </property>
@@ -2922,8 +2830,8 @@
   <widget class="QPushButton" name="pauseButton">
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>280</y>
+     <x>810</x>
+     <y>330</y>
      <width>51</width>
      <height>31</height>
     </rect>
@@ -2935,8 +2843,8 @@
   <widget class="QPushButton" name="HFAverageButton">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>200</y>
+     <x>10</x>
+     <y>250</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -2953,9 +2861,9 @@
   <widget class="QSpinBox" name="minimumSelect">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>240</y>
-     <width>61</width>
+     <x>250</x>
+     <y>320</y>
+     <width>91</width>
      <height>21</height>
     </rect>
    </property>
@@ -2977,9 +2885,9 @@
   <widget class="QSpinBox" name="maximumSelect">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>240</y>
-     <width>61</width>
+     <x>420</x>
+     <y>320</y>
+     <width>91</width>
      <height>21</height>
     </rect>
    </property>
@@ -2999,9 +2907,9 @@
    <property name="geometry">
     <rect>
      <x>710</x>
-     <y>190</y>
-     <width>131</width>
-     <height>31</height>
+     <y>280</y>
+     <width>101</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="palette">
@@ -3087,8 +2995,8 @@
   <widget class="QComboBox" name="HFplotterView">
    <property name="geometry">
     <rect>
-     <x>300</x>
-     <y>200</y>
+     <x>110</x>
+     <y>250</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -3109,24 +3017,11 @@
     </property>
    </item>
   </widget>
-  <widget class="QPushButton" name="audioDump">
-   <property name="geometry">
-    <rect>
-     <x>680</x>
-     <y>280</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>audioDump</string>
-   </property>
-  </widget>
   <widget class="QSlider" name="squelchSlider">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>290</y>
+     <x>520</x>
+     <y>340</y>
      <width>191</width>
      <height>20</height>
     </rect>
@@ -3141,9 +3036,9 @@
   <widget class="QPushButton" name="squelchButton">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>280</y>
-     <width>71</width>
+     <x>720</x>
+     <y>330</y>
+     <width>91</width>
      <height>31</height>
     </rect>
    </property>
@@ -3151,72 +3046,13 @@
     <string>squelchOff</string>
    </property>
   </widget>
-  <widget class="QSlider" name="attenuationSlider">
-   <property name="geometry">
-    <rect>
-     <x>480</x>
-     <y>240</y>
-     <width>271</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>255</red>
-         <green>0</green>
-         <blue>0</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="WindowText">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>143</red>
-         <green>146</green>
-         <blue>147</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
-   </property>
-   <property name="autoFillBackground">
-    <bool>true</bool>
-   </property>
-   <property name="minimum">
-    <number>1</number>
-   </property>
-   <property name="maximum">
-    <number>100</number>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
   <widget class="QSlider" name="IQbalanceSlider">
    <property name="geometry">
     <rect>
-     <x>480</x>
-     <y>260</y>
-     <width>271</width>
-     <height>19</height>
+     <x>240</x>
+     <y>370</y>
+     <width>221</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="minimum">
@@ -3229,24 +3065,11 @@
     <enum>Qt::Horizontal</enum>
    </property>
   </widget>
-  <widget class="QSlider" name="volumeSlider">
-   <property name="geometry">
-    <rect>
-     <x>670</x>
-     <y>310</y>
-     <width>171</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-  </widget>
   <widget class="QPushButton" name="startButton">
    <property name="geometry">
     <rect>
-     <x>790</x>
-     <y>220</y>
+     <x>810</x>
+     <y>260</y>
      <width>51</width>
      <height>41</height>
     </rect>
@@ -3267,11 +3090,24 @@
   <widget class="QComboBox" name="theSelector">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>260</y>
-     <width>181</width>
-     <height>29</height>
+     <x>580</x>
+     <y>300</y>
+     <width>231</width>
+     <height>31</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="audioDump">
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>250</y>
+     <width>101</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>audioDump</string>
    </property>
   </widget>
  </widget>

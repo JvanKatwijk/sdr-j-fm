@@ -221,6 +221,7 @@ bool	fFound;
 	fLcd			= false;
 	LOfreq			= KHz (14070);
 	thirdHarmonic		= false;
+
 /*
  */
 	pmsdrDevice	= new pmsdr_comm ();
@@ -292,7 +293,8 @@ bool	fFound;
 //	fprintf (stderr, "asked for %d, got %d\n",
 //	          (int32_t)VFO_freq, (int32_t)LOfreq);
 }
-
+//
+//
 bool	pmsdrHandler::ReadandConvertRegisters (int8_t choice) {
 //	for now
 	(void)choice;

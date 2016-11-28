@@ -26,30 +26,26 @@
 #ifndef	__PLL_CH
 #define	__PLL_CH
 /*
- *	This pll was found to give reasonable results.
- *	source DTTSP, all rights acknowledged
  */
-
 #include	"fm-constants.h"
 #include	"sincos.h"
 #include	"Xtan2.h"
 
 class	pllC {
 private:
-	DSPFLOAT	omega;
+	int32_t		rate;
+	int32_t		cf;		// center frequency
 	DSPFLOAT	NcoPhase;
-	DSPFLOAT	NcoPhaseIncr;
+	DSPFLOAT	phaseIncr;
 	DSPFLOAT	NcoHLimit;
 	DSPFLOAT	NcoLLimit;
-	DSPFLOAT	freq_f;
-	DSPFLOAT	pll_Alpha;
-	DSPFLOAT	pll_Beta;
+	DSPFLOAT	Beta;
 	DSPCOMPLEX	pll_Delay;
 	SinCos		*mySinCos;
-	DSPFLOAT	phzError;
+	DSPFLOAT	phaseError;
 	compAtan	myAtan;
 	DSPCOMPLEX	oldNcoSignal;
-	DSPFLOAT	pll_lock;
+	bool		pll_lock;
 public:
 			pllC (int32_t	rate,
 	                DSPFLOAT freq, DSPFLOAT lofreq, DSPFLOAT hifreq,
@@ -63,6 +59,7 @@ public:
 	DSPFLOAT	getPhaseIncr	(void);
 	DSPFLOAT	getNco		(void);
 	DSPFLOAT	getPhaseError	(void);
+	bool		isLocked	(void);
 };
 
 #endif

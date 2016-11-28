@@ -79,12 +79,12 @@ int16_t	delayTable [] = {1, 3, 5, 7, 9, 10, 15};
  *	is embedded in actions, initiated by gui buttons
  */
 /**
-* @file gui.cpp
-* @brief gui.cpp : Defines the functions for the GUI of the FM software
-* @author Jan van Katwijk
-* @version 0.98
-* @date 2015-01-07
-*/
+  * @file gui.cpp
+  * @brief gui.cpp : Defines the functions for the GUI of the FM software
+  * @author Jan van Katwijk
+  * @version 0.98
+  * @date 2015-01-07
+  */
 	RadioInterface::RadioInterface (QSettings	*Si,
 	                                int32_t		outputRate,
 	                                QWidget		*parent): QDialog (parent) {
@@ -101,15 +101,22 @@ int	k;
 //	dummies, needed for a.o. LFScope
 	this		-> inputRate	= 192000;
 	this		-> fmRate	= 192000;
-//
+/**
+  *	We allow the user to set the displaysize
+  *	(as long as it is reasonable)
+  */
 	this		-> displaySize	=
-                             fmSettings -> value ("displaySize", 1024). toInt ();
+                            fmSettings -> value ("displaySize", 1024). toInt ();
 	if ((displaySize & (displaySize - 1)) != 0)
 	   displaySize = 1024;
 	if (displaySize < 128)
 	   displaySize = 128;
 	displayBuffer			= new double [this -> displaySize];
 	memset (displayBuffer, 0, displaySize * sizeof (double));
+/**
+  *	we allow the user to set the spectrumSize,
+  *	there is however a sanity check
+  */
 
 	this		-> spectrumSize =
 	                     fmSettings -> value ("spectrumSize",
@@ -117,6 +124,8 @@ int	k;
 	if ((spectrumSize & (spectrumSize - 1)) != 0)
 	   spectrumSize	= 2048;
 	if (spectrumSize < displaySize)
+	   spectrumSize = 4 * displaySize;
+	if (spectrumSize % displaySize != 0)
 	   spectrumSize = 4 * displaySize;
 
 	this		-> rasterSize	=
@@ -165,7 +174,9 @@ int	k;
 	   fprintf (stderr, "Cannot open any output device\n");
 	   abortSystem (33);
 	}
-
+/**
+  *	Use, if possible, the outputstream the user had previous time
+  */
 	h	= fmSettings -> value ("streamOutSelector",
 	                                    "default"). toString ();
 	k	= streamOutSelector -> findText (h);
@@ -184,7 +195,8 @@ int	k;
 //
 //	Set relevant sliders etc to the value they had last time
 	restoreGUIsettings	(fmSettings);
-
+//
+//	
 	incrementingFlag ->
 	                 setStyleSheet ("QLabel {background-color:blue}");
 	incrementingFlag -> setText (" ");
@@ -302,14 +314,10 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                               fm_increment -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider",
 	                               spectrumAmplitudeSlider -> value ());
-	s	-> setValue ("attenuationSlider",
-	                               attenuationSlider -> value ());
 	s	-> setValue ("IQbalanceSlider",
 	                               IQbalanceSlider	-> value ());
 	s	-> setValue ("inputModeSelect",
 	                               inputModeSelect	-> currentText ());
-	s	-> setValue ("VolumeSlider",
-	                               volumeSlider	-> value ());
 //
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect", 
@@ -343,6 +351,9 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                               minLoopFrequency);
 	s	-> setValue ("max_loop_frequency",
 	                               maxLoopFrequency);
+//
+//	Note that settings for the device used will be restored
+//	on termination of the device handling class
 }
 //
 //	On start, we ensure that the streams are stopped so
@@ -351,13 +362,15 @@ void	RadioInterface::setStart	(void) {
 bool	r = 0;
 	if (runMode == RUNNING)	// someone presses while running
 	   return;
+
 	r = myRig	-> restartReader ();
-	qDebug ("Starting %d\n", r);
+//	qDebug ("Starting %d\n", r);
 	if (!r) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("Opening  input stream failed\n"));
 	   return;
 	}
+
 	if (myFMprocessor == NULL)
 	   make_newProcessor ();	
 	myFMprocessor	-> start ();
@@ -367,7 +380,8 @@ bool	r = 0;
 	pauseButton -> setText (QString ("Pause"));
 	runMode	= RUNNING;
 }
-
+//
+//	always tricky to kill tasks
 void	RadioInterface::TerminateProcess (void) {
 	runMode		= STOPPING;
 	
@@ -620,8 +634,7 @@ void	RadioInterface::make_newProcessor (void) {
 	lcd_OutputRate		-> display ((int)this -> audioRate);
 	hfScope			-> setBitDepth (myRig -> bitDepth ());
 
-	setAttenuation		(attenuationSlider	-> value ());
-	setVolume		(volumeSlider		-> value ());
+	setAttenuation		(50);
 	setfmBandwidth		(fmFilterSelect		-> currentText ());
 	setfmBandwidth		(fmFilterDegree		-> value ());
 	setfmMode		(fmMode			-> currentText ());
@@ -682,7 +695,6 @@ int16_t	bl, br;
 
 	bl	= 100 - 2 * f;
 	br	= 100 + 2 * f;
-	attenuationLevelDisplay	-> display (n);
 	currAttSliderValue	= 2 * n;
 	attValueL	= currAttSliderValue * (float)bl / 100;
 	attValueR	= currAttSliderValue * (float)br / 100;
@@ -1152,8 +1164,6 @@ void	RadioInterface::localConnects (void) {
 	         this,  SLOT (setAmplification (int)));
 	connect (deviceSelector, SIGNAL (activated (const QString &)),
 	              this, SLOT (setDevice (const QString &)));
-	connect	(volumeSlider, SIGNAL (valueChanged (int)),
-	              this, SLOT (setVolume (int)));
 	connect (dumpButton, SIGNAL (clicked (void)),
 	              this, SLOT (set_dumping (void)));
 	connect (audioDump, SIGNAL (clicked (void)),
@@ -1164,8 +1174,6 @@ void	RadioInterface::localConnects (void) {
 	connect (squelchSlider, SIGNAL (valueChanged (int)),
 	              this, SLOT (set_squelchValue (int)));
 
-	connect (attenuationSlider, SIGNAL (valueChanged (int) ),
-		      this, SLOT (setAttenuation (int) ) );
 	connect (IQbalanceSlider, SIGNAL (valueChanged (int) ),
 		      this, SLOT (setIQBalance (int) ) );
 	connect (HFplotterView, SIGNAL (activated (const QString &)),
@@ -1308,15 +1316,8 @@ void	RadioInterface::clearStationLabel (void) {
 	stationLabelTextBox	-> setText (StationLabel);
 }
 //
-//	Note: although s is a char * type, its value does not
-//	end with a zero, so it is not a C string
-void	RadioInterface::setStationLabel (char *s, int size) {
-uint16_t	i;
-
-	StationLabel = QString ("");
-	for (i = 0; i < size; i ++)
-	   StationLabel. append (QString (QChar (s [i])));
-	stationLabelTextBox	-> setText (StationLabel);
+void	RadioInterface::setStationLabel (const QString &s) {
+	stationLabelTextBox	-> setText (s);
 }
 
 void	RadioInterface::setMusicSpeechFlag (int n) {
@@ -1337,13 +1338,8 @@ void	RadioInterface::clearRadioText (void) {
 //
 //	Note that, although s is a "char *", it is not a C string,
 //	(no zero at the end)
-void	RadioInterface::setRadioText (char *s, int size) {
-uint16_t	i;
-	RadioText	= QString ("");
-	for (i = 0; i < size; i ++) {
-	   RadioText. append (QString (QChar (s [i])));
-	}
-	radioTextBox	-> setText (RadioText);
+void	RadioInterface::setRadioText (const QString &s) {
+	radioTextBox	-> setText (s);
 }
 
 void	RadioInterface::setRDSisSynchronized (bool syn) {
@@ -1673,11 +1669,6 @@ void	RadioInterface::set_squelchMode	(void) {
 void	RadioInterface::restoreGUIsettings (QSettings *s) {
 QString h;
 int	k;
-
-	k	= s -> value ("attenuationSlider", 50). toInt ();
-	attenuationSlider	-> setValue (k);
-	k	= s -> value ("VolumeSlider", 10). toInt ();
-	volumeSlider		-> setValue (k);
 
 	k	= s -> value ("fmFilterDegree",
 	                          fmFilterDegree -> value ()). toInt ();

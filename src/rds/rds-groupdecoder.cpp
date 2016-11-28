@@ -39,6 +39,14 @@
 #include	<stdio.h>
 #include	"gui.h"
 
+
+//	The alfabets
+#define	G0	0
+#define	G1	1
+#define	G2	2
+
+#include	"ebu-codetables.c"
+
 	rdsGroupDecoder::rdsGroupDecoder (RadioInterface *RI) {
 	MyRadioInterface	= RI;
 	connect (this, SIGNAL (setGroup (int)),
@@ -47,12 +55,12 @@
 	         MyRadioInterface, SLOT (setPTYCode (int)));
 	connect (this, SIGNAL (setPiCode (int)),
 	         MyRadioInterface, SLOT (setPiCode (int)));
-	connect (this, SIGNAL (setStationLabel (char *, int)),
-	         MyRadioInterface, SLOT (setStationLabel (char *, int)));
+	connect (this, SIGNAL (setStationLabel (const QString &)),
+	         MyRadioInterface, SLOT (setStationLabel (const QString &)));
 	connect (this, SIGNAL (clearStationLabel (void)),
 	         MyRadioInterface, SLOT (clearStationLabel (void)));
-	connect (this, SIGNAL (setRadioText (char *, int)),
-	         MyRadioInterface, SLOT (setRadioText (char *, int)));
+	connect (this, SIGNAL (setRadioText (const QString &)),
+	         MyRadioInterface, SLOT (setRadioText (const QString &)));
 	connect (this, SIGNAL (clearRadioText (void)),
 	         MyRadioInterface, SLOT (clearRadioText (void)));
 	connect (this, SIGNAL (setAFDisplay (int)),
@@ -61,17 +69,19 @@
 	         MyRadioInterface, SLOT (setMusicSpeechFlag (int)));
 	connect (this, SIGNAL (clearMusicSpeechFlag (void)),
 	         MyRadioInterface, SLOT (clearMusicSpeechFlag (void)));
-	reset ();
+//	reset ();
 }
 
 	rdsGroupDecoder::~rdsGroupDecoder(void) {
 }
 
 void	rdsGroupDecoder::reset (void) {
+	return;
 	m_piCode = 0;
 
 // Initialize Group 1 members
 	memset (stationLabel, ' ', STATION_LABEL_LENGTH * sizeof (char));
+	stationLabel [STATION_LABEL_LENGTH] = 0;
 	stationNameSegmentRegister	= 0;
 	m_grp1_diCode		= 0;
 
@@ -169,8 +179,8 @@ void	rdsGroupDecoder::addtoStationLabel (uint32_t index,
 	                                    uint32_t name) {
 	stationLabel [2 * index] = (char)(name >> 8);
 	stationLabel [2 * index + 1] = (char)(name & 0xFF);
-
-	setStationLabel (stationLabel, STATION_LABEL_LENGTH);
+	const QString stat = QString (stationLabel);
+	setStationLabel (stat);
 
 //	Reset segment counter on first segment
 	if (index == 0)
@@ -182,7 +192,8 @@ void	rdsGroupDecoder::addtoStationLabel (uint32_t index,
 //	check whether all segments are in
 	if ((int32_t)stationNameSegmentRegister + 1 ==
 	                     (1 << NUMBER_OF_NAME_SEGMENTS)) {
-	   setStationLabel (stationLabel, STATION_LABEL_LENGTH);
+	   const QString stat2 = QString (stationLabel);
+	   setStationLabel (stat2);
 	   stationNameSegmentRegister = 0;
 	}
 }
@@ -200,7 +211,9 @@ uint8_t af2 = blockContents & 0xFF;
 	   setAFDisplay (af2 * 100 + 87500);
 	}
 }
-
+//
+//	textSegmentRegister is an order bitset, containing the
+//	bits set for available segments
 void	rdsGroupDecoder::Handle_RadioText (RDSGroup *grp) {
 const uint16_t new_txtABflag = (grp -> getBlock_B () >> 4) & 1;
 const uint16_t currentSegment = (grp -> getBlock_B ()) & 0xF;
@@ -215,10 +228,10 @@ uint16_t	i;
 	   clearRadioText ();
 
 //	... and we check if we have received a continous stream of segments
-	   for (uint32_t i = 1; i < NUM_OF_FRAGMENTS; i++) {
+//	in which case we show the text
+	   for (i = 1; i < NUM_OF_FRAGMENTS; i++) {
 	      if ((1 << i) == (int32_t) textSegmentRegister + 1)  {
-	         setRadioText ((char *)textBuffer,
-	                               i * NUM_CHARS_PER_RTXT_SEGMENT);
+	         prepareText ((char *)textBuffer, i * NUM_CHARS_PER_RTXT_SEGMENT);
 	         return;
 	      }
 	   }
@@ -240,21 +253,19 @@ uint16_t	i;
 
 //	current segment is received (set bit in segment register to 1)
 	textSegmentRegister |= 1 << currentSegment;
-	setRadioText ((char *)textBuffer,
-	                              NUM_OF_CHARS_RADIOTEXT);
+	prepareText (textBuffer, NUM_OF_CHARS_RADIOTEXT);
 
 //	check for end of message
 	for (i = 0; i < 4; i ++)
-	   if (textFragment [i] == END_OF_RADIO_TEXT)
+	   if (textFragment [i] == END_OF_RADIO_TEXT) 
 	      endF = true;
 
 // Check if all fragments are in or we had an end of message
 	if (endF ||
-	    (textSegmentRegister == (1 << NUM_OF_FRAGMENTS) - 1)) {
-	     setRadioText ((char *)textBuffer,
-	                              NUM_OF_CHARS_RADIOTEXT);
-	     textSegmentRegister = 0;
-	     memset (textBuffer, ' ',
+	    (textSegmentRegister + 1 == (1 << NUM_OF_FRAGMENTS))) {
+	   prepareText (textBuffer, NUM_OF_CHARS_RADIOTEXT);
+	   textSegmentRegister = 0;
+	   memset (textBuffer, ' ',
 	          NUM_OF_CHARS_RADIOTEXT * sizeof (char));
 	}
 }
@@ -267,5 +278,56 @@ uint16_t offset  = (grp -> getBlock_D ()) & 0x4F;
 
 	fprintf (stderr, "Time = %d:%d (Days = %d) \n",
 	                   Hours + offset / 2, Minutes, Days);
+}
+//
+//	handle the text, taking into account different alfabets
+void	rdsGroupDecoder::prepareText (char *v, int16_t length) {
+int16_t	i;
+uint8_t	previousChar	= v [0];
+QString outString	= QString ("");
+
+	for (i = 1; i < length; i ++) {
+	   uint8_t currentChar = v [i];
+	   if (alfabetSwitcher (previousChar, currentChar)) {
+	      theAlfabet = setAlfabetTo (previousChar, currentChar);
+	      previousChar = v [i];
+	      i++;
+	   }
+	   else {
+	      outString. append (mapEBUtoUnicode (theAlfabet, previousChar));
+	      previousChar = currentChar;
+	   }
+	}
+	setRadioText (outString);
+}
+
+bool	rdsGroupDecoder::alfabetSwitcher (uint8_t c1, uint8_t c2) {
+	if ((c1 == 0x0F) && (c2 == 0x0F))	return true;
+	if ((c1 == 0x0E) && (c2 == 0x0E))	return true;
+	if ((c1 == 0x1B) && (c2 == 0x6E))	return true;
+	return false;
+}
+//
+//	Note that iff we ensure that the function is only
+//	called with alfabetSwitcher == true, we only have to
+//	look at the first character
+uint8_t	rdsGroupDecoder::setAlfabetTo (uint8_t c1, uint8_t c2) {
+	fprintf (stderr, "setting alfabet to %x %x\n", c1, c2);
+	switch (c1) {
+	   default:		// should not happen
+	   case 0x0F:
+	      return G0;
+	   case 0x0E:
+	      return G1;
+	   case 0x1B:
+	      return G2;
+	}
+}
+
+uint8_t	rdsGroupDecoder::applyAlfabet (uint8_t alfabet, uint8_t c) {
+	if (alfabet == G0)
+	   return c;
+	else
+	   return c;
 }
 

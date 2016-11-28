@@ -110,7 +110,7 @@
 	this	-> balance		= 0;
 	this	-> leftChannel		= - (balance - 50.0) / 100.0;
 	this	-> rightChannel		= (balance + 50.0) / 100.0;
-	this	-> Volume		= 1.0;
+	this	-> Volume		= 20.0;
 	this	-> inputMode		= IandQ;
 	this	-> audioDecimator	=
 	                         new reSampler (fmRate, workingRate, 8192);
@@ -314,7 +314,6 @@ void	fmProcessor::setSoundBalance (int16_t balance) {
 //	tau		= 2 * M_PI * Freq = 1000000 / time
 void	fmProcessor::setDeemphasis	(int16_t v) {
 DSPFLOAT	Tau;
-
 	switch (v) {
 	   default:
 	      v	= 1;
@@ -368,7 +367,7 @@ void	fmProcessor::stopScanning	(void) {
 void	fmProcessor::run (void) {
 DSPCOMPLEX	result;
 DSPFLOAT 	rdsData;
-int32_t		bufferSize	= 16384;
+int32_t		bufferSize	= 2 * 8192;
 DSPCOMPLEX	dataBuffer [bufferSize];
 double		Y_values [displaySize];
 int32_t		i, j, k;
@@ -397,7 +396,6 @@ bool		pilotExists;
 	while (running) {
 	   while (running && (myRig -> Samples () < bufferSize)) 
 	      msleep (1);	// should be enough
-
 	   if (!running)
 	      break;
 //
@@ -417,7 +415,6 @@ bool		pilotExists;
 
 	   amount = myRig -> getSamples (dataBuffer, bufferSize, inputMode);
 
-#ifndef	SMALL_GUI
 	   aa = amount >= spectrumSize ? spectrumSize : amount;
 //	for the HFscope
 	   if (++hfCount > (inputRate / bufferSize) / repeatRate) {
@@ -470,7 +467,6 @@ bool		pilotExists;
 	      }
 	      sf_writef_float (dumpFile, dumpBuffer, amount);
 	   }
-#endif
 //	Here we really start
 //
 //	We assume that if/when the pilot is no more than 3 db's above
@@ -480,9 +476,7 @@ bool		pilotExists;
 	      DSPCOMPLEX v = 
 	          DSPCOMPLEX (real (dataBuffer [i]) * Lgain,
 	                      imag (dataBuffer [i]) * Rgain);
-#ifndef	SMALL_GUI
 	      v	= v * localOscillator -> nextValue (lo_frequency);
-#endif
 //
 //	first step: decimating (and filtering)
 	      if ((decimatingScale > 1) && !fmBandfilter -> Pass (v, &v))
@@ -507,10 +501,8 @@ bool		pilotExists;
 	      }
 
 //	third step: if requested, apply filtering
-#ifndef	SMALL_GUI
 	      if (fmBandwidth < 0.95 * fmRate)
 	         v	= fmFilter	-> Pass (v);
-#endif
 //	Now we have the signal ready for decoding
 //	keep track of the peaklevel, we take segments
 	      if (abs (v) > peakLevel)

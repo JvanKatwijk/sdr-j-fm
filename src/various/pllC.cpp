@@ -44,19 +44,20 @@
 	                    SinCos	*Table) {
 DSPFLOAT	fac	= 2.0 * M_PI / rate;
 
-	omega		= freq * fac;
-	NcoPhaseIncr	= freq * fac ;		// this will change during runs
+	this	-> rate	= rate;
+	this	-> cf	= freq;
+//	for the control lowpass filter
+	Beta		= exp (- 2.0 * M_PI * bandwidth / 2 / rate);
+	NcoPhase	= 0;
+	phaseError	= 0;
+	phaseIncr	= freq * fac ;		// this will change during runs
 	NcoLLimit	= lofreq * fac;		// boundary for changes
 	NcoHLimit	= hifreq * fac;
 
-	pll_Alpha	= 0.125 * bandwidth * fac;	// pll bandwidth
-	pll_Beta	= (pll_Alpha * pll_Alpha) / 2.0; // second order term
-	NcoPhase	= 0;
 	this	-> mySinCos	= Table;
-	phzError	= 0;
 
 	oldNcoSignal	= 0;
-	pll_lock	= 0;
+	pll_lock	= false;
 }
 //
 		pllC::~pllC (void) {
@@ -67,23 +68,24 @@ DSPFLOAT	fac	= 2.0 * M_PI / rate;
 //	to constrain this value
 void		pllC::do_pll (DSPCOMPLEX signal) {
 DSPCOMPLEX	NcoSignal;
-DSPCOMPLEX	quadRef;
 
 	NcoSignal = (mySinCos != NULL) ?
 	                  mySinCos -> getComplex (NcoPhase) : 
                           DSPCOMPLEX (cos (NcoPhase), sin (NcoPhase));
 	    
 	pll_Delay	= NcoSignal * signal;
-	phzError	= - myAtan. atan2 (imag (pll_Delay), real (pll_Delay));
-	NcoPhaseIncr	+= pll_Beta * phzError;
-	if (NcoPhaseIncr < NcoLLimit)
-	   NcoPhaseIncr = NcoLLimit;
-	if (NcoPhaseIncr > NcoHLimit)
-	   NcoPhaseIncr = NcoHLimit;
+//
+//	we use a pretty fast atan here
+	phaseError	= - myAtan. atan2 (imag (pll_Delay), real (pll_Delay));
+//	... and a pretty simple filter
+	phaseIncr	= (1 - Beta) * phaseError + Beta * phaseIncr;
+	if (phaseIncr < NcoLLimit || phaseIncr > NcoHLimit)
+	   phaseIncr	= cf * 2 * M_PI / rate;
 
-	NcoPhase	+= NcoPhaseIncr + pll_Alpha * phzError;
+	NcoPhase	+= phaseIncr;
 	if (NcoPhase >= 2 * M_PI)
 	   NcoPhase = fmod (NcoPhase, 2 * M_PI);
+	else
 	while (NcoPhase < 0)
 	   NcoPhase += 2 * M_PI;
 }
@@ -93,7 +95,7 @@ DSPCOMPLEX	pllC::getDelay (void) {
 }
 
 DSPFLOAT	pllC::getPhaseIncr(void) {
-	return 2 * NcoPhaseIncr;
+	return phaseIncr;
 }
 
 DSPFLOAT	pllC::getNco (void) {
@@ -101,6 +103,10 @@ DSPFLOAT	pllC::getNco (void) {
 }
 
 DSPFLOAT	pllC::getPhaseError (void) {
-	return phzError;
+	return phaseError;
+}
+
+bool		pllC::isLocked	(void) {
+	return pll_lock;
 }
 

@@ -59,13 +59,15 @@
 //	a communication interface to the PMSDR hardware
 //	implemented as an extension of the pmsdr_usb layer
 //
-		pmsdr_comm::pmsdr_comm (void):pmsdr_usb () {
+		pmsdr_comm::pmsdr_comm (void):
+	                                   pmsdr_usb () {
 bool	r;
 int16_t	i;
 
 	communications	= false;
 //
 //	The usb line is opened by the pmsdr_usb class
+//	let is check that
 	if (!this -> statusDevice ()) {
 	   fprintf (stderr, "No valid device found (%s)\n",
 	                     this -> getError ());

@@ -74,10 +74,15 @@ private:
 	void		addtoStationLabel	(uint32_t, uint32_t);
 	void		additionalFrequencies	(uint16_t);
 	void		addtoRadioText		(uint16_t, uint16_t, uint16_t);
+	void		prepareText		(char *, int16_t);
 	uint32_t	m_piCode;
+	uint8_t		theAlfabet;
+	bool		alfabetSwitcher		(uint8_t, uint8_t);
+	uint8_t		setAlfabetTo		(uint8_t, uint8_t);
+	uint8_t		applyAlfabet 		(uint8_t, uint8_t);
 
 //	Group 1 members
-	char   stationLabel [STATION_LABEL_LENGTH];
+	char   stationLabel [STATION_LABEL_LENGTH + 1];
 	int8_t   m_grp1_diCode;
 	uint32_t stationNameSegmentRegister;
 
@@ -92,9 +97,9 @@ signals:
 	void	clearMusicSpeechFlag	(void);
 	void	setPiCode		(int);
 	void	clearStationLabel	(void);
-	void	setStationLabel		(char *, int);
+	void	setStationLabel		(const QString &);
 	void	clearRadioText		(void);
-	void	setRadioText		(char *, int);
+	void	setRadioText		(const QString &);
 	void	setAFDisplay		(int);
 };
 

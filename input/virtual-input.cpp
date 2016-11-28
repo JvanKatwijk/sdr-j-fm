@@ -56,10 +56,6 @@ int32_t	virtualInput::defaultFrequency	(void) {
 	return Khz (94700);
 }
 
-int32_t	virtualInput::setExternalRate	(int32_t r) {
-	return r;
-}
-
 bool	virtualInput::restartReader	(void) {
 	return true;
 }
@@ -88,23 +84,7 @@ int32_t	virtualInput::Samples		(void) {
 	return 0;
 }
 
-void	virtualInput::setOffset		(int32_t off) {
-	vfoOffset	= off;
-}
-
-int32_t	virtualInput::getSamplesMissed	(void) {
-	return 0;
-}
-
 void	virtualInput::resetBuffer	(void) {
-}
-
-void	virtualInput::freqCorrection	(int32_t f) {
-	(void)f;
-}
-
-int16_t	virtualInput::maxGain		(void) {
-	return 30;
 }
 
 int16_t	virtualInput::bitDepth		(void) {

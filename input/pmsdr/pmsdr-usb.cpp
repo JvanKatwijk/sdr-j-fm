@@ -134,7 +134,7 @@ struct libusb_device_descriptor Desc;
 }
 
 	pmsdr_usb::~pmsdr_usb (void) {
-fprintf (stderr, "closing usb part of pmsdr, with device = %d\n", deviceOK);
+//	fprintf (stderr, "closing usb part of pmsdr, with device = %d\n", deviceOK);
 	if (!deviceOK)
 	   return;
 	close (devh);

@@ -24,7 +24,7 @@
 #include	"ringbuffer.h"
 #include	"virtual-input.h"
 #include	"ui_airspy-widget.h"
-#include	"airspy_lib.h"
+#include	"airspy.h"
 
 extern "C"  {
 typedef	int (*pfn_airspy_init) (void);
@@ -69,6 +69,8 @@ typedef int (*pfn_airspy_board_id_read) (struct airspy_device *,
 typedef const char* (*pfn_airspy_board_id_name) (enum airspy_board_id board_id);
 typedef int (*pfn_airspy_board_partid_serialno_read)(struct airspy_device* device, airspy_read_partid_serialno_t* read_partid_serialno);
 
+typedef int (*pfn_airspy_set_linearity_gain) (struct airspy_device* device, uint8_t value);
+typedef int (*pfn_airspy_set_sensitivity_gain)(struct airspy_device* device, uint8_t value);
 }
 
 class airspyHandler: public virtualInput, public Ui_airspyWidget {
@@ -94,13 +96,18 @@ public:
 	int32_t		getSamples (DSPCOMPLEX  *V,
 	                         int32_t size, uint8_t M);
 
+	int16_t		currentTab;
 private slots:
-	void		set_lna_gain (int value);
-	void		set_mixer_gain (int value);
-	void		set_vga_gain (int value);
-	void		set_lna_agc (void);
-	void		set_mixer_agc (void);
-	void		set_rf_bias (void);
+	void            set_linearity   (int value);
+        void            set_sensitivity (int value);
+        void            set_lna_gain    (int value);
+        void            set_mixer_gain  (int value);
+        void            set_vga_gain    (int value);
+        void            set_lna_agc     (void);
+        void            set_mixer_agc   (void);
+        void            set_rf_bias     (void);
+        void            show_tab        (int);
+
 private:
 	bool		load_airspyFunctions	(void);
 //	The functions to be extracted from the dll/.so file
@@ -117,6 +124,8 @@ private:
 	pfn_airspy_set_lna_gain	   my_airspy_set_lna_gain;
 	pfn_airspy_set_mixer_gain  my_airspy_set_mixer_gain;
 	pfn_airspy_set_vga_gain	   my_airspy_set_vga_gain;
+	pfn_airspy_set_linearity_gain my_airspy_set_linearity_gain;
+	pfn_airspy_set_sensitivity_gain my_airspy_set_sensitivity_gain;
 	pfn_airspy_set_lna_agc	   my_airspy_set_lna_agc;
 	pfn_airspy_set_mixer_agc   my_airspy_set_mixer_agc;
 	pfn_airspy_set_rf_bias	   my_airspy_set_rf_bias;
@@ -135,9 +144,10 @@ private:
 	bool		mixer_agc;
 	bool		rf_bias;
 const	char*		board_id_name (void);
-	int16_t		vgaGain;
-	int16_t		mixerGain;
-	int16_t		lnaGain;
+
+	int16_t         vgaGain;
+        int16_t         mixerGain;
+        int16_t         lnaGain;
 
 	DSPCOMPLEX	convBuffer [625 + 1];
 	int16_t		convIndex;

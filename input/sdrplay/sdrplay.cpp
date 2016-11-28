@@ -295,7 +295,7 @@ int32_t	sdrplay::Samples	(void) {
 }
 
 uint8_t	sdrplay::myIdentity	(void) {
-	return MIRICS_STICK;
+	return SDRPLAY;
 }
 
 void	sdrplay::resetBuffer	(void) {
@@ -303,7 +303,7 @@ void	sdrplay::resetBuffer	(void) {
 }
 
 int16_t	sdrplay::bitDepth	(void) {
-	return 10;
+	return 11;
 }
 
 int32_t	sdrplay::getBandwidth	(int32_t rate) {
