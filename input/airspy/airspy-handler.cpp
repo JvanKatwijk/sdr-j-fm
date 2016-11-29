@@ -32,6 +32,9 @@ const	int	EXTIO_BASE_TYPE_SIZE = sizeof (float);
 int	result, i;
 QString	h;
 int	k;
+int	distance	= 10000000;
+uint32_t myBuffer [20];
+uint32_t samplerate_count;
 
 	this	-> airspySettings	= s;
 	*success		= false;
@@ -41,17 +44,26 @@ int	k;
 	this	-> myFrame	-> show ();
 
 	inputRate	= 2500000;
-//	 Note: on the airspy rate selector, we have 2500 and 10000,
 
-//	On the small fm we only accept 2500000
 	airspySettings	-> beginGroup ("airspyHandler");
+	int16_t temp 		= airspySettings -> value ("linearity", 10).
+	                                                          toInt ();
+	linearitySlider		-> setValue (temp);
+	linearityDisplay	-> display  (temp);
+	temp			= airspySettings -> value ("sensitivity", 10).
+	                                                          toInt ();
+	sensitivitySlider	-> setValue (temp);
+	sensitivityDisplay	-> display (temp);
 	vgaGain			= airspySettings -> value ("vga", 5).toInt ();
 	vgaSlider		-> setValue (vgaGain);
+	vgaDisplay		-> display (vgaGain);
 	mixerGain		= airspySettings -> value ("mixer", 10). toInt ();
 	mixerSlider		-> setValue (mixerGain);
+	mixerDisplay		-> display (mixerGain);
 	mixer_agc		= false;
 	lnaGain			= airspySettings -> value ("lna", 5). toInt ();
 	lnaSlider		-> setValue (lnaGain);
+	lnaDisplay		-> display  (lnaGain);
 	mixer_agc		= false;
 	lna_agc			= false;
 	rf_bias			= false;
@@ -95,13 +107,29 @@ int	k;
 	             my_airspy_error_name((airspy_error)result), result);
         return;
 	}
-	
+
 	result = my_airspy_open (&device);
 	if (result != AIRSPY_SUCCESS) {
 	   printf ("my_airpsy_open () failed: %s (%d)\n",
 	             my_airspy_error_name ((airspy_error)result), result);
 	   return;
 	}
+//
+//	extract the rates
+
+	(void) my_airspy_get_samplerates (device, &samplerate_count, 0);
+        fprintf (stderr, "%d samplerates are supported\n", samplerate_count);
+        my_airspy_get_samplerates (device, myBuffer, samplerate_count);
+
+        inputRate    = 0;
+        for (i = 0; i < samplerate_count; i ++) {
+           fprintf (stderr, "%d \n", myBuffer [i]);
+           if (abs (myBuffer [i] - 2000000) < distance) {
+              distance  = abs (myBuffer [i] - 2000000);
+              inputRate = myBuffer [i];
+           }
+        }
+
 	theBuffer		= new RingBuffer<DSPCOMPLEX> (256 *1024);
 	connect (linearitySlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_linearity (int)));
@@ -120,6 +148,9 @@ int	k;
 	         this, SLOT (set_mixer_agc (void)));
 	connect (biasButton, SIGNAL (clicked (void)),
 	         this, SLOT (set_rf_bias (void)));
+	connect (tabWidget, SIGNAL (currentChanged (int)),
+                 this, SLOT (show_tab (int)));
+
 	displaySerial	-> setText (getSerial ());
 	show_tab (0);
 	running		= false;
@@ -487,13 +518,13 @@ bool	airspyHandler::load_airspyFunctions (void) {
 	   return false;
 	}
 
-//	my_airspy_get_samplerates	= (pfn_airspy_get_samplerates)
-//	                       GETPROCADDRESS (Handle, "airspy_get_samplerates");
-//	if (my_airspy_get_samplerates == NULL) {
-//	   fprintf (stderr, "Could not find airspy_get_samplerates\n");
-//	   return false;
-//	}
-//
+	my_airspy_get_samplerates	= (pfn_airspy_get_samplerates)
+	                       GETPROCADDRESS (Handle, "airspy_get_samplerates");
+	if (my_airspy_get_samplerates == NULL) {
+	   fprintf (stderr, "Could not find airspy_get_samplerates\n");
+	   return false;
+	}
+
 	my_airspy_set_samplerate	= (pfn_airspy_set_samplerate)
 	                       GETPROCADDRESS (Handle, "airspy_set_samplerate");
 	if (my_airspy_set_samplerate == NULL) {

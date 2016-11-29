@@ -110,21 +110,12 @@
 	this	-> balance		= 0;
 	this	-> leftChannel		= - (balance - 50.0) / 100.0;
 	this	-> rightChannel		= (balance + 50.0) / 100.0;
-	this	-> Volume		= 20.0;
+	this	-> Volume		= 40.0;
 	this	-> inputMode		= IandQ;
 	this	-> audioDecimator	=
 	                         new reSampler (fmRate, workingRate, 8192);
 	this	-> audioOut		=
 	                         new DSPCOMPLEX [audioDecimator -> getOutputsize ()];
-//#define	RDS_DECIMATOR	6
-//	this	-> rdsDecimator		=
-//	                         new reSampler (fmRate,
-//	                                        fmRate / RDS_DECIMATOR, 2048);
-//	this	-> rdsOut		=
-//	                         new DSPCOMPLEX [rdsDecimator -> getOutputsize ()];
-//	this	-> myRdsDecoder		= new rdsDecoder (myRadioInterface,
-//	                                                  fmRate / RDS_DECIMATOR,
-//	                                                  mySinCos);
 /*
  *	averagePeakLevel and audioGain are set
  *	prior to calling the processFM method
@@ -576,7 +567,7 @@ bool		pilotExists;
 	         static int cnt = 0;
 	         if (++cnt >= RDS_DECIMATOR) {
 	            myRdsDecoder -> doDecode (rdsData, &mag,
-	                                      (rdsDecoder::RdsMode)rdsModus);
+	                                      (rdsDecoder::RdsMode)1);
 	            cnt = 0;
 	         }
 	      }

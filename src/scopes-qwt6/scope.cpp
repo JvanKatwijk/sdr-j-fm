@@ -127,7 +127,7 @@ void	Scope::setBitDepth	(int16_t b) {
 
 	plotgrid		= plot;
 	this	-> Displaysize	= displaysize;
-	plotgrid-> setCanvasBackground (Qt::black);
+	plotgrid-> setCanvasBackground (Qt::blue);
 	grid	= new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
 	grid	-> setMajPen (QPen(Qt::white, 0, Qt::DotLine));
