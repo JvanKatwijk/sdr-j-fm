@@ -87,7 +87,7 @@ int16_t	retValue;
 	theWorker		= NULL;
 	conversionNumber	= 2;
 	theRate			=
-	             eladSettings -> value ("elad-rate", 192000). toInt ();
+	             eladSettings -> value ("elad-rate", 384000). toInt ();
 	vfoOffset			=
 	             eladSettings -> value ("elad-offset", 0). toInt ();
 	theRate			= validRate (theRate);
