@@ -61,6 +61,7 @@ private	slots:
 	void	setGainReduction	(void);
 	void	setOffset		(int);
 	void	setFilter		(void);
+	void	setAttenuation		(int);
 private:
 	QSettings	*eladSettings;
 	bool		deviceOK;
@@ -75,6 +76,7 @@ private:
 	int		localFilter;
 	uint8_t		conversionNumber;
 	int16_t		iqSize;
+	int16_t		attenuation;
 };
 #endif
 

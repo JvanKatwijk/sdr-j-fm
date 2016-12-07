@@ -92,6 +92,9 @@ int16_t	retValue;
 	             eladSettings -> value ("elad-offset", 0). toInt ();
 	theRate			= validRate (theRate);
 	rateDisplay	-> display (theRate);
+	attenuation		=
+	             eladSettings -> value ("elad-attenuation", 100). toInt ();
+	attenuationDisplay	-> display (attenuation);
 	conversionNumber	= theRate == 192000 ? 1:
 	                          theRate <= 3072000 ? 2 : 3;
 	iqSize			= conversionNumber == 3 ? 4 : 8;
@@ -300,13 +303,16 @@ uint8_t		buf [iqSize * size];
 	for (i = 0; i < amount / iqSize; i ++)  {
 	   switch (conversionNumber) {
 	      case 1: default:
-	         V [i] = makeSample_31bits (&buf [iqSize * i]);
+	         V [i] = cmul (makeSample_31bits (&buf [iqSize * i]),
+	                       attenuation / 100.0);
 	         break;
 	      case 2:
-	         V [i] = makeSample_30bits (&buf [iqSize * i]);
+	         V [i] = cmul (makeSample_30bits (&buf [iqSize * i]),
+	                       attenuation / 100.0);
 	         break;
 	      case 3:
-	         V [i] = makeSample_15bits (&buf [iqSize * i]);
+	         V [i] = cmul (makeSample_15bits (&buf [iqSize * i]),
+	                       attenuation / 100.0);
 	         break;
 	   }
 	   switch (Mode) {
@@ -352,5 +358,10 @@ void	eladHandler::setFilter	(void) {
 	theLoader -> set_en_ext_io_LP30 (theLoader -> getHandle (),
 	                                     &localFilter);
 	filterText	-> setText (localFilter == 1 ? "30 Mhz" : "no filter");
+}
+
+void	eladHandler::setAttenuation	(int a) {
+	attenuation	= a;
+	attenuationDisplay	-> display (a);
 }
 
