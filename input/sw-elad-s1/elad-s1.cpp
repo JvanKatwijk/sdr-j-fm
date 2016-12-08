@@ -82,6 +82,7 @@ int16_t	retValue;
 	deviceOK		= false;
 	myFrame			= new QFrame (NULL);
 	setupUi (myFrame);
+	this	-> myFrame	-> show ();
 	_I_Buffer		= NULL;
 	theLoader		= NULL;
 	theWorker		= NULL;
