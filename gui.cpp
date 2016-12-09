@@ -667,7 +667,7 @@ void	RadioInterface::setInputMode (const QString &s) {
 	   inputMode	= IandQ;
 	
 	if (myFMprocessor != NULL)
-	   myFMprocessor	-> setInputMode	(channelSelector);
+	   myFMprocessor	-> setInputMode	(inputMode);
 }
 
 void	RadioInterface::setfmChannelSelector (const QString &s) {

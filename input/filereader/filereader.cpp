@@ -41,6 +41,7 @@
 	setup_Device	();
 	this	-> lastFrequency	= Khz (94700);	
 	this	-> attenuationLevel	= 100;
+	attenuationSlider	-> setValue (attenuationLevel);
 	attenuationDisplay	-> display (attenuationLevel);
 	connect (attenuationSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_attenuation (int)));
