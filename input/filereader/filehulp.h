@@ -44,7 +44,7 @@ public:
 	bool		restartReader	(void);
 	void		stopReader	(void);
 	int32_t		Samples		(void);
-	int32_t		getSamples	(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t		getSamples	(DSPCOMPLEX *, int32_t, uint8_t, float);
 	int32_t		getRate		(void);
 
 	bool		isWorking	(void);

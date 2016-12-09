@@ -40,6 +40,10 @@
 	nameofFile	-> setText (QString ("no file"));
 	setup_Device	();
 	this	-> lastFrequency	= Khz (94700);	
+	this	-> attenuationLevel	= 100;
+	attenuationDisplay	-> display (attenuationLevel);
+	connect (attenuationSlider, SIGNAL (valueChanged (int)),
+	         this, SLOT (set_attenuation (int)));
 }
 //
 
@@ -96,7 +100,7 @@ int32_t	fileReader::Samples			(void) {
 
 int32_t	fileReader::getSamples			(DSPCOMPLEX *v,
 	                                         int32_t a, uint8_t m) {
-	return	myReader -> getSamples (v, a, m);
+	return	myReader -> getSamples (v, a, m, (float)attenuationLevel / 100.0);
 }
 
 int32_t	fileReader::getRate			(void) {
@@ -107,3 +111,7 @@ int16_t	fileReader::bitDepth		(void) {
 	return 8;
 }
 
+void	fileReader::set_attenuation	(int l) {
+	attenuationLevel	= l;
+	attenuationDisplay	-> display (l);
+}

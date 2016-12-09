@@ -1094,10 +1094,12 @@ SF_INFO	*sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	}
 
 	QString file = QFileDialog::getSaveFileName (this,
-	                                     tr ("open file ..."),
-	                                     QDir::homePath (),
-	                                     tr ("Sound (*.wav)"));
+	                                         tr ("open file ..."),
+	                                         QDir::homePath (),
+	                                         tr ("Sound (*.wav)"));
 	file		= QDir::toNativeSeparators (file);
+	if (!file. endsWith (".wav", Qt::CaseInsensitive))
+	   file. append (".wav");
 	sf_info		-> samplerate	= inputRate;
 	sf_info		-> channels	= 2;
 	sf_info		-> format	= SF_FORMAT_WAV | SF_FORMAT_PCM_24;
@@ -1130,6 +1132,10 @@ SF_INFO	*sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	                                        QDir::homePath (),
 	                                        tr ("Sound (*.wav)"));
 	file		= QDir::toNativeSeparators (file);
+	if (!file. endsWith (".wav", Qt::CaseInsensitive))
+           file. append (".wav");
+
+	
 	sf_info		-> samplerate	= this -> audioRate;
 	sf_info		-> channels	= 2;
 	sf_info		-> format	= SF_FORMAT_WAV | SF_FORMAT_PCM_24;

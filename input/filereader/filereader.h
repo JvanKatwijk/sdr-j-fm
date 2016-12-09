@@ -40,6 +40,7 @@ class	fileHulp;
 /*
  */
 class	fileReader: public virtualInput, public Ui_filereaderWidget {
+Q_OBJECT
 public:
 		fileReader		(QSettings *, bool *);
 		~fileReader		(void);
@@ -62,6 +63,9 @@ protected:
 	QLabel		*fileDisplay;
 	int32_t		inputRate;
 	int32_t		lastFrequency;
+	int16_t		attenuationLevel;
+private slots:
+	void		set_attenuation	(int);
 };
 #endif
 

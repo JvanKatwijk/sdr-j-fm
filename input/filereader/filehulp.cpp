@@ -99,7 +99,8 @@ int32_t	fileHulp::Samples	(void) {
 	return _I_Buffer -> GetRingBufferReadAvailable () / 2;
 }
 
-int32_t	fileHulp::getSamples	(DSPCOMPLEX *V, int32_t n, uint8_t Mode) {
+int32_t	fileHulp::getSamples	(DSPCOMPLEX *V, int32_t n,
+	                         uint8_t Mode, float attenuation) {
 float	*buf = (float *)alloca (2 * n * sizeof (float));
 int32_t	i;
 
@@ -116,19 +117,21 @@ int32_t	i;
 	   switch (Mode) {
 	      default:
 	      case IandQ:
-	         V [i] = DSPCOMPLEX (buf [2 * i], buf [2 * i + 1]);
+	         V [i] = cmul (DSPCOMPLEX (buf [2 * i], buf [2 * i + 1]),
+	                                                     attenuation);
 	         break;
 
 	      case QandI:
-	         V [i] = DSPCOMPLEX (buf [2 * i + 1], buf [2 * i]);
+	         V [i] = cmul (DSPCOMPLEX (buf [2 * i + 1], buf [2 * i]),
+	                                                     attenuation);
 	         break;
 
 	      case I_Only:
-	         V [i]= DSPCOMPLEX (buf [2 * i], 0.0);
+	         V [i]= DSPCOMPLEX (attenuation * buf [2 * i], 0.0);
 	         break;
 
 	      case Q_Only:
-	         V [i]	= DSPCOMPLEX (buf [2 * i + 1], 0.0);
+	         V [i]	= DSPCOMPLEX (attenuation * buf [2 * i + 1], 0.0);
 	         break;
 	   }
 	}

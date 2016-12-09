@@ -154,6 +154,8 @@ int16_t	retValue;
 	         this, SLOT (setGainReduction (void)));
 	connect (filter, SIGNAL (clicked (void)),
 	         this, SLOT (setFilter (void)));
+	connect (attenuationSlider, SIGNAL (valueChanged (int)),
+	         this, SLOT (set_attenuation (int)));
 	*success	= true;
 }
 //
