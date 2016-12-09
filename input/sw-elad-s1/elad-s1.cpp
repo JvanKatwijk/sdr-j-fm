@@ -87,6 +87,7 @@ int16_t	retValue;
 	theLoader		= NULL;
 	theWorker		= NULL;
 	conversionNumber	= 2;
+	eladSettings -> beginGroup ("sw-elad-s1");
 	theRate			=
 	             eladSettings -> value ("elad-rate", 384000). toInt ();
 	vfoOffset			=
@@ -95,6 +96,7 @@ int16_t	retValue;
 	rateDisplay	-> display (theRate);
 	attenuation		=
 	             eladSettings -> value ("elad-attenuation", 100). toInt ();
+	eladSettings	-> endGroup ();
 	attenuationDisplay	-> display (attenuation);
 	conversionNumber	= theRate == 192000 ? 1:
 	                          theRate <= 3072000 ? 2 : 3;
@@ -148,8 +150,8 @@ int16_t	retValue;
 	filterText	-> setText ("no filter");
 	gainReduced	= 0;
 	gainLabel	-> setText ("0");
-	connect (hzOffset, SIGNAL (valueChanged (int)),
-	         this, SLOT (setOffset (int)));
+	connect (MHzOffset, SIGNAL (valueChanged (int)),
+	         this, SLOT (setMHzOffset (int)));
 	connect (gainReduction, SIGNAL (clicked (void)),
 	         this, SLOT (setGainReduction (void)));
 	connect (filter, SIGNAL (clicked (void)),
@@ -161,7 +163,12 @@ int16_t	retValue;
 //
 //	... that will allow a decent destructor
 	eladHandler::~eladHandler	(void) {
-	eladSettings -> setValue ("elad-offset", vfoOffset);
+	eladSettings	-> beginGroup ("sw-elad-s1");
+	eladSettings	-> setValue ("elad-offset", vfoOffset);
+	eladSettings	-> setValue ("elad-rate", theRate);
+	eladSettings	-> setValue ("elad-attenuation",
+	                                    attenuationSlider -> value ());
+	eladSettings	-> endGroup ();
 	stopReader ();
 	if (_I_Buffer != NULL)
 	   delete _I_Buffer;
@@ -345,8 +352,8 @@ int16_t	eladHandler::bitDepth	(void) {
 }
 
 //
-void	eladHandler::setOffset	(int k) {
-	vfoOffset	= k;
+void	eladHandler::setMHzOffset	(int k) {
+	vfoOffset	= k * MHz (1);
 }
 
 void	eladHandler::setGainReduction	(void) {

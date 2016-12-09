@@ -59,7 +59,7 @@ public:
 	int16_t	bitDepth		(void);
 private	slots:
 	void	setGainReduction	(void);
-	void	setOffset		(int);
+	void	setMHzOffset		(int);
 	void	setFilter		(void);
 	void	setAttenuation		(int);
 private:
