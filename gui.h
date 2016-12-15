@@ -57,7 +57,7 @@ class	virtualInput;
  *	QDialog and the generated form
  */
 class RadioInterface: public QDialog,
-		      private Ui_elektorSDR {
+		      private Ui_sdr_j_fm {
 Q_OBJECT
 public:
 		RadioInterface		(QSettings	*,
@@ -79,8 +79,9 @@ private:
 	void		dumpControlState	(QSettings *);
 
 	RingBuffer<double>	*hfBuffer;
-	RingBuffer<DSPCOMPLEX>	*lfBuffer;
+	RingBuffer<double>	*lfBuffer;
 	Scope		*hfScope;
+	Scope		*lfScope;
 	int16_t		scopeAmplification;
 	bool		HFAverager;
 
@@ -103,6 +104,7 @@ private:
 	int16_t		numberofDevices;
 
 	uint8_t		HFviewMode;
+	uint8_t		LFviewMode;
 	uint8_t		inputMode;
 	int16_t		currAttSliderValue;
 	DSPFLOAT	attValueL;
@@ -165,6 +167,7 @@ private:
 	int8_t		runMode;
 
 	void		setup_HFScope		(void);
+	void		setup_LFScope		(void);
 	bool		squelchMode;
 	void		resetSelector		(void);
 	int32_t		mapRates		(int32_t);
@@ -199,7 +202,6 @@ private slots:
 	void	setHFplotterView	(const QString &);
 	void	setHFAverager		(void);
 
-	void	setAmplification	(int);
 	void	decT5			(void);
 	void	decT50			(void);
 	void	decT500			(void);
@@ -244,6 +246,7 @@ private slots:
 	void	set_squelchMode		(void);
 public slots:
 	void	hfBufferLoaded		(int, int);
+	void	lfBufferLoaded		(int, int);
 	void	wheelEvent		(QWheelEvent *);
 	void	setLogging		(const QString &);
 	void	setLogsaving		(void);
@@ -262,7 +265,7 @@ public slots:
 	void	setRDSisSynchronized	(bool);
 	void	setMusicSpeechFlag	(int);
 	void	clearMusicSpeechFlag	(void);
-	void	showStrength		(int, int, int, bool, float);
+	void	showStrength		(float, float);
 	void	scanresult		(void);
 //
 //	and for the extio handling

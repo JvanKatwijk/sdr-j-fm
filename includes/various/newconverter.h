@@ -33,6 +33,7 @@
 #include	<unistd.h>
 #include	<limits>
 #include	<samplerate.h>
+#include	"fm-constants.h"
 
 class	newConverter {
 private:
@@ -48,62 +49,14 @@ private:
 	int32_t		inp;
 public:
 		newConverter (int32_t inRate, int32_t outRate, 
-	                      int32_t inSize, int32_t dummy) {
-int	err;
-	this	-> inRate	= inRate;
-	this	-> outRate	= outRate;
-	inputLimit		= inSize;
-	(void)dummy;
-	ratio			= double(outRate) / inRate;
-	outputLimit		= inSize * ratio;
-//	converter		= src_new (SRC_SINC_BEST_QUALITY, 2, &err);
-	converter		= src_new (SRC_LINEAR, 2, &err);
-	src_data		= new SRC_DATA;
-	inBuffer		= new float [2 * inputLimit + 20];
-	outBuffer		= new float [2 * outputLimit + 20];
-	src_data-> data_in	= inBuffer;
-	src_data-> data_out	= outBuffer;
-	src_data-> src_ratio	= ratio;
-	src_data-> end_of_input	= 0;
-	inp			= 0;
-}
+	                      int32_t inSize);
 
-		~newConverter (void) {
-	src_delete	(converter);
-	delete []	inBuffer;
-	delete []	outBuffer;
-	delete		src_data;
-}
+		~newConverter (void);
 
-bool	convert	(DSPCOMPLEX v, DSPCOMPLEX *out, int32_t *amount) {
-int32_t	i;
-int32_t	framesOut;
-int	res;
+bool	convert (DSPCOMPLEX v,
+	                       DSPCOMPLEX *out, int32_t *amount);
 
-	inBuffer [2 * inp]	= real (v);
-	inBuffer [2 * inp + 1]	= imag (v);
-	inp ++;
-	if (inp < inputLimit)
-	   return false;
-
-	src_data	-> input_frames		= inp;
-	src_data	-> output_frames	= outputLimit + 10;
-	res		= src_process (converter, src_data);
-	if (res != 0) {
-	   fprintf (stderr, "error %s\n", src_strerror (res));
-	   return false;
-	}
-	inp		= 0;
-	framesOut	= src_data -> output_frames_gen;
-	for (i = 0; i < framesOut; i ++)
-	   out [i] = DSPCOMPLEX (outBuffer [2 * i], outBuffer [2 * i + 1]);
-	*amount		= framesOut;
-	return true;
-}
-
-int32_t	getOutputsize	(void) {
-	return outputLimit;
-}
+int32_t	getOutputsize (void);
 };
 
 #endif

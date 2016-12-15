@@ -46,12 +46,11 @@ int	k, i;
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
 
-	sdrplaySettings	-> beginGroup ("sdrplay");
-	h	= sdrplaySettings	-> value ("sdrplayRate", 2000). toString ();
-	k	=  rateSelector -> findText (h);
-	if (k != -1)
-	   rateSelector	-> setCurrentIndex (k);
-	inputRate	=  Khz (rateSelector -> currentText (). toInt ());
+	inputRate	=  Khz (1536);
+	sdrplaySettings		-> beginGroup ("sdrplay");
+	currentGain	= sdrplaySettings -> value ("externalGain", 70). toInt ();
+	externalGain		-> setValue (currentGain);
+	attenuationDisplay	-> display (currentGain);
 	sdrplaySettings	-> endGroup ();
 
 	if (!full) {
@@ -87,17 +86,10 @@ int	k, i;
 	theWorker	= NULL;
 	connect (externalGain, SIGNAL (valueChanged (int)),
 	         this, SLOT (setExternalGain (int)));
-	connect (f_correction, SIGNAL (valueChanged (int)),
-	         this, SLOT (freqCorrection  (int)));
+	connect (ppm_corrector, SIGNAL (valueChanged (int)),
+	         this, SLOT (ppmCorrection  (int)));
 	connect (rateSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (set_rateSelector (const QString &)));
-	connect (KhzOffset, SIGNAL (valueChanged (int)),
-	         this, SLOT (setKhzOffset (int)));
-	sdrplaySettings	-> beginGroup ("sdrplay");
-	externalGain -> setValue (sdrplaySettings -> value ("externalGain", 10). toInt ());
-	f_correction -> setValue (sdrplaySettings -> value ("f_correction", 0). toInt ());
-	KhzOffset	-> setValue (sdrplaySettings -> value ("KhzOffset", 0). toInt ());
-	sdrplaySettings	-> endGroup ();
 	*success	= true;
 }
 
@@ -111,8 +103,7 @@ int	k, i;
 	   delete theWorker;
 	sdrplaySettings	-> beginGroup ("sdrplay");
 	sdrplaySettings	-> setValue ("externalGain", externalGain -> value ());
-	sdrplaySettings	-> setValue ("f_correction", f_correction -> value ());
-	sdrplaySettings	-> setValue ("KhzOffset", KhzOffset -> value ());
+	sdrplaySettings	-> setValue ("ppm_correction", ppm_corrector -> value ());
 	sdrplaySettings	-> setValue ("sdrplayRate", 
 	                              rateSelector -> currentText (). toLatin1 (). data ());
 	sdrplaySettings	-> endGroup ();
@@ -219,10 +210,10 @@ void	sdrplay::setExternalGain	(int newGain) {
 	if (newGain < 0 || newGain > 102)
 	   return;
 
-	fprintf (stderr, "gain is nu %d\n", newGain);
 	if (theWorker != NULL)
 	   theWorker -> setExternalGain (newGain);
 	currentGain = newGain;
+	attenuationDisplay	-> display (currentGain);
 }
 
 int16_t	sdrplay::maxGain	(void) {
@@ -332,13 +323,7 @@ void	sdrplay::set_rateSelector (const QString &s) {
 	set_changeRate (inputRate);
 }
 
-//	vfoOffset is in Hz, we have two spinboxes influencing the
-//	settings
-void	sdrplay::setKhzOffset	(int k) {
-	vfoOffset	= vfoOffset % Khz (1) + Khz (k);
-}
-
-void	sdrplay::freqCorrection	(int f) {
+void	sdrplay::ppmCorrection	(int f) {
 	(void)f;
 }
 

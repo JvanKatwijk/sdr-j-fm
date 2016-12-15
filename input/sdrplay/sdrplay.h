@@ -73,8 +73,7 @@ private:
 private	slots:
 	void		setExternalGain (int);
 	void		set_rateSelector	(const QString &);
-	void		setKhzOffset	(int);
-	void		freqCorrection	(int);
+	void		ppmCorrection	(int);
 };
 #endif
 

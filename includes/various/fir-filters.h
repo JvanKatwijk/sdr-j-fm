@@ -120,6 +120,7 @@ public:
 	void		newKernel	(int32_t, int32_t);
 	bool		Pass	(DSPCOMPLEX, DSPCOMPLEX *);
 	bool		Pass	(DSPFLOAT, DSPFLOAT *);
+	DSPCOMPLEX	*getKernel	(void);
 private:
 	int16_t	decimationFactor;
 	int16_t	decimationCounter;

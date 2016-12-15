@@ -59,7 +59,7 @@ void	fileReader::setup_Device	(void) {
 bool	success;
 	QString	replayFile
 	              = QFileDialog::
-	                 getOpenFileName (NULL,
+	                 getOpenFileName (myFrame,
 	                                  tr ("load file .."),
 	                                  QDir::homePath (),
 	                                  tr ("sound (*.wav)"));

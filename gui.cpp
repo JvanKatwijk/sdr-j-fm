@@ -33,9 +33,9 @@
 #include	"gui.h"
 #include	"fm-processor.h"
 #include	"fm-demodulator.h"
+#include	"rds-decoder.h"
 #include	"fft-scope.h"
 #include	"scope.h"
-#include	"rds-decoder.h"
 #include	"audiosink.h"
 #include	"virtual-input.h"
 #include	"filereader.h"
@@ -133,7 +133,7 @@ int	k;
 	                                          50). toInt ();
 	this		-> repeatRate	= 
 	                     fmSettings -> value ("repeatRate",
-	                                          10). toInt ();
+	                                          8). toInt ();
 	this		-> averageCount	 =
 	                     fmSettings -> value ("averageCount",
 	                                          5). toInt ();
@@ -186,7 +186,7 @@ int	k;
 	}
 	
 	setup_HFScope	();
-	setAmplification (spectrumAmplitudeSlider -> value ());
+	setup_LFScope	();
 	ClearPanel	();
 	sourceDumping		= false;
 	audioDumping		= false;
@@ -273,6 +273,7 @@ int	k;
 
 	filterDepth	= fmSettings -> value ("filterDepth", 5). toInt ();
 	hfScope		-> setBitDepth (myRig -> bitDepth ());
+	lfScope		-> setBitDepth (myRig -> bitDepth ());
 //
 	thresHold	= fmSettings -> value ("threshold", 20). toInt ();
 
@@ -289,6 +290,7 @@ int	k;
 //	The end of all
 	RadioInterface::~RadioInterface () {
 	delete		hfScope;
+	delete		lfScope;
 
 	delete		lcdTimer;
 	delete		autoIncrementTimer;
@@ -312,8 +314,10 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	s	-> setValue ("fm_increment",
 	                               fm_increment -> value ());
-	s	-> setValue ("spectrumAmplitudeSlider",
-	                               spectrumAmplitudeSlider -> value ());
+	s	-> setValue ("spectrumAmplitudeSlider_hf",
+	                               spectrumAmplitudeSlider_hf -> value ());
+	s	-> setValue ("spectrumAmplitudeSlider_lf",
+	                               spectrumAmplitudeSlider_lf -> value ());
 	s	-> setValue ("IQbalanceSlider",
 	                               IQbalanceSlider	-> value ());
 	s	-> setValue ("inputModeSelect",
@@ -629,6 +633,7 @@ void	RadioInterface::make_newProcessor (void) {
 	                                    averageCount,
 	                                    repeatRate,
 	                                    hfBuffer,
+	                                    lfBuffer,
 	                                    filterDepth,
 	                                    thresHold);
 	lcd_fmRate		-> display ((int)this -> fmRate);
@@ -1168,8 +1173,6 @@ void	RadioInterface::localConnects (void) {
 	              this, SLOT (setStreamOutSelector (int)));
 	connect (HFAverageButton, SIGNAL (clicked (void)),
 	              this, SLOT (setHFAverager (void)));
-	connect (spectrumAmplitudeSlider, SIGNAL (valueChanged (int)),
-	         this,  SLOT (setAmplification (int)));
 	connect (deviceSelector, SIGNAL (activated (const QString &)),
 	              this, SLOT (setDevice (const QString &)));
 	connect (dumpButton, SIGNAL (clicked (void)),
@@ -1428,7 +1431,7 @@ void	RadioInterface::setfmBandwidth (const QString &s) {
 	else
 	   fmBandwidth = Khz (s. toInt ());
 	if (myFMprocessor != NULL)
-	   myFMprocessor	-> setBandwidth (fmBandwidth / 2);
+	   myFMprocessor	-> setBandwidth (fmBandwidth);
 }
 
 void	RadioInterface::setfmBandwidth (int32_t b) {
@@ -1438,36 +1441,27 @@ void	RadioInterface::setfmBandwidth (int32_t b) {
 
 //
 //	This signal will arrive once every "inputRate" samples
-void	RadioInterface::showStrength (int the_pilotStrength,
-	                              int the_noiseStrength,
-	                              int the_rdsStrength,
-	                              bool locked,
+void	RadioInterface::showStrength (float the_pilotStrength,
 	                              float the_dcComponent) { 
 char	s [1024];
 static	int teller	= 0;
-//
-//	first part: update displays
+
 	pilotStrength	-> display (the_pilotStrength);
-	noiseStrength	-> display (the_noiseStrength);
-	rdsStrength	-> display (the_rdsStrength);
-	if (locked)
-	   pll_isLocked -> setStyleSheet ("QLabel {background-color:red}");
-	else
+	if (the_pilotStrength > 2.0)
 	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green}");
+	else
+	   pll_isLocked -> setStyleSheet ("QLabel {background-color:red}");
 	dc_component	-> display (the_dcComponent);
 
 	if (logTime > 0 && ++ teller == logTime) {
            QDateTime	currentTime = QDateTime::currentDateTime ();
 	   sprintf (s,
-           "%s : Freq = %d,\n PI code = %4X, noise = %2d, pilot = %2d,  rds = %2d %s\n",
+           "%s : Freq = %d,\n PI code = %4X, pilot = %f\n",
 	      currentTime. toString (QString ("dd.MM.yy:hh:mm:ss")).
 	                         toStdString (). c_str (),
 	      currentFreq,
 	      currentPIcode,
-	      the_noiseStrength,
-	      the_pilotStrength,
-	      the_rdsStrength,
-	      locked ? "pilot" : "no pilot");
+	      the_pilotStrength);
 
 	      fputs (s, stderr);
 //	and into the logfile
@@ -1623,8 +1617,33 @@ int16_t	i;
 //	get the buffer data
 	hfBuffer -> getDataFromBuffer (Y_values, displaySize);
 	hfScope -> Display (X_axis, Y_values,
-	                    scopeAmplification,
+	                    spectrumAmplitudeSlider_hf -> value (),
 	                    (vfoFrequency + LOFrequency) / Khz (1));
+}
+
+//	For the LF scope, we only do the displaying (and X axis)
+//	in the GUI environment. The FM processor prepares "views"
+//	and punt these views into a shared buffer. If the buffer is
+//	full, a signal is sent.
+void	RadioInterface::lfBufferLoaded (int amount, int vfoFrequency) {
+double	*X_axis		= (double *)alloca (displaySize * sizeof (double));
+double	*Y_values	= (double *)alloca (displaySize * sizeof (double));
+double	temp		= (double)fmRate / 2 / displaySize;
+int16_t	i;
+
+	(void)amount;		// currently not used, maybe later
+
+//	first X axis labels
+	for (i = 0; i < displaySize; i ++)
+	   X_axis [i] = 
+	      (- (double)(fmRate / 2) +
+	        (double)((i) * (double) 2 * temp)) / ((double)Khz (1));
+//
+//	get the buffer data
+	lfBuffer -> getDataFromBuffer (Y_values, displaySize);
+	lfScope -> Display (X_axis, Y_values,
+	                    spectrumAmplitudeSlider_lf -> value (),
+	                    0);
 }
 
 void	RadioInterface::setHFplotterView (const QString &s) {
@@ -1657,8 +1676,13 @@ void	RadioInterface::setup_HFScope	() {
 	         SLOT (AdjustFrequency (int)));
 }
 
-void	RadioInterface::setAmplification (int a) {
-	scopeAmplification	= 2 * a;	// for the hf scope
+void	RadioInterface::setup_LFScope	(void) {
+	lfBuffer	= new RingBuffer<double> (2 * displaySize);
+	lfScope		= new Scope (lfscope,
+	                             this -> displaySize,
+	                             this -> rasterSize);
+	LFviewMode	= SPECTRUM_MODE;
+	lfScope		-> SelectView (SPECTRUM_MODE);
 }
 
 //
@@ -1741,9 +1765,9 @@ int32_t	res;
 	res	= inputRate % 256000 == 0 ? 256000 :
 	          inputRate % 192000 == 0 ? 192000 :
 	          inputRate < Khz (400) ? inputRate : 
-	          inputRate < Khz (850) ? inputRate / 2 :
-	          inputRate < Khz (1300) ? inputRate / 4 :
-	          inputRate < Khz (1900) ? inputRate / 6 :
+	          inputRate < Khz (850) ? inputRate / 4 :
+	          inputRate < Khz (1300) ? inputRate / 6 :
+	          inputRate < Khz (1900) ? inputRate / 8 :
 	          inputRate < Khz (3000) ? inputRate / 10 :
 	          inputRate < Khz (4000) ? inputRate / 15 :
 	          inputRate < Khz (5000) ? inputRate / 20 :

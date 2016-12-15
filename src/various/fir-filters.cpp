@@ -357,8 +357,12 @@ DSPFLOAT	sum	= 0.0;
 	}
 
 	for (i = 0; i < filterSize; i ++)
-	   filterKernel [i] = DSPCOMPLEX (tmp [i] / sum, 0);
+	   filterKernel [i] = DSPCOMPLEX (tmp [i] / sum, tmp [i]);
 
+}
+
+DSPCOMPLEX *DecimatingFIR::getKernel (void) {
+	return filterKernel;
 }
 
 	DecimatingFIR::DecimatingFIR (int16_t firSize,
@@ -413,7 +417,7 @@ DSPCOMPLEX	tmp	= 0;
 int16_t		index;
 
 	Buffer [ip] = z;
-	if (++decimationCounter < decimationFactor) {
+	if (++ decimationCounter < decimationFactor) {
 	   ip =  (ip + 1) % filterSize;
 	   return false;
 	}
@@ -421,9 +425,9 @@ int16_t		index;
 	decimationCounter = 0;
 //
 //	we are working with a circular buffer, we take two steps
-//	we move from ip - 1 .. 0 with i going from 0 .. ip -1
+//	we move from ip .. 0 with i going from 0 .. ip -1
 	for (i = 0; i <= ip; i ++) {
-	   index =  ip - i;
+	   index =  ip - i - 1;
 	   tmp 	+= Buffer [index] * filterKernel [i];
 	}
 //	and then we take the rest
@@ -432,13 +436,6 @@ int16_t		index;
 	   tmp 	+= Buffer [index] * filterKernel [i];
 	}
 
-//	for (i = 0; i < filterSize; i ++) {
-//	   int16_t index = ip -1 - i;
-//	   if (index < 0)
-//	      index += filterSize;
-//	   tmp		+= Buffer [index] * filterKernel [i];
-//	}
-//
 	ip = (ip + 1) % filterSize;
 	*z_out = tmp;
 	return true;

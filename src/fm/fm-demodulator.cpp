@@ -40,7 +40,7 @@ int32_t	i;
 
 	         this	-> rateIn	= rateIn;
 	         this	-> mySinCos	= mySinCos;
-	         this	-> K_FM		= K_FM;
+	         this	-> K_FM		=  2 * K_FM;
 
 	         this	-> selectedDecoder	= FM4DECODER;
 	         this	-> max_freq_deviation =
@@ -123,7 +123,7 @@ DSPFLOAT	I, Q;
 	      break;
 
 	   case FM3DECODER:
-	      res	= myAtan. atan2 (Q * Imin1- I * Qmin1,
+	      res	= myAtan. atan2 (Q * Imin1 - I * Qmin1,
 	                                 I * Imin1 + Q * Qmin1);
 	      fm_afc	= (1 - DCAlpha) * fm_afc + DCAlpha * res;
 	      res	= (res - fm_afc) * fm_cvt;

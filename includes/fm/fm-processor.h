@@ -36,10 +36,8 @@
 #include	"fft-filters.h"
 #include	"sincos.h"
 #include	"pllC.h"
-#include	"fm-levels.h"
 #include	"ringbuffer.h"
 #include	"oscillator.h"
-#include	"resampler.h"
 
 class		virtualInput;
 class		RadioInterface;
@@ -63,6 +61,7 @@ public:
 	                             int32_t,	// averageCount
 	                             int32_t,	// repeatRate
 	                             RingBuffer<double> *, // HFScope
+	                             RingBuffer<double> *, // LFScope
 	                             int16_t,	// filterDepth
 	                             int16_t);	// threshold scanning
 	        	~fmProcessor (void);
@@ -112,6 +111,9 @@ public:
 	void		set_squelchValue	(int16_t);
 private:
 virtual	void		run		(void);
+	void		mapSpectrum	(DSPCOMPLEX *, double *);
+	void		add_to_average	(double *, double *);
+	void		extractLevels	(double *, int32_t);
 	virtualInput	*myRig;
 	RadioInterface	*myRadioInterface;
 	audioSink	*theSink;
@@ -123,6 +125,7 @@ virtual	void		run		(void);
 	int32_t		averageCount;
 	int32_t		repeatRate;
 	RingBuffer<double> *hfBuffer;
+	RingBuffer<double> *lfBuffer;
 	int16_t		filterDepth;
 	uint8_t		inputMode;
 	int32_t		freezer;
@@ -132,10 +135,12 @@ virtual	void		run		(void);
 	DSPFLOAT	getNoise	(DSPCOMPLEX *, int32_t);
 	bool		squelchOn;
 	int32_t		spectrumSize;
-	common_fft	*spectrum_fft;
-	DSPCOMPLEX	*spectrumBuffer;
+	common_fft	*spectrum_fft_hf;
+	common_fft	*spectrum_fft_lf;
+	DSPCOMPLEX	*spectrumBuffer_hf;
+	DSPCOMPLEX	*spectrumBuffer_lf;
 	double		*displayBuffer;
-	
+	double		*localBuffer;
 	void		sendSampletoOutput	(DSPCOMPLEX);
 	DecimatingFIR	*fmBandfilter;
 	Oscillator	*localOscillator;
@@ -159,20 +164,17 @@ virtual	void		run		(void);
 	int16_t		Lgain;
 	int16_t		Rgain;
 
-	reSampler	*audioDecimator;
+	newConverter	*audioDecimator;
 	DSPCOMPLEX	*audioOut;
-	reSampler	*rdsDecimator;
-	DSPCOMPLEX	*rdsOut;
 	rdsDecoder	*myRdsDecoder;
 
-	void		stereo	(DSPCOMPLEX *, DSPCOMPLEX *, DSPFLOAT *);
-	void		mono	(DSPCOMPLEX *, DSPCOMPLEX *, DSPFLOAT *);
+	void		stereo	(float, DSPCOMPLEX *, DSPFLOAT *);
+	void		mono	(float, DSPCOMPLEX *, DSPFLOAT *);
 	fftFilter	*pilotBandFilter;
 	fftFilter	*rdsBandFilter;
 	fftFilter	*rdsLowPassFilter;
 	HilbertFilter	*rdsHilbertFilter;
 
-	fmLevels	*fm_Levels;
 	DSPFLOAT	pilotDelay;
 	DSPCOMPLEX	audioGainCorrection	(DSPCOMPLEX);
 	DSPFLOAT	Volume;
@@ -193,6 +195,9 @@ virtual	void		run		(void);
 
 	int8_t		rdsModus;
 
+	float		noiseLevel;
+	float		pilotLevel;
+	float		rdsLevel;
 	int8_t		viewSelector;
 	pllC		*rds_plldecoder;
 	DSPFLOAT	K_FM;
@@ -261,7 +266,8 @@ virtual	void		run		(void);
 signals:
 	void		setPLLisLocked		(bool);
 	void		hfBufferLoaded		(int, int);
-	void		showStrength		(int, int, int, bool, float);
+	void		lfBufferLoaded		(int, int);
+	void		showStrength		(float, float);
 	void		scanresult		(void);
 };
 

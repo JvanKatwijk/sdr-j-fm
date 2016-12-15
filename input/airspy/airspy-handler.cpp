@@ -173,6 +173,9 @@ err:
 	airspySettings	-> beginGroup ("airspyHandler");
 	airspySettings -> setValue ("linearity", linearitySlider -> value ());
 	airspySettings -> setValue ("sensitivity", sensitivitySlider -> value ());
+	airspySettings -> setValue ("vga", vgaGain);
+	airspySettings -> setValue ("mixer", mixerGain);
+	airspySettings -> setValue ("lna", lnaGain);
 	airspySettings	-> endGroup ();
 	myFrame	-> hide ();
 	if (Handle == NULL)

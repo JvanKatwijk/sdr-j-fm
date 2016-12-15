@@ -8,9 +8,12 @@ TEMPLATE	= app
 TARGET		= sdr-j-fmreceiver-0.99
 QT		+= widgets
 CONFIG		+= console
-QMAKE_CFLAGS	+= -flto -ffast-math
-QMAKE_CXXFLAGS	+= -flto -ffast-math
-QMAKE_LFLAGS	+= -flto
+#QMAKE_CFLAGS	+= -flto -ffast-math
+#QMAKE_CXXFLAGS	+= -flto -ffast-math
+#QMAKE_LFLAGS	+= -flto
+QMAKE_CXXFLAGS	+= -pg
+QMAKE_CFLAGS	+= -pg
+QMAKE_LFLAGS	+= -pg
 DEPENDPATH += . \
 	      ..\
 	      ../.. \
@@ -63,8 +66,7 @@ HEADERS += ./gui.h \
            ./includes/various/ringbuffer.h \
 	   ./includes/various/pllC.h \
 	   ./includes/various/sincos.h \
-	   ./includes/various/resampler.h \
-	   ./includes/various/converter.h \
+	   ./includes/various/newconverter.h \
 	   ./includes/various/fir-filters.h \
 	   ./includes/various/fft-filters.h \
 	   ./includes/various/iir-filters.h \
@@ -75,7 +77,6 @@ HEADERS += ./gui.h \
 	   ./includes/scopes-qwt6/fft-scope.h \
 	   ./includes/fm/fm-demodulator.h \
 	   ./includes/fm/fm-processor.h \
-	   ./includes/fm/fm-levels.h \
 	   ./includes/rds/rds-decoder.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
 	   ./includes/rds/rds-group.h \
@@ -94,7 +95,7 @@ SOURCES += ./main.cpp \
 	   ./src/various/oscillator.cpp \
 	   ./src/various/pllC.cpp \
 	   ./src/various/sincos.cpp \
-	   ./src/various/resampler.cpp \
+	   ./src/various/newconverter.cpp \
 	   ./src/various/fir-filters.cpp \
 	   ./src/various/fft-filters.cpp \
 	   ./src/various/iir-filters.cpp \
@@ -104,7 +105,6 @@ SOURCES += ./main.cpp \
 	   ./src/scopes-qwt6/fft-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
 	   ./src/fm/fm-processor.cpp \
-	   ./src/fm/fm-levels.cpp \
 	   ./src/rds/rds-decoder.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \
 	   ./src/rds/rds-group.cpp \
