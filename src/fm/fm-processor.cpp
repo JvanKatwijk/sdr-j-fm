@@ -162,7 +162,7 @@
 	DSPFLOAT	F_G	= 0.65 * fmRate / 2; // highest freq in message
 	DSPFLOAT	Delta_F	= 0.95 * fmRate / 2;	//
 	DSPFLOAT	B_FM	= 2 * (Delta_F + F_G);
-	K_FM			= Delta_F * 2 * M_PI / F_G;
+	K_FM			= B_FM * M_PI / F_G;
 	TheDemodulator		= new fm_Demodulator (fmRate,
 	                                              mySinCos, K_FM);
 	fmAudioFilter		= NULL;
@@ -191,10 +191,10 @@
 	dumping			= false;
 	dumpFile		= NULL;
 
-	connect (this, SIGNAL (hfBufferLoaded (int, int)),
-	         myRadioInterface, SLOT (hfBufferLoaded (int, int)));
-	connect (this, SIGNAL (lfBufferLoaded (int, int)),
-	         myRadioInterface, SLOT (lfBufferLoaded (int, int)));
+	connect (this, SIGNAL (hfBufferLoaded (void)),
+	         myRadioInterface, SLOT (hfBufferLoaded (void)));
+	connect (this, SIGNAL (lfBufferLoaded (void)),
+	         myRadioInterface, SLOT (lfBufferLoaded (void)));
 	connect (this, SIGNAL (showStrength (float, float)),
 	         myRadioInterface, SLOT (showStrength (float, float)));
 	connect (this, SIGNAL (scanresult (void)),
@@ -362,7 +362,7 @@ int32_t		bufferSize	= 2 * 8192;
 DSPCOMPLEX	dataBuffer [bufferSize];
 double		displayBuffer_hf [displaySize];
 double		displayBuffer_lf [displaySize];
-int32_t		i, j, k;
+int32_t		i, k;
 DSPCOMPLEX	out;
 DSPCOMPLEX	pcmSample;
 int16_t		hfCount	= 0;
@@ -429,7 +429,7 @@ int		localP		= 0;
 	      hfCount = 0;
 //
 //	and signal the GUI thread that we have data
-	      emit hfBufferLoaded (displaySize, 0);
+	      emit hfBufferLoaded ();
 	   }
 //
 	   if (dumping) {
@@ -508,7 +508,7 @@ int		localP		= 0;
 	                                              displaySize);
 	         lfCount = 0;
 //	and signal the GUI thread that we have data
-	         emit lfBufferLoaded (displaySize, 0);
+	         emit lfBufferLoaded ();
 	      }
 
 	      if ((fmModus == FM_STEREO)) {
@@ -637,19 +637,17 @@ DSPFLOAT	PhaseforRds	= 0;
 	LRDiff		= ykm1	= (LRDiff - ykm1) * alpha + ykm1;
         *audioOut		= DSPCOMPLEX (LRPlus, LRDiff);
 }
-
+//
+//	Since setLFcutoff is only called from within the "run"  function
+//	from where the filter is also called, it is safe to remove
+//	it here
+//	
 void	fmProcessor::setLFcutoff (int32_t Hz) {
 	if (fmAudioFilter != NULL)
 	   delete	fmAudioFilter;
 	fmAudioFilter	= NULL;
 	if (Hz > 0)
 	   fmAudioFilter	= new LowPassFIR (11, Hz, fmRate);
-}
-
-bool	fmProcessor::isLocked (void) {
-	if (!running)
-	   return false;
-	return ((fmModus == FM_STEREO) && (pilotRecover -> isLocked ()));
 }
 
 void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {

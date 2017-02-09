@@ -33,8 +33,12 @@
 //	just a simple class to include elementary squelch handling
 //	The basic idea is that when there is no signal, the noise
 //	in the upper bands will be roughly as high as in the lowerbands.
-
-#define	SQUELCH_HYSTERESIS	0.02
+//	Measurement shows that the average amplitude of the noise in the
+//	upper band is roughly 0.6 times that of the lower part.
+//	If the average signal value of the upper part is larger
+//	than factor times the average signal value of the lower part,
+//	where factor is a value between 0 .. 1, set by the user.
+#define	SQUELCH_HYSTERESIS	0.01
 
 class	squelch {
 private:
@@ -44,14 +48,23 @@ private:
 	int32_t		sampleRate;
 	bool		squelchSuppress;
 	int32_t		squelchCount;
-	DSPFLOAT	squelchAverage;
-	HighPassIIR	*squelchHighpass;
-	LowPassIIR	*squelchLowpass;
+	DSPFLOAT	Average_High;
+	DSPFLOAT	Average_Low;
+	HighPassIIR	squelchHighpass;
+	LowPassIIR	squelchLowpass;
 public:
 	squelch (int32_t	squelchThreshold,
 	         int32_t	keyFrequency,
 	         int32_t	bufsize,
-	         int32_t	sampleRate) {
+	         int32_t	sampleRate):
+	               squelchHighpass (20,
+	                                keyFrequency - 100,
+	                                sampleRate, 
+	                                S_CHEBYSHEV),
+	               squelchLowpass  (20,
+	                                keyFrequency,
+	                                sampleRate,
+	                                S_CHEBYSHEV) {
 	this	-> squelchThreshold	= squelchThreshold;
 	this	-> keyFrequency		= keyFrequency;
 	this	-> holdPeriod		= bufsize;
@@ -59,21 +72,11 @@ public:
 
 	squelchSuppress			= false;
 	squelchCount			= 0;
-	squelchAverage			= 0;
-	squelchHighpass			= new HighPassIIR (20,
-	                                                   keyFrequency - 100,
-	                                                   sampleRate,
-	                                                   S_CHEBYSHEV);
-	squelchLowpass			= new LowPassIIR (20,
-	                                                  keyFrequency,
-	                                                  sampleRate,
-	                                                  S_CHEBYSHEV);
-	squelchAverage			= 0;
+	Average_High			= 0;
+	Average_Low			= 0;
 }
 
 	~squelch (void) {
-	delete	squelchHighpass;
-	delete	squelchLowpass;
 }
 
 void		setSquelchLevel (int n) {
@@ -87,18 +90,23 @@ DSPFLOAT decayingAverage (DSPFLOAT old, DSPFLOAT input, DSPFLOAT weight) {
 	return input * (1.0 / weight) + old * (1.0 - (1.0 / weight));
 }
 
-DSPCOMPLEX	do_squelch (DSPCOMPLEX	v) {
-DSPFLOAT	val;
-	val	= abs (squelchHighpass	-> Pass (v));
-	
-	squelchAverage	= decayingAverage (squelchAverage,
-	                                   val, sampleRate / 100);
+DSPCOMPLEX	do_squelch (DSPCOMPLEX	soundSample) {
+DSPFLOAT	val_1;
+DSPFLOAT	val_2;
+
+	val_1	= abs (squelchHighpass. Pass (soundSample));
+	val_2	= abs (squelchLowpass.       Pass (soundSample));
+
+	Average_High	= decayingAverage (Average_High,
+	                                   val_1, sampleRate / 100);
+	Average_Low	= decayingAverage (Average_Low,
+	                                   val_2, sampleRate / 100);
 
 	if (++squelchCount < holdPeriod) {	// use current squelch state
 	   if (squelchSuppress)
 	      return DSPCOMPLEX (0.001, 0.001);
 	   else
-	      return squelchLowpass -> Pass (v);
+	      return soundSample;
 	}
 
 	squelchCount = 0;
@@ -106,18 +114,16 @@ DSPFLOAT	val;
 	if (squelchThreshold == 0)  	// force squelch if zero
 	   squelchSuppress = true;
 	else	// recompute 
-	if (squelchAverage <
-	          ((float)squelchThreshold / 500 - SQUELCH_HYSTERESIS))
+	if (Average_High < Average_Low * squelchThreshold / 100.0 - SQUELCH_HYSTERESIS)
 	   squelchSuppress = false;
 	else
-	if (squelchAverage >=
-	               ((float)squelchThreshold / 500 + SQUELCH_HYSTERESIS))
+	if (Average_High >= Average_Low * squelchThreshold / 100.0 + SQUELCH_HYSTERESIS)
 	   squelchSuppress = true;
 //	else just keep old squelchSuppress value
 	
 	return squelchSuppress ?
 	           DSPCOMPLEX (0.001, 0.001) :
-	           squelchLowpass -> Pass (v);
+	           soundSample;
 }
 };
 

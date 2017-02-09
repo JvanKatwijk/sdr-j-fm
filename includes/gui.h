@@ -36,6 +36,7 @@
 #include	<QTimer>
 #include	<QQueue>
 #include	<QWheelEvent>
+#include	<QLineEdit>
 #include	<sndfile.h>
 #include	"scope.h"
 #include	"iqdisplay.h"
@@ -43,14 +44,14 @@
 #include	"fft.h"
 #include	"fir-filters.h"
 
-
+class	keyPad;
 class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
 class	fft_scope;
 class	audioSink;
 class	virtualInput;
-#define	HFSPECTRUM	0200
+class	programList;
 
 /*
  *	The main gui object. It inherits from
@@ -61,6 +62,7 @@ class RadioInterface: public QDialog,
 Q_OBJECT
 public:
 		RadioInterface		(QSettings	*,
+	                                 QString,
 	                                 int32_t,
 	                                 QWidget *parent = NULL);
 		~RadioInterface		();
@@ -85,6 +87,7 @@ private:
 	int16_t		scopeAmplification;
 	bool		HFAverager;
 
+	keyPad          *mykeyPad;
 	QSettings	*fmSettings;
 	int32_t		inputRate;
 	int32_t		fmRate;
@@ -115,18 +118,12 @@ private:
 	int32_t		currentFreq;
 
 	void		restoreGUIsettings	(QSettings *);
-	void		ClearPanel		(void);
-	void		AddtoPanel		(int16_t);
-	int		getPanel		(void);
-	void		CorrectPanel		(void);
-
 	void		setDetectorScreen	(int16_t);
 
 	int32_t		mapIncrement		(int32_t);
 	int32_t		IncrementInterval	(int16_t);
 	int32_t		setTuner		(int32_t);
 	void		Display			(int32_t);
-	QTimer		*lcdTimer;
 	QTimer		*autoIncrementTimer;
 	int16_t		IncrementIndex;
 	int32_t		autoIncrement_amount;
@@ -171,45 +168,24 @@ private:
 	bool		squelchMode;
 	void		resetSelector		(void);
 	int32_t		mapRates		(int32_t);
+
+	programList     *myList;
+        QLineEdit       *myLine;
 /*
  *	The private slots link the GUI elements
  *	to the GUI code
  */
 private slots:
 	void	setStart		(void);
-	void	lcd_timeout		(void);
 	void	updateTimeDisplay	(void);
 	void	clickPause		(void);
 
 	void	setInputMode		(const QString &);
-	void	addOne			(void);
-	void	addTwo			(void);
-	void	addThree		(void);
-	void	addFour			(void);
-	void	addFive			(void);
-	void	addSix			(void);
-	void	addSeven		(void);
-	void	addEight		(void);
-	void	addNine			(void);
-	void	addZero			(void);
-	void	addClear		(void);
-	void	AcceptFreqinKhz		(void);
-	void	addCorr			(void);
-
 	void	setAttenuation		(int);
 	void	setIQBalance		(int);
 
 	void	setHFplotterView	(const QString &);
 	void	setHFAverager		(void);
-
-	void	decT5			(void);
-	void	decT50			(void);
-	void	decT500			(void);
-	void	decT5000		(void);
-	void	incT5			(void);
-	void	incT50			(void);
-	void	incT500			(void);
-	void	incT5000		(void);
 
 	void	setStreamOutSelector	(int);
 	void	abortSystem		(int);
@@ -244,9 +220,14 @@ private slots:
 	                                 int32_t, int16_t *);
 	void	set_squelchValue	(int);
 	void	set_squelchMode		(void);
+	void    set_freqSave            (void);
+        void    handle_myLine           (void);
+
 public slots:
-	void	hfBufferLoaded		(int, int);
-	void	lfBufferLoaded		(int, int);
+	void	handle_freqButton	(void);
+	void	newFrequency		(int);
+	void	hfBufferLoaded		(void);
+	void	lfBufferLoaded		(void);
 	void	wheelEvent		(QWheelEvent *);
 	void	setLogging		(const QString &);
 	void	setLogsaving		(void);

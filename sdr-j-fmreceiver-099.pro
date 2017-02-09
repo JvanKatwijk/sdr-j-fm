@@ -8,12 +8,12 @@ TEMPLATE	= app
 TARGET		= sdr-j-fmreceiver-0.99
 QT		+= widgets
 CONFIG		+= console
-#QMAKE_CFLAGS	+= -flto -ffast-math
-#QMAKE_CXXFLAGS	+= -flto -ffast-math
-#QMAKE_LFLAGS	+= -flto
-QMAKE_CXXFLAGS	+= -pg
-QMAKE_CFLAGS	+= -pg
-QMAKE_LFLAGS	+= -pg
+QMAKE_CFLAGS	+= -flto -ffast-math
+QMAKE_CXXFLAGS	+= -flto -ffast-math
+QMAKE_LFLAGS	+= -flto
+#QMAKE_CXXFLAGS	+= -pg
+#QMAKE_CFLAGS	+= -pg
+#QMAKE_LFLAGS	+= -pg
 DEPENDPATH += . \
 	      ..\
 	      ../.. \
@@ -32,7 +32,6 @@ DEPENDPATH += . \
 	      ./src/fm \
 	      ./src/rds \
 	      ./src/scopes-qwt6 \
-	      ./src/various \
 	      ./input \
 	      ./input/filereader
 
@@ -45,21 +44,21 @@ INCLUDEPATH += . \
 	      ./includes/fm \
 	      ./includes/rds \
 	      ./includes/scopes-qwt6 \
-	      ./includes/various \
 	      ./src \
 	      ./src/output \
 	      ./src/various \
 	      ./src/fm \
 	      ./src/rds \
 	      ./src/scopes-qwt6 \
-	      ./src/various \
 	      ./input \
 	      ./input/filereader
 
 # Input
-HEADERS += ./gui.h \
+HEADERS += ./includes/gui.h \
+	   ./includes/popup-keypad.h \
 	   ./includes/fm-constants.h \
 	   ./includes/various/keyboardfilter.h \
+	   ./includes/various/program-list.h \
 	   ./includes/various/squelchClass.h \
            ./includes/various/fft.h \
 	   ./includes/various/oscillator.h \
@@ -85,12 +84,14 @@ HEADERS += ./gui.h \
 	   ./input/filereader/filereader.h \
 	   ./input/filereader/filehulp.h
 
-FORMS += ./sdrgui.ui \
+FORMS +=   ./sdrgui.ui \
 	   ./input/filereader/filereader-widget.ui
 
-SOURCES += ./main.cpp \
-	   ./gui.cpp \
+SOURCES += ./src/main.cpp \
+	   ./src/gui.cpp \
+	   ./src/popup-keypad.cpp \
 	   ./src/various/keyboardfilter.cpp \
+	   ./src/various/program-list.cpp \
            ./src/various/fft.cpp \
 	   ./src/various/oscillator.cpp \
 	   ./src/various/pllC.cpp \

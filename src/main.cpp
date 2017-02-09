@@ -76,6 +76,7 @@ FILE *f;
 	return true;
 }
 #define	DEFAULT_INI	".jsdr-fm.ini"
+#define	STATION_LIST	".jsdr-fm-stations.bin"
 
 int	main (int argc, char **argv) {
 int32_t		opt;
@@ -83,19 +84,20 @@ int32_t		opt;
  *	The default values
  */
 QSettings	*ISettings;		/* .ini file	*/
+int32_t	outputRate	= 48000;
 RadioInterface	*MyRadioInterface;
-char		*initFilename	= NULL;
-char		*defaultInit	= (char *)alloca (512 * sizeof (char));
-int32_t		outputRate	= 48000;
+QString iniFile = QDir::homePath ();
+QString stationList     = QDir::homePath ();
+        iniFile. append ("/");
+        iniFile. append (DEFAULT_INI);
+        iniFile = QDir::toNativeSeparators (iniFile);
 
-	fullPathfor (DEFAULT_INI, defaultInit);
+        stationList. append ("/");
+        stationList. append (STATION_LIST);
+        stationList = QDir::toNativeSeparators (stationList);
 
 	while ((opt = getopt (argc, argv, "A:B:m:i:o:C:T:dIFEMSG")) != -1) {
 	   switch (opt) {
-	      case 'i':	initFilename	=
-	                            (char *) alloca (512 * sizeof (char));
-	                fullPathfor (optarg, initFilename);
-	                break;
 	      case 'm': outputRate = 192000;
 	                break;
 
@@ -107,17 +109,19 @@ int32_t		outputRate	= 48000;
 /*
  *	... and the settings of the "environment"
  */
-	if (initFilename == NULL)
-	   initFilename = defaultInit;
-	ISettings	= new QSettings (initFilename, QSettings::IniFormat);
+	ISettings	= new QSettings (iniFile, QSettings::IniFormat);
 /*
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
 	QApplication a (argc, argv);
-	MyRadioInterface = new RadioInterface (ISettings, outputRate);
-	MyRadioInterface -> show ();
-	a. exec ();
+#if QT_VERSION >= 0x050600
+        QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+#endif
+        MyRadioInterface = new RadioInterface (ISettings, stationList, outputRate);
+        MyRadioInterface -> show ();
+        a. exec ();
+
 /*
  *	done:
  */

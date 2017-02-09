@@ -91,7 +91,6 @@ public:
 	DSPFLOAT	get_rdsStrength		(void);
 	DSPFLOAT	get_noiseStrength	(void);
 	DSPFLOAT	get_dcComponent		(void);
-	bool		isLocked		(void);
 	void		startScanning		(void);
 	void		stopScanning		(void);
 	const char *	nameofDecoder	(void);
@@ -265,8 +264,8 @@ virtual	void		run		(void);
 
 signals:
 	void		setPLLisLocked		(bool);
-	void		hfBufferLoaded		(int, int);
-	void		lfBufferLoaded		(int, int);
+	void		hfBufferLoaded		(void);
+	void		lfBufferLoaded		(void);
 	void		showStrength		(float, float);
 	void		scanresult		(void);
 };

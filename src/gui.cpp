@@ -31,12 +31,15 @@
 #include	<QDateTime>
 #include	"fm-constants.h"
 #include	"gui.h"
+#include	"popup-keypad.h"
 #include	"fm-processor.h"
 #include	"fm-demodulator.h"
 #include	"rds-decoder.h"
 #include	"fft-scope.h"
 #include	"scope.h"
 #include	"audiosink.h"
+#include	"program-list.h"
+
 #include	"virtual-input.h"
 #include	"filereader.h"
 #ifdef	HAVE_PMSDR
@@ -86,6 +89,7 @@ int16_t	delayTable [] = {1, 3, 5, 7, 9, 10, 15};
   * @date 2015-01-07
   */
 	RadioInterface::RadioInterface (QSettings	*Si,
+	                                QString		stationList,
 	                                int32_t		outputRate,
 	                                QWidget		*parent): QDialog (parent) {
 int16_t	i;
@@ -187,7 +191,6 @@ int	k;
 	
 	setup_HFScope	();
 	setup_LFScope	();
-	ClearPanel	();
 	sourceDumping		= false;
 	audioDumping		= false;
 	dumpfilePointer		= NULL;
@@ -224,16 +227,10 @@ int	k;
 //	he does the connections from the gui buttons, sliders etc
 	localConnects		();
 
-//	Create a timer for dealing with a non acting (or reacting) user
-//	on the keyboard
-	lcdTimer		= new QTimer ();
-	lcdTimer		-> setSingleShot (true);	// single shot
-	lcdTimer		-> setInterval (5000);
-	connect (lcdTimer,
-	         SIGNAL (timeout ()),
-	         this,
-	         SLOT (lcd_timeout ()));
-//
+	mykeyPad                = new keyPad (this);
+        connect (freqButton, SIGNAL (clicked (void)),
+                 this, SLOT (handle_freqButton (void)));
+
 //	Create a timer for autoincrement/decrement of the tuning
 	autoIncrementTimer	= new QTimer ();
 	autoIncrementTimer	-> setSingleShot (true);
@@ -284,6 +281,11 @@ int	k;
 	connect (maximumSelect, SIGNAL (valueChanged (int)),
 	              this, SLOT (set_maximum (int)));
 	displayTimer		-> start (1000);
+	myList  = new programList (this, stationList);
+        myList  -> show ();
+        myLine  = NULL;
+        connect (freqSave, SIGNAL (clicked (void)),
+                 this, SLOT (set_freqSave (void)));
 }
 
 //
@@ -292,7 +294,6 @@ int	k;
 	delete		hfScope;
 	delete		lfScope;
 
-	delete		lcdTimer;
 	delete		autoIncrementTimer;
 	delete		displayTimer;
 	delete		our_audioSink;
@@ -398,16 +399,21 @@ void	RadioInterface::TerminateProcess (void) {
 	   our_audioSink		-> stopDumping ();
 	   sf_close (audiofilePointer);
 	}
-	
-	stop_lcdTimer		();
+
 	stopIncrementing	();
-//
+	myList		-> saveTable ();
+	dumpControlState (fmSettings);
+        fmSettings              -> sync ();
+
 //	It is pretty important that no one is attempting to
 //	set things within the FMprocessor when it is
 //	being deleted
 	setDevice (QString ("dummy"));	// will select a virtualinput
 	accept ();
 	qDebug () <<  "Termination started";
+
+	delete	mykeyPad;
+	delete	myList;
 }
 
 void	RadioInterface::abortSystem (int d) {
@@ -722,139 +728,6 @@ int16_t	bl, br;
 	if (myFMprocessor != NULL)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
 }
-/*
- * 	Handling the numeric keypad is boring, but inevitable
- */
-void RadioInterface::addOne (void) {
-	AddtoPanel (1);
-}
-
-void RadioInterface::addTwo (void) {
-	AddtoPanel (2);
-}
-
-void RadioInterface::addThree (void) {
-	AddtoPanel (3);
-}
-
-void RadioInterface::addFour (void) {
-	AddtoPanel (4);
-}
-
-void RadioInterface::addFive (void) {
-	AddtoPanel (5);
-}
-
-void RadioInterface::addSix (void) {
-	AddtoPanel (6);
-}
-
-void RadioInterface::addSeven (void) {
-	AddtoPanel (7);
-}
-
-void RadioInterface::addEight (void) {
-	AddtoPanel (8);
-}
-
-void RadioInterface::addNine (void) {
-	AddtoPanel (9);
-}
-
-void RadioInterface::addZero (void) {
-	AddtoPanel (0);
-}
-
-void RadioInterface::addClear (void) {
-	if (!lcdTimer -> isActive ())
-	   return;
-
-	stop_lcdTimer	();
-//	we know that the increment timer is not running
-
-	ClearPanel ();
-	Display (currentFreq);
-}
-//
-//	Note that in fm receiver, user commands are in KHz
-//
-void RadioInterface::AcceptFreqinKhz (void) {
-int32_t	p;
-
-	if (!lcdTimer -> isActive ())
-	   return;
-
-	stop_lcdTimer	();
-//	we know that the increment timer is not running,
-//	so there is no reason to stop it
-	p = getPanel ();
-	ClearPanel ();
-	currentFreq	= setTuner (Khz (p));
-}
-
-void RadioInterface::addCorr (void) {
-	if (!lcdTimer -> isActive ()) 
-	   return;
-
-	stop_lcdTimer	();
-//	increment timer cannot run now so no reason
-//	to stop it
-	Panel = (Panel - (Panel % 10)) / 10;
-	Display	(Panel);
-	lcdTimer	-> start (5000);		// restart timer
-}
-//
-//	In AddtoPanel, we might have any of the two
-//	timers running, do not know which one though
-void	RadioInterface::AddtoPanel (int16_t n) {
-	stop_lcdTimer		();
-	stopIncrementing	();
-
-	Panel		= 10 * Panel + n;
-	lcd_Frequency	-> setDigitCount (7);
-	lcd_Frequency	-> display ((int)Panel);
-	lcdTimer	-> start (5000);		// restart timer
-}
-
-void	RadioInterface::ClearPanel (void) {
-	Panel = 0;
-}
-
-int	RadioInterface::getPanel (void) {
-	return Panel;
-}
-
-void RadioInterface::decT5 (void) {
-	IncrementFrequency (mapIncrement (-1));
-}
-
-void RadioInterface::decT50 (void) {
-	IncrementFrequency (mapIncrement (-10));
-}
-
-void RadioInterface::decT500 (void) {
-	IncrementFrequency (mapIncrement (-100));
-}
-
-void RadioInterface::decT5000 (void) {
-	IncrementFrequency (mapIncrement (-1000));
-}
-
-void RadioInterface::incT5 (void) {
-	IncrementFrequency (mapIncrement (1));
-}
-
-void RadioInterface::incT50 (void) {
-	IncrementFrequency (mapIncrement (10));
-}
-
-void RadioInterface::incT500 (void) {
-	IncrementFrequency (mapIncrement (100));
-}
-
-void RadioInterface::incT5000 (void) {
-	IncrementFrequency (mapIncrement (1000));
-}
 //
 //	Increment frequency: with amount N, depending
 //	on the mode of operation
@@ -871,7 +744,6 @@ int32_t 	RadioInterface::mapIncrement (int32_t n) {
 void	RadioInterface::IncrementFrequency (int32_t n) {
 int32_t	vfoFreq;
 
-	stop_lcdTimer	();
 	stopIncrementing	();
 	vfoFreq		= myRig	 -> getVFOFrequency	();
 	currentFreq	= setTuner (vfoFreq + LOFrequency + n);
@@ -1007,7 +879,6 @@ void	RadioInterface::stopIncrementing (void) {
 }
 
 void	RadioInterface::autoIncrementButton (void) {
-	stop_lcdTimer ();
 
 	if (autoIncrementTimer	-> isActive ())
 	   autoIncrementTimer -> stop ();
@@ -1025,7 +896,6 @@ void	RadioInterface::autoIncrementButton (void) {
 }
 
 void	RadioInterface::autoDecrementButton (void) {
-	stop_lcdTimer ();
 
 	if (autoIncrementTimer	-> isActive ())
 	   autoIncrementTimer -> stop ();
@@ -1066,22 +936,11 @@ void	RadioInterface::DecrementButton (void) {
 	currentFreq	= setTuner (currentFreq - Khz (fmIncrement));
 }
 //
-//=======================end of incrementing code===========================
-void	RadioInterface::stop_lcdTimer (void) {
-	if (lcdTimer -> isActive ())
-	   lcdTimer -> stop ();
-}
-
 void	RadioInterface::updateTimeDisplay (void) {
 QDateTime	currentTime = QDateTime::currentDateTime ();
 
 	timeDisplay	-> setText (currentTime.
 	                            toString (QString ("dd.MM.yy:hh:mm:ss")));
-}
-
-void	RadioInterface::lcd_timeout (void) {
-	Panel		= 0;			// throw away anything
-	Display (currentFreq);
 }
 
 void	RadioInterface::set_dumping (void) {
@@ -1194,35 +1053,6 @@ void	RadioInterface::localConnects (void) {
  */
 	connect (inputModeSelect, SIGNAL (activated(const QString&) ),
 	              this, SLOT (setInputMode (const QString&) ) );
-/*
- *	connections for the console, first the digits
- */
-	connect (add_one,   SIGNAL (clicked() ), this, SLOT (addOne() ) );
-	connect (add_two,   SIGNAL (clicked() ), this, SLOT (addTwo() ) );
-	connect (add_three, SIGNAL (clicked() ), this, SLOT (addThree() ) );
-	connect (add_four,  SIGNAL (clicked() ), this, SLOT (addFour() ) );
-	connect (add_five,  SIGNAL (clicked() ), this, SLOT (addFive() ) );
-	connect (add_six,   SIGNAL (clicked() ), this, SLOT (addSix() ) );
-	connect (add_seven, SIGNAL (clicked() ), this, SLOT (addSeven() ) );
-	connect (add_eight, SIGNAL (clicked() ), this, SLOT (addEight() ) );
-	connect (add_nine,  SIGNAL (clicked() ), this, SLOT (addNine() ) );
-	connect (add_zero,  SIGNAL (clicked() ), this, SLOT (addZero() ) );
-/*
- *	function buttons
- */
-	connect (khzSelector, SIGNAL (clicked ()),
-	                      this, SLOT (AcceptFreqinKhz ()));
-	connect (add_correct, SIGNAL (clicked() ), this, SLOT (addCorr() ) );
-	connect (add_clear,   SIGNAL (clicked() ), this, SLOT (addClear() ) );
-/*
- *	The increment and decrement buttons
- */
-	connect (dec_5,	   SIGNAL (clicked() ), this, SLOT (decT5() ) );
-	connect (dec_50,   SIGNAL (clicked() ), this, SLOT (decT50() ) );
-	connect (dec_500,  SIGNAL (clicked() ), this, SLOT (decT500() ) );
-	connect (inc_5,	   SIGNAL (clicked() ), this, SLOT (incT5() ) );
-	connect (inc_50,   SIGNAL (clicked() ), this, SLOT (incT50() ) );
-	connect (inc_500,  SIGNAL (clicked() ), this, SLOT (incT500() ) );
 
 	connect (fc_plus, SIGNAL (clicked (void)),
 	              this, SLOT (autoIncrementButton (void)));
@@ -1599,13 +1429,13 @@ void	RadioInterface::set_squelchValue (int n) {
 //	in the GUI environment. The FM processor prepares "views"
 //	and punt these views into a shared buffer. If the buffer is
 //	full, a signal is sent.
-void	RadioInterface::hfBufferLoaded (int amount, int vfoFrequency) {
+void	RadioInterface::hfBufferLoaded (void) {
 double	*X_axis		= (double *)alloca (displaySize * sizeof (double));
 double	*Y_values	= (double *)alloca (displaySize * sizeof (double));
 double	temp		= (double)inputRate / 2 / displaySize;
 int16_t	i;
+int32_t	vfoFrequency;
 
-	(void)amount;		// currently not used, maybe later
 	vfoFrequency	= myRig	-> getVFOFrequency ();
 
 //	first X axis labels
@@ -1625,13 +1455,11 @@ int16_t	i;
 //	in the GUI environment. The FM processor prepares "views"
 //	and punt these views into a shared buffer. If the buffer is
 //	full, a signal is sent.
-void	RadioInterface::lfBufferLoaded (int amount, int vfoFrequency) {
+void	RadioInterface::lfBufferLoaded (void) {
 double	*X_axis		= (double *)alloca (displaySize * sizeof (double));
 double	*Y_values	= (double *)alloca (displaySize * sizeof (double));
 double	temp		= (double)fmRate / 2 / displaySize;
 int16_t	i;
-
-	(void)amount;		// currently not used, maybe later
 
 //	first X axis labels
 	for (i = 0; i < displaySize; i ++)
@@ -1793,5 +1621,32 @@ int	k	= deviceSelector -> findText (QString ("no device"));
 	}
 	connect (deviceSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (setDevice (const QString &)));
+}
+
+void    RadioInterface::handle_freqButton (void) {
+        if (mykeyPad -> isVisible ())
+           mykeyPad -> hidePad ();
+        else
+           mykeyPad     -> showPad ();
+}
+
+void	RadioInterface::newFrequency	(int f) {
+	stopIncrementing ();
+	currentFreq	= setTuner (f);
+}
+
+void    RadioInterface::set_freqSave    (void) {
+        myLine  = new QLineEdit ();
+        myLine  -> show ();
+        connect (myLine, SIGNAL (returnPressed (void)),
+                 this, SLOT (handle_myLine (void)));
+}
+
+void    RadioInterface::handle_myLine (void) {
+int32_t freq    = myRig -> getVFOFrequency ();
+QString programName     = myLine -> text ();
+        myList  -> addRow (programName, QString::number (freq / Khz (1)));
+        delete myLine;
+        myLine  = NULL;
 }
 
