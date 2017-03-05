@@ -1,9 +1,0 @@
-
-A recent change in the sdrplay installer leads to incompatible naming
-with previous versions
-
-If you have the most recent version (afaik 14 nov 2015)
-define
-#define	SDRPLAY_LIBRARY_NEW
-in either the configuration file or the file .../sdrplay/sdrplay-loader.cpp
-

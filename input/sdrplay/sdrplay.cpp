@@ -28,148 +28,140 @@
 #include	<QSettings>
 #include	<QHBoxLayout>
 #include	<QLabel>
+#include	"sdrplay.h"
 
-#include	"sdrplay.h"		// our header
-#include	"sdrplay-worker.h"	// the worker
-#include	"sdrplay-loader.h"	// funtion loader
-//
-#define	DEFAULT_GAIN	25
+#define	DEFAULT_GAIN	40
 
-	sdrplay::sdrplay  (QSettings *s, bool full, bool *success) {
+	sdrplay::sdrplay  (QSettings *s, bool *success) {
 int	err;
 float	ver;
-QString	h;
-int	k, i;
+mir_sdr_DeviceT devDesc;
+mir_sdr_GainValuesT gainDesc;
 
 	sdrplaySettings		= s;
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
+	this	-> inputRate	= Khz (2112);
 
-	inputRate	=  Khz (1536);
-	sdrplaySettings		-> beginGroup ("sdrplay");
-	currentGain	= sdrplaySettings -> value ("externalGain", 70). toInt ();
-	externalGain		-> setValue (currentGain);
-	attenuationDisplay	-> display (currentGain);
-	sdrplaySettings	-> endGroup ();
-
-	if (!full) {
-	   while (rateSelector -> count () > 0)
-	      rateSelector -> removeItem (rateSelector -> currentIndex ());
-	   rateSelector	-> addItem (QString::number (inputRate / Khz (1)));
-	}
-	this	-> bandWidth	= getBandwidth (inputRate);
-	
 	*success		= false;
 	_I_Buffer	= NULL;
-	theLoader	= NULL;
+	libraryLoaded	= false;
+	*success	= false;
 
-	theLoader	= new sdrplayLoader (success);
+#ifdef	__MINGW32__
+HKEY APIkey;
+wchar_t APIkeyValue [256];
+ULONG APIkeyValue_length = 255;
+	if (RegOpenKey (HKEY_LOCAL_MACHINE,
+	                TEXT("Software\\MiricsSDR\\API"),
+	                &APIkey) != ERROR_SUCCESS) {
+          fprintf (stderr,
+	           "failed to locate API registry entry, error = %d\n",
+	           (int)GetLastError());
+	   return;
+	}
+	RegQueryValueEx (APIkey,
+	                 (wchar_t *)L"Install_Dir",
+	                 NULL,
+	                 NULL,
+	                 (LPBYTE)&APIkeyValue,
+	                 (LPDWORD)&APIkeyValue_length);
+//	Ok, make explicit it is in the 64 bits section
+	wchar_t *x = wcscat (APIkeyValue, (wchar_t *)L"\\x86\\mir_sdr_api.dll");
+//	wchar_t *x = wcscat (APIkeyValue, (wchar_t *)L"\\x64\\mir_sdr_api.dll");
+//	fprintf (stderr, "Length of APIkeyValue = %d\n", APIkeyValue_length);
+//	wprintf (L"API registry entry: %s\n", APIkeyValue);
+	RegCloseKey(APIkey);
+
+	Handle	= LoadLibrary (x);
+	if (Handle == NULL) {
+	  fprintf (stderr, "Failed to open mir_sdr_api.dll\n");
+	  return;
+	}
+#else
+	Handle		= dlopen ("libusb-1.0.so", RTLD_NOW | RTLD_GLOBAL);
+
+	Handle		= dlopen ("libmirsdrapi-rsp.so", RTLD_NOW);
+	if (Handle == NULL)
+	   Handle	= dlopen ("libmir_sdr.so", RTLD_NOW);
+
+	if (Handle == NULL) {
+	   fprintf (stderr, "error report %s\n", dlerror ());
+	   return;
+	}
+#endif
+	libraryLoaded	= true;
+
+	*success = loadFunctions ();
 	if (!(*success)) {
 	   fprintf (stderr, " No success in loading sdrplay lib\n");
-	   delete theLoader;
-	   theLoader = NULL;
 	   return;
 	}
 
-	err		= theLoader -> my_mir_sdr_ApiVersion (&ver);
-	if (ver != MIR_SDR_API_VERSION) {
-	   fprintf (stderr, "Foute API: %f, %f\n", ver, MIR_SDR_API_VERSION);
-	   statusLabel	-> setText ("mirics error");
-	}
-
+	my_mir_sdr_ApiVersion (&ver);
 	api_version	-> display (ver);
-	_I_Buffer	= new RingBuffer<int16_t>(2 * 1024 * 1024);
+	_I_Buffer	= new RingBuffer<DSPCOMPLEX>(2 * 1024 * 1024);
 	vfoFrequency	= Khz (94700);
 	currentGain	= DEFAULT_GAIN;
 	vfoOffset	= 0;
-	theWorker	= NULL;
-	connect (externalGain, SIGNAL (valueChanged (int)),
+
+	sdrplaySettings		-> beginGroup ("sdrplaySettings");
+	gainSlider 		-> setValue (
+	            sdrplaySettings -> value ("externalGain", 10). toInt ());
+	ppmControl		-> setValue (
+	            sdrplaySettings -> value ("sdrplay-ppm", 0). toInt ());
+	sdrplaySettings	-> endGroup ();
+//
+ 	setExternalGain (gainSlider	-> value ());
+        set_ppmControl  (ppmControl	-> value ());
+
+	connect (gainSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setExternalGain (int)));
-	connect (ppm_corrector, SIGNAL (valueChanged (int)),
-	         this, SLOT (ppmCorrection  (int)));
-	connect (rateSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_rateSelector (const QString &)));
+	connect (agcControl, SIGNAL (stateChanged (int)),
+	         this, SLOT (agcControl_toggled (int)));
+	connect (ppmControl, SIGNAL (valueChanged (int)),
+                 this, SLOT (set_ppmControl (int)));
+
+	uint32_t a;
+        my_mir_sdr_GetDevices (&devDesc, &a, uint32_t (2));
+        serialNumber -> setText (devDesc. SerNo);
+        fprintf (stderr, "hwVer = %d\n", devDesc. hwVer);
+        unsigned char text;
+        (void)my_mir_sdr_GetHwVersion (&text);
+        my_mir_sdr_ResetUpdateFlags (1, 0, 0);
+
+	running		= false;
+	agcMode		= false;
 	*success	= true;
 }
 
 	sdrplay::~sdrplay	(void) {
+	sdrplaySettings	-> beginGroup ("sdrplaySettings");
+	sdrplaySettings	-> setValue ("externalGain", gainSlider -> value ());
+	sdrplaySettings	-> setValue ("sdrplay-ppm", ppmControl -> value ());
+	sdrplaySettings	-> endGroup ();
 	stopReader ();
 	if (_I_Buffer != NULL)
 	   delete _I_Buffer;
-	if (theLoader != NULL)
-	   delete theLoader;
-	if (theWorker != NULL)
-	   delete theWorker;
-	sdrplaySettings	-> beginGroup ("sdrplay");
-	sdrplaySettings	-> setValue ("externalGain", externalGain -> value ());
-	sdrplaySettings	-> setValue ("ppm_correction", ppm_corrector -> value ());
-	sdrplaySettings	-> setValue ("sdrplayRate", 
-	                              rateSelector -> currentText (). toLatin1 (). data ());
-	sdrplaySettings	-> endGroup ();
-	delete myFrame;
+	delete	myFrame;
 }
 //
-//	The filter bank for the dongle is the first
-//	one
 static inline
-int16_t	bankFor_dongle (int32_t freq) {
+int16_t	bankFor_sdr (int32_t freq) {
 	if (freq < 60 * MHz (1))
-	   return -1;
-	if (freq < 120 * MHz (1))
 	   return 1;
-	if (freq < 245 * MHz (1))
+	if (freq < 120 * MHz (1))
 	   return 2;
-	if (freq < 420 * MHz (1))
-	   return -1;
-	if (freq < 1000 * MHz (1))
+	if (freq < 250 * MHz (1))
 	   return 3;
+	if (freq < 420 * MHz (1))
+	   return 4;
+	if (freq < 1000 * MHz (1))
+	   return 5;
+	if (freq < 2000 * MHz (1))
+	   return 6;
 	return -1;
-}
-//
-//	But for the sdrplay we use the second one
-static inline
-int16_t bankFor_sdr (int32_t freq) {
-	if (freq < 100 * Khz (1))
-	   return -1;
-	if (MIR_SDR_API_VERSION > 1.5) {
-	   if (freq < 12 * Mhz (1))
-	      return 1;
-	   if (freq < 30 * Mhz (1))
-	      return 2;
-	   if (freq < 60 * Mhz (1))
-	      return 3;
-	   if (freq < 120 * Mhz (1))
-	      return 4;
-	   if (freq < 250 * Mhz (1))
-	      return 5;
-	   if (freq < 420 * Mhz (1))
-	      return 6;
-	   if (freq < 1000 * Mhz (1))
-	      return 7;
-	   if (freq < 2000 * Mhz (1))
-	      return 8;
-	   return - 1;
-	}
-	else {   // old API
-	   if (freq < 12 * MHz (1))
-	      return 1;
-	   if (freq < 30 * MHz (1))
-	      return 2;
-	   if (freq < 60 * MHz (1))
-	      return 3;
-	   if (freq < 120 * MHz (1))
-	      return 4;
-	   if (freq < 250 * MHz (1))
-	      return 5;
-	   if (freq < 380 * MHz (1))
-	      return 6;
-	   if (freq < 420 * MHz (1))
-	      return -1;
-	   if (freq < 1000 * MHz (1))
-	      return 7;
-	   return -1;
-	}
 }
 
 bool	sdrplay::legalFrequency (int32_t f) {
@@ -181,25 +173,35 @@ int32_t	sdrplay::defaultFrequency	(void) {
 }
 
 void	sdrplay::setVFOFrequency	(int32_t newFrequency) {
-int32_t	realFreq = newFrequency + vfoOffset;
+int	gRdBSystem;
+int	samplesPerPacket;
+mir_sdr_ErrT	err;
 
-	if (bankFor_sdr (realFreq) == -1)
+	if (bankFor_sdr (newFrequency) == -1)
 	   return;
 
-	if (theWorker == NULL) {
-	   vfoFrequency = newFrequency + vfoOffset;
-	   return;
-	}
-
-	if (bankFor_sdr (realFreq) != bankFor_sdr (vfoFrequency)) {
-	   stopReader ();
-	   vfoFrequency	= realFreq;
-	   restartReader ();
+	if (!running) {
+	   vfoFrequency = newFrequency;
 	   return;
 	}
+
+	if (bankFor_sdr (newFrequency) == bankFor_sdr (vfoFrequency))
+	    err	= my_mir_sdr_SetRf (double (newFrequency), 1, 0);
 	else
-	   theWorker -> setVFOFrequency (realFreq);
-	vfoFrequency = realFreq;
+	   err = my_mir_sdr_Reinit (&currentGain,
+	                            double (inputRate) / Mhz (1),
+	                            double (newFrequency) / Mhz (1),
+	                            mir_sdr_BW_0_300,
+	                            mir_sdr_IF_Zero,
+	                            mir_sdr_LO_Undefined,	// LOMode
+	                            0,	// LNA enable
+	                            &gRdBSystem,
+	                            agcMode,	
+	                            &samplesPerPacket,
+	                            mir_sdr_CHANGE_RF_FREQ);
+	if (err != 0)
+	   fprintf (stderr, "Error %d\n", err);
+	vfoFrequency = newFrequency;
 }
 
 int32_t	sdrplay::getVFOFrequency	(void) {
@@ -207,82 +209,110 @@ int32_t	sdrplay::getVFOFrequency	(void) {
 }
 
 void	sdrplay::setExternalGain	(int newGain) {
-	if (newGain < 0 || newGain > 102)
+	if (newGain < 0 || newGain >= 102)
 	   return;
 
-	if (theWorker != NULL)
-	   theWorker -> setExternalGain (newGain);
-	currentGain = newGain;
-	attenuationDisplay	-> display (currentGain);
+	currentGain = maxGain () - newGain;
+	my_mir_sdr_SetGr (currentGain, 1, 0);
+	gainDisplay	-> display (maxGain () - currentGain);
 }
 
 int16_t	sdrplay::maxGain	(void) {
 	return 101;
 }
 
-int32_t	sdrplay::setExternalRate	(int32_t newRate) {
-	if (newRate < bandWidth)
-	   return inputRate;
+static
+void myStreamCallback (int16_t		*xi,
+	               int16_t		*xq,
+	               uint32_t		firstSampleNum, 
+	               int32_t		grChanged,
+	               int32_t		rfChanged,
+	               int32_t		fsChanged,
+	               uint32_t		numSamples,
+	               uint32_t		reset,
+	               void		*cbContext) {
+int16_t	i;
+sdrplay	*p	= static_cast<sdrplay *> (cbContext);
+DSPCOMPLEX *localBuf = (DSPCOMPLEX *)alloca (numSamples * sizeof (DSPCOMPLEX));
 
-	if (theWorker != NULL)
-	   theWorker -> setExternalRate (newRate);
-	inputRate	= newRate;
-	return inputRate;
+	for (i = 0; i <  (int)numSamples; i ++)
+	   localBuf [i] = DSPCOMPLEX (float (xi [i]) / 2048.0,
+	                              float (xq [i]) / 2048.0);
+	p -> _I_Buffer -> putDataIntoBuffer (localBuf, numSamples);
+	(void)	firstSampleNum;
+	(void)	grChanged;
+	(void)	rfChanged;
+	(void)	fsChanged;
+	(void)	reset;
 }
 
-int32_t	sdrplay::getRate	(void) {
-	return inputRate;
+void	myGainChangeCallback (uint32_t	gRdB,
+	                      uint32_t	lnaGRdB,
+	                      void	*cbContext) {
+	(void)gRdB;
+	(void)lnaGRdB;	
+	(void)cbContext;
 }
 
 bool	sdrplay::restartReader	(void) {
-bool	success;
+int	gRdBSystem;
+int	samplesPerPacket;
+mir_sdr_ErrT	err;
 
-	if (theWorker != NULL)
+	if (running)
 	   return true;
-	_I_Buffer	-> FlushRingBuffer ();
 
-	theWorker = new sdrplayWorker (inputRate,
-	                               bandWidth,
-	                               vfoFrequency,
-	                               theLoader,
-	                               _I_Buffer,
-	                               &success);
-	if (success)
-	   theWorker -> setExternalGain (currentGain);
-	return success;
+	fprintf (stderr, "restart met %d\n", vfoFrequency);
+	err	= my_mir_sdr_StreamInit (&currentGain,
+	                                 double (inputRate) / MHz (1),
+	                                 double (vfoFrequency) / Mhz (1),
+	                                 mir_sdr_BW_1_536,
+	                                 mir_sdr_IF_Zero,
+	                                 0,	// lnaEnable do not know yet
+	                                 &gRdBSystem,
+	                                 agcMode, // useGrAltMode,do not know yet
+	                                 &samplesPerPacket,
+	                                 (mir_sdr_StreamCallback_t)myStreamCallback,
+	                                 (mir_sdr_GainChangeCallback_t)myGainChangeCallback,
+	                                 this);
+	if (err != mir_sdr_Success) {
+	   fprintf (stderr, "error code = %d\n", err);
+	   return false;
+	}
+	my_mir_sdr_SetPpm (double (ppmControl -> value ()));
+	err		= my_mir_sdr_SetDcMode (4, 1);
+	err		= my_mir_sdr_SetDcTrackTime (63);
+//
+	my_mir_sdr_SetSyncUpdatePeriod ((int)(inputRate / 3));
+	my_mir_sdr_SetSyncUpdateSampleNum (samplesPerPacket);
+//	my_mir_sdr_AgcControl (1, -30, 0, 0, 0, 0, 0);
+	my_mir_sdr_DCoffsetIQimbalanceControl (0, 1);
+	running 	= true;
+	return true;
 }
 
 void	sdrplay::stopReader	(void) {
-	if (theWorker == NULL)
+	if (!running)
 	   return;
-	theWorker	-> stop ();
-	while (theWorker -> isRunning ())
-	   usleep (100);
-	delete theWorker;
-	theWorker = NULL;
-}
-//
-//	The brave old getSamples. 
-//	we get the size in I/Q pairs
-//	Note that the sdrPlay returns 10 bit values
-int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size) { 
-int32_t	amount, i;
-int16_t	buf [2 * size];
-//
-	amount = _I_Buffer	-> getDataFromBuffer (buf, 2 * size);
-	for (i = 0; i < amount / 2; i ++)  
-	   V [i] = DSPCOMPLEX (buf [2 * i] / 1024.0,
-	                       buf [2 * i + 1] / 1024.0);
-	return amount / 2;
+
+	my_mir_sdr_StreamUninit	();
+	running		= false;
 }
 
-int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size, uint8_t M) {
-	(void)M;
-	return getSamples (V, size);
+//
+//	The brave old getSamples. For the sdrplay, we get
+//	size still in I/Q pairs
+int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size) { 
+	return _I_Buffer	-> getDataFromBuffer (V, size);
+}
+
+int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size, uint8_t Mode) { 
+	(void)Mode;
+	return _I_Buffer	-> getDataFromBuffer (V, size);
 }
 
 int32_t	sdrplay::Samples	(void) {
-	return _I_Buffer	-> GetRingBufferReadAvailable () / 2;
+	return _I_Buffer	-> GetRingBufferReadAvailable ();
 }
 
 uint8_t	sdrplay::myIdentity	(void) {
@@ -294,36 +324,173 @@ void	sdrplay::resetBuffer	(void) {
 }
 
 int16_t	sdrplay::bitDepth	(void) {
-	return 11;
+	return 12;
 }
 
-int32_t	sdrplay::getBandwidth	(int32_t rate) {
-static int validWidths [] = {200, 300, 600, 1536, 5000, 6000, 7000, 8000, -1};
-int16_t	i;
-	for (i = 1; validWidths [i] != -1; i ++)
-	   if (rate / Khz (1) < validWidths [i] &&
-	       rate / Khz (1) >= validWidths [i - 1])
-	      return validWidths [i - 1] * Khz (1);
-	if (rate / Khz (1) == 8000)
-	   return rate;
-	return 1536 * Khz (1);	// default
+bool	sdrplay::loadFunctions	(void) {
+
+	my_mir_sdr_StreamInit	= (pfn_mir_sdr_StreamInit)
+	                    GETPROCADDRESS (this -> Handle,
+	                                    "mir_sdr_StreamInit");
+	if (my_mir_sdr_StreamInit == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_StreamInit\n");
+	   return false;
+	}
+
+	my_mir_sdr_StreamUninit	= (pfn_mir_sdr_StreamUninit)
+	                    GETPROCADDRESS (this -> Handle,
+	                                    "mir_sdr_StreamUninit");
+	if (my_mir_sdr_StreamUninit == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_StreamUninit\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetRf	= (pfn_mir_sdr_SetRf)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetRf");
+	if (my_mir_sdr_SetRf == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetRf\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetFs	= (pfn_mir_sdr_SetFs)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetFs");
+	if (my_mir_sdr_SetFs == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetFs\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetGr	= (pfn_mir_sdr_SetGr)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetGr");
+	if (my_mir_sdr_SetGr == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetGr\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetGrParams	= (pfn_mir_sdr_SetGrParams)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetGrParams");
+	if (my_mir_sdr_SetGrParams == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetGrParams\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetDcMode	= (pfn_mir_sdr_SetDcMode)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetDcMode");
+	if (my_mir_sdr_SetDcMode == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetDcMode\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetDcTrackTime	= (pfn_mir_sdr_SetDcTrackTime)
+	                    GETPROCADDRESS (Handle, "mir_sdr_SetDcTrackTime");
+	if (my_mir_sdr_SetDcTrackTime == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetDcTrackTime\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetSyncUpdateSampleNum = (pfn_mir_sdr_SetSyncUpdateSampleNum)
+	               GETPROCADDRESS (Handle, "mir_sdr_SetSyncUpdateSampleNum");
+	if (my_mir_sdr_SetSyncUpdateSampleNum == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetSyncUpdateSampleNum\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetSyncUpdatePeriod	= (pfn_mir_sdr_SetSyncUpdatePeriod)
+	                GETPROCADDRESS (Handle, "mir_sdr_SetSyncUpdatePeriod");
+	if (my_mir_sdr_SetSyncUpdatePeriod == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetSyncUpdatePeriod\n");
+	   return false;
+	}
+
+	my_mir_sdr_ApiVersion	= (pfn_mir_sdr_ApiVersion)
+	                GETPROCADDRESS (Handle, "mir_sdr_ApiVersion");
+	if (my_mir_sdr_ApiVersion == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_ApiVersion\n");
+	   return false;
+	}
+
+	my_mir_sdr_AgcControl	= (pfn_mir_sdr_AgcControl)
+	                GETPROCADDRESS (Handle, "mir_sdr_AgcControl");
+	if (my_mir_sdr_AgcControl == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_AgcControl\n");
+	   return false;
+	}
+
+	my_mir_sdr_SetPpm	= (pfn_mir_sdr_SetPpm)
+	                GETPROCADDRESS (Handle, "mir_sdr_SetPpm");
+	if (my_mir_sdr_SetPpm == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_SetPpm\n");
+	   return false;
+	}
+
+	my_mir_sdr_DebugEnable  = (pfn_mir_sdr_DebugEnable)
+                        GETPROCADDRESS (Handle, "mir_sdr_DebugEnable");
+        if (my_mir_sdr_DebugEnable == NULL) {
+           fprintf (stderr, "Could not find mir_sdr_DebugEnable\n");
+           return false;
+        }
+
+	my_mir_sdr_Reinit	= (pfn_mir_sdr_Reinit)
+	                GETPROCADDRESS (Handle, "mir_sdr_Reinit");
+	if (my_mir_sdr_Reinit == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_Reinit\n");
+	   return false;
+	}
+
+	my_mir_sdr_DCoffsetIQimbalanceControl	=
+	                     (pfn_mir_sdr_DCoffsetIQimbalanceControl)
+	                GETPROCADDRESS (Handle, "mir_sdr_DCoffsetIQimbalanceControl");
+	if (my_mir_sdr_DCoffsetIQimbalanceControl == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_DCoffsetIQimbalanceControl\n");
+	   return false;
+	}
+
+
+	my_mir_sdr_ResetUpdateFlags	= (pfn_mir_sdr_ResetUpdateFlags)
+	                GETPROCADDRESS (Handle, "mir_sdr_ResetUpdateFlags");
+	if (my_mir_sdr_ResetUpdateFlags == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_ResetUpdateFlags\n");
+	   return false;
+	}
+
+	my_mir_sdr_GetDevices		= (pfn_mir_sdr_GetDevices)
+	                GETPROCADDRESS (Handle, "mir_sdr_GetDevices");
+	if (my_mir_sdr_GetDevices == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_GetDevices");
+	   return false;
+	}
+
+	my_mir_sdr_GetCurrentGain	= (pfn_mir_sdr_GetCurrentGain)
+	                GETPROCADDRESS (Handle, "mir_sdr_GetCurrentGain");
+	if (my_mir_sdr_GetCurrentGain == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_GetCurrentGain");
+	   return false;
+	}
+
+	my_mir_sdr_GetHwVersion	= (pfn_mir_sdr_GetHwVersion)
+	                GETPROCADDRESS (Handle, "mir_sdr_GetHwVersion");
+	if (my_mir_sdr_GetHwVersion == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_GetHwVersion");
+	   return false;
+	}
+
+	return true;
 }
 
-void	sdrplay::set_rateSelector (const QString &s) {
-	inputRate	= s == "1536" ? Khz (1536) : 
-	                  s == "2000" ? Khz (2000) : 
-	                  s == "2500" ? Khz (2500) :
-	                  s == "3000" ? Khz (3000) : 
-	                  s == "5000" ? Khz (5000) :
-	                  s == "6000" ? Khz (6000) :
-	                  Khz (8000);
-
-	this	-> bandWidth	= getBandwidth (inputRate);
-	stopReader ();
-	set_changeRate (inputRate);
+void	sdrplay::agcControl_toggled (int agcMode) {
+	this	-> agcMode	= agcControl -> isChecked ();
+	my_mir_sdr_AgcControl (this -> agcMode, -currentGain, 0, 0, 0, 0, 1);
+        if (agcMode == 0)
+           setExternalGain (gainSlider -> value ());
 }
 
-void	sdrplay::ppmCorrection	(int f) {
-	(void)f;
+int32_t	sdrplay::getRate	(void) {
+	return inputRate;
+}
+
+void	sdrplay::set_ppmControl (int ppm) {
+	if (running) {
+	   my_mir_sdr_SetPpm ((double)ppm);
+	   my_mir_sdr_SetRf ((double)vfoFrequency, 1, 0);
+	}
 }
 

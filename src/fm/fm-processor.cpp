@@ -386,7 +386,7 @@ int		localP		= 0;
 	      msleep (1);	// should be enough
 	   if (!running)
 	      break;
-//
+
 //	First: update according to potentially changed settings
 	   if (newFilter && (fmBandwidth < 0.95 * fmRate)) {
 	      delete fmFilter;

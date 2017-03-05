@@ -29,51 +29,139 @@
 #define	__SDRPLAY__
 
 #include	<QObject>
-#include	<QSettings>
 #include	<QFrame>
+#include	<QSettings>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
 #include	"virtual-input.h"
 #include	"ui_sdrplay-widget.h"
+#include	"mirsdrapi-rsp.h"
+#include	"sdrplay.h"	// our header
 
-class	sdrplayWorker;
-class	sdrplayLoader;
+typedef void (*mir_sdr_StreamCallback_t)(int16_t	*xi,
+	                                 int16_t	*xq,
+	                                 uint32_t	firstSampleNum, 
+	                                 int32_t	grChanged,
+	                                 int32_t	rfChanged,
+	                                 int32_t	fsChanged,
+	                                 uint32_t	numSamples,
+	                                 uint32_t	reset,
+	                                 void		*cbContext);
+typedef	void	(*mir_sdr_GainChangeCallback_t)(uint32_t	gRdB,
+	                                        uint32_t	lnaGRdB,
+	                                        void		*cbContext);
 
+#ifdef __MINGW32__
+#define	GETPROCADDRESS	GetProcAddress
+#else
+#define	GETPROCADDRESS	dlsym
+#endif
+
+// Dll and ".so" function prototypes
+typedef mir_sdr_ErrT (*pfn_mir_sdr_StreamInit) (int *gRdB, double fsMHz,
+double rfMHz, mir_sdr_Bw_MHzT bwType, mir_sdr_If_kHzT ifType, int LNAEnable, int *gRdBsystem, int useGrAltMode, int *samplesPerPacket, mir_sdr_StreamCallback_t StreamCbFn, mir_sdr_GainChangeCallback_t GainChangeCbFn, void *cbContext); 
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_Reinit) (int *gRdB, double fsMHz,
+double rfMHz, mir_sdr_Bw_MHzT bwType, mir_sdr_If_kHzT ifType,
+mir_sdr_LoModeT, int, int*, int, int*, mir_sdr_ReasonForReinitT);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_StreamUninit)(void);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_ReadPacket)(short *xi, short *xq, unsigned int *firstSampleNum, int *grChanged, int *rfChanged, int *fsChanged);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetRf)(double drfHz, int abs, int syncUpdate);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetFs)(double dfsHz, int abs, int syncUpdate, int reCal);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetGr)(int gRdB, int abs, int syncUpdate);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetGrParams)(int minimumGr, int lnaGrThreshold);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetDcMode)(int dcCal, int speedUp);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetDcTrackTime)(int trackTime);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetSyncUpdateSampleNum)(unsigned int sampleNum);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetSyncUpdatePeriod)(unsigned int period);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_ApiVersion)(float *version);   
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_ResetUpdateFlags)(int resetGainUpdate, int resetRfUpdate, int resetFsUpdate);   
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_AgcControl)(uint32_t, int, int, uint32_t,
+	                                       uint32_t, int, int);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_DCoffsetIQimbalanceControl) (uint32_t, uint32_t);
+
+typedef mir_sdr_ErrT (*pfn_mir_sdr_SetPpm)(double);   
+typedef mir_sdr_ErrT (*pfn_mir_sdr_DebugEnable)(uint32_t);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_GetDevices) (mir_sdr_DeviceT *, uint32_t *, uint32_t);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_GetCurrentGain) (mir_sdr_GainValuesT *);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_GetHwVersion) (unsigned char *);
+
+
+///////////////////////////////////////////////////////////////////////////
 class	sdrplay: public virtualInput, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
-		sdrplay		(QSettings *, bool, bool *);
-		~sdrplay	(void);
-	void	setVFOFrequency	(int32_t);
+		sdrplay			(QSettings *,  bool *);
+		~sdrplay		(void);
+	int32_t	getRate			(void);
+	void	setVFOFrequency		(int32_t);
 	int32_t	getVFOFrequency		(void);
-	int32_t	setExternalRate		(int32_t);
+	uint8_t	myIdentity		(void);
 	bool	legalFrequency		(int32_t);
 	int32_t	defaultFrequency	(void);
-	int32_t	getRate			(void);
+
 	bool	restartReader		(void);
 	void	stopReader		(void);
 	int32_t	getSamples		(DSPCOMPLEX *, int32_t);
-	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
 	int32_t	Samples			(void);
-	uint8_t	myIdentity		(void);
 	void	resetBuffer		(void);
-	int16_t	maxGain			(void);
 	int16_t	bitDepth		(void);
+	int16_t	maxGain			(void);
+	RingBuffer<DSPCOMPLEX>	*_I_Buffer;
 private:
+	pfn_mir_sdr_StreamInit	my_mir_sdr_StreamInit;
+	pfn_mir_sdr_Reinit	my_mir_sdr_Reinit;
+	pfn_mir_sdr_StreamUninit	my_mir_sdr_StreamUninit;
+	pfn_mir_sdr_SetRf	my_mir_sdr_SetRf;
+	pfn_mir_sdr_SetFs	my_mir_sdr_SetFs;
+	pfn_mir_sdr_SetGr	my_mir_sdr_SetGr;
+	pfn_mir_sdr_SetGrParams	my_mir_sdr_SetGrParams;
+	pfn_mir_sdr_SetDcMode	my_mir_sdr_SetDcMode;
+	pfn_mir_sdr_SetDcTrackTime my_mir_sdr_SetDcTrackTime;
+	pfn_mir_sdr_SetSyncUpdateSampleNum
+	                        my_mir_sdr_SetSyncUpdateSampleNum;
+	pfn_mir_sdr_SetSyncUpdatePeriod
+	                        my_mir_sdr_SetSyncUpdatePeriod;
+	pfn_mir_sdr_ApiVersion	my_mir_sdr_ApiVersion;
+	pfn_mir_sdr_ResetUpdateFlags
+	                        my_mir_sdr_ResetUpdateFlags;
+	pfn_mir_sdr_AgcControl	my_mir_sdr_AgcControl;
+	pfn_mir_sdr_DCoffsetIQimbalanceControl
+	                        my_mir_sdr_DCoffsetIQimbalanceControl;
+	pfn_mir_sdr_SetPpm	my_mir_sdr_SetPpm;
+	pfn_mir_sdr_DebugEnable	my_mir_sdr_DebugEnable;
+	pfn_mir_sdr_GetDevices  my_mir_sdr_GetDevices;
+	pfn_mir_sdr_GetCurrentGain my_mir_sdr_GetCurrentGain;
+	pfn_mir_sdr_GetHwVersion my_mir_sdr_GetHwVersion;
+
+	bool		loadFunctions	(void);
 	QSettings	*sdrplaySettings;
-	sdrplayLoader	*theLoader;
-	sdrplayWorker	*theWorker;
-	RingBuffer<int16_t>	*_I_Buffer;
-	int32_t		inputRate;
-	int32_t		bandWidth;
-	int32_t		vfoFrequency;
-	int16_t		currentGain;
-	int32_t		getBandwidth	(int32_t);
 	QFrame		*myFrame;
-private	slots:
-	void		setExternalGain (int);
-	void		set_rateSelector	(const QString &);
-	void		ppmCorrection	(int);
+	int32_t		inputRate;
+	int32_t		vfoFrequency;
+	int		currentGain;
+	bool		libraryLoaded;
+	bool		running;
+	HINSTANCE	Handle;
+	bool		agcMode;
+private slots:
+	void		setExternalGain		(int);
+	void		agcControl_toggled	(int);
+	void		set_ppmControl		(int);
 };
 #endif
 

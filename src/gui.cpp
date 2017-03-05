@@ -543,7 +543,7 @@ bool	success;
 	success		= true;		// default for now
 #ifdef	HAVE_SDRPLAY
 	if (s == "sdrplay") 
-	   myRig	= new sdrplay (fmSettings, true, &success);
+	   myRig	= new sdrplay (fmSettings, &success);
 	else  
 #endif
 #ifdef	HAVE_AIRSPY
