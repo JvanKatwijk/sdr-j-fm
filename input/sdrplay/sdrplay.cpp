@@ -30,7 +30,7 @@
 #include	<QLabel>
 #include	"sdrplay.h"
 
-#define	DEFAULT_GAIN	40
+#define	DEFAULT_GRED	40
 
 	sdrplay::sdrplay  (QSettings *s, bool *success) {
 int	err;
@@ -41,6 +41,7 @@ mir_sdr_GainValuesT gainDesc;
 	sdrplaySettings		= s;
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi (this -> myFrame);
+	antennaSelector	-> hide ();
 	this	-> myFrame	-> show ();
 	this	-> inputRate	= Khz (2112);
 
@@ -103,7 +104,7 @@ ULONG APIkeyValue_length = 255;
 	api_version	-> display (ver);
 	_I_Buffer	= new RingBuffer<DSPCOMPLEX>(2 * 1024 * 1024);
 	vfoFrequency	= Khz (94700);
-	currentGain	= DEFAULT_GAIN;
+	currentGred	= DEFAULT_GRED;
 	vfoOffset	= 0;
 
 	sdrplaySettings		-> beginGroup ("sdrplaySettings");
@@ -123,13 +124,22 @@ ULONG APIkeyValue_length = 255;
 	connect (ppmControl, SIGNAL (valueChanged (int)),
                  this, SLOT (set_ppmControl (int)));
 
+
 	uint32_t a;
         my_mir_sdr_GetDevices (&devDesc, &a, uint32_t (2));
+	if (a == 0)
+	   return;
+	hwVersion	= devDesc. hwVer;
+	if (hwVersion > 1) {
+	   antennaSelector -> show ();
+	   connect (antennaSelector, SIGNAL (activated (const QString &)),
+	            this, SLOT (set_antennaControl (const QString &)));
+	}
         serialNumber -> setText (devDesc. SerNo);
         fprintf (stderr, "hwVer = %d\n", devDesc. hwVer);
         unsigned char text;
         (void)my_mir_sdr_GetHwVersion (&text);
-        my_mir_sdr_ResetUpdateFlags (1, 0, 0);
+//	my_mir_sdr_ResetUpdateFlags (1, 0, 0);
 
 	running		= false;
 	agcMode		= false;
@@ -176,6 +186,7 @@ void	sdrplay::setVFOFrequency	(int32_t newFrequency) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
+int	localGred	= currentGred;
 
 	if (bankFor_sdr (newFrequency) == -1)
 	   return;
@@ -185,13 +196,13 @@ mir_sdr_ErrT	err;
 	   return;
 	}
 
-	if (bankFor_sdr (newFrequency) == bankFor_sdr (vfoFrequency))
-	    err	= my_mir_sdr_SetRf (double (newFrequency), 1, 0);
-	else
-	   err = my_mir_sdr_Reinit (&currentGain,
+	if (bankFor_sdr (newFrequency) == bankFor_sdr (vfoFrequency)) 
+	    err	= my_mir_sdr_SetRf (double (newFrequency), 1, 1);
+	else 
+	   err = my_mir_sdr_Reinit (&localGred,
 	                            double (inputRate) / Mhz (1),
 	                            double (newFrequency) / Mhz (1),
-	                            mir_sdr_BW_0_300,
+	                            mir_sdr_BW_1_536,
 	                            mir_sdr_IF_Zero,
 	                            mir_sdr_LO_Undefined,	// LOMode
 	                            0,	// LNA enable
@@ -199,9 +210,11 @@ mir_sdr_ErrT	err;
 	                            agcMode,	
 	                            &samplesPerPacket,
 	                            mir_sdr_CHANGE_RF_FREQ);
+
 	if (err != 0)
 	   fprintf (stderr, "Error %d\n", err);
 	vfoFrequency = newFrequency;
+	my_mir_sdr_SetPpm (float (ppmControl -> value ()));
 }
 
 int32_t	sdrplay::getVFOFrequency	(void) {
@@ -212,9 +225,9 @@ void	sdrplay::setExternalGain	(int newGain) {
 	if (newGain < 0 || newGain >= 102)
 	   return;
 
-	currentGain = maxGain () - newGain;
-	my_mir_sdr_SetGr (currentGain, 1, 0);
-	gainDisplay	-> display (maxGain () - currentGain);
+	currentGred = maxGain () - newGain;
+        (void) my_mir_sdr_SetGr (currentGred, 1, 0);
+        gainDisplay     -> display (newGain);
 }
 
 int16_t	sdrplay::maxGain	(void) {
@@ -224,12 +237,12 @@ int16_t	sdrplay::maxGain	(void) {
 static
 void myStreamCallback (int16_t		*xi,
 	               int16_t		*xq,
-	               uint32_t		firstSampleNum, 
+	               uint32_t	firstSampleNum, 
 	               int32_t		grChanged,
 	               int32_t		rfChanged,
 	               int32_t		fsChanged,
-	               uint32_t		numSamples,
-	               uint32_t		reset,
+	               uint32_t	numSamples,
+	               uint32_t	reset,
 	               void		*cbContext) {
 int16_t	i;
 sdrplay	*p	= static_cast<sdrplay *> (cbContext);
@@ -258,12 +271,12 @@ bool	sdrplay::restartReader	(void) {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
+int	localGred	= currentGred;
 
 	if (running)
 	   return true;
 
-	fprintf (stderr, "restart met %d\n", vfoFrequency);
-	err	= my_mir_sdr_StreamInit (&currentGain,
+	err	= my_mir_sdr_StreamInit (&localGred,
 	                                 double (inputRate) / MHz (1),
 	                                 double (vfoFrequency) / Mhz (1),
 	                                 mir_sdr_BW_1_536,
@@ -302,10 +315,6 @@ void	sdrplay::stopReader	(void) {
 //
 //	The brave old getSamples. For the sdrplay, we get
 //	size still in I/Q pairs
-int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size) { 
-	return _I_Buffer	-> getDataFromBuffer (V, size);
-}
-
 int32_t	sdrplay::getSamples (DSPCOMPLEX *V, int32_t size, uint8_t Mode) { 
 	(void)Mode;
 	return _I_Buffer	-> getDataFromBuffer (V, size);
@@ -473,12 +482,19 @@ bool	sdrplay::loadFunctions	(void) {
 	   return false;
 	}
 
+	my_mir_sdr_RSPII_AntennaControl	= (pfn_mir_sdr_RSPII_AntennaControl)
+	                GETPROCADDRESS (Handle, "mir_sdr_RSPII_AntennaControl");
+	if (my_mir_sdr_RSPII_AntennaControl == NULL) {
+	   fprintf (stderr, "Could not find mir_sdr_RSPII_AntennaControl");
+	   return false;
+	}
+
 	return true;
 }
 
 void	sdrplay::agcControl_toggled (int agcMode) {
 	this	-> agcMode	= agcControl -> isChecked ();
-	my_mir_sdr_AgcControl (this -> agcMode, -currentGain, 0, 0, 0, 0, 1);
+	my_mir_sdr_AgcControl (this -> agcMode, -currentGred, 0, 0, 0, 0, 1);
         if (agcMode == 0)
            setExternalGain (gainSlider -> value ());
 }
@@ -492,5 +508,12 @@ void	sdrplay::set_ppmControl (int ppm) {
 	   my_mir_sdr_SetPpm ((double)ppm);
 	   my_mir_sdr_SetRf ((double)vfoFrequency, 1, 0);
 	}
+}
+
+void	sdrplay::set_antennaControl (const QString &s) {
+	if (s == "Antenna A")
+	   my_mir_sdr_RSPII_AntennaControl (mir_sdr_RSPII_ANTENNA_A);
+	else
+	   my_mir_sdr_RSPII_AntennaControl (mir_sdr_RSPII_ANTENNA_B);
 }
 

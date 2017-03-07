@@ -98,29 +98,29 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_DebugEnable)(uint32_t);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_GetDevices) (mir_sdr_DeviceT *, uint32_t *, uint32_t);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_GetCurrentGain) (mir_sdr_GainValuesT *);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_GetHwVersion) (unsigned char *);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_RSPII_AntennaControl) (mir_sdr_RSPII_AntennaSelectT);
 
 
 ///////////////////////////////////////////////////////////////////////////
 class	sdrplay: public virtualInput, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
-		sdrplay			(QSettings *,  bool *);
-		~sdrplay		(void);
-	int32_t	getRate			(void);
-	void	setVFOFrequency		(int32_t);
+		sdrplay		(QSettings *,  bool *);
+		~sdrplay	(void);
+	void	setVFOFrequency	(int32_t);
 	int32_t	getVFOFrequency		(void);
-	uint8_t	myIdentity		(void);
 	bool	legalFrequency		(int32_t);
 	int32_t	defaultFrequency	(void);
 
 	bool	restartReader		(void);
 	void	stopReader		(void);
-	int32_t	getSamples		(DSPCOMPLEX *, int32_t);
-	int32_t getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
 	int32_t	Samples			(void);
+	int32_t	getRate			(void);
+	uint8_t	myIdentity		(void);
 	void	resetBuffer		(void);
-	int16_t	bitDepth		(void);
 	int16_t	maxGain			(void);
+	int16_t	bitDepth		(void);
 	RingBuffer<DSPCOMPLEX>	*_I_Buffer;
 private:
 	pfn_mir_sdr_StreamInit	my_mir_sdr_StreamInit;
@@ -147,21 +147,24 @@ private:
 	pfn_mir_sdr_GetDevices  my_mir_sdr_GetDevices;
 	pfn_mir_sdr_GetCurrentGain my_mir_sdr_GetCurrentGain;
 	pfn_mir_sdr_GetHwVersion my_mir_sdr_GetHwVersion;
+	pfn_mir_sdr_RSPII_AntennaControl my_mir_sdr_RSPII_AntennaControl;
 
 	bool		loadFunctions	(void);
 	QSettings	*sdrplaySettings;
 	QFrame		*myFrame;
 	int32_t		inputRate;
 	int32_t		vfoFrequency;
-	int		currentGain;
+	int		currentGred;
 	bool		libraryLoaded;
 	bool		running;
 	HINSTANCE	Handle;
 	bool		agcMode;
+	int16_t		hwVersion;
 private slots:
 	void		setExternalGain		(int);
 	void		agcControl_toggled	(int);
 	void		set_ppmControl		(int);
+	void		set_antennaControl	(const QString &);
 };
 #endif
 

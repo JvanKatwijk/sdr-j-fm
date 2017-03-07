@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>256</width>
-    <height>284</height>
+    <height>306</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>0</x>
      <y>0</y>
      <width>211</width>
-     <height>251</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="frameShape">
@@ -140,6 +140,26 @@
     <property name="text">
      <string/>
     </property>
+   </widget>
+   <widget class="QComboBox" name="antennaSelector">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>240</y>
+      <width>181</width>
+      <height>36</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Antenna A</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Antenna B</string>
+     </property>
+    </item>
    </widget>
   </widget>
  </widget>
