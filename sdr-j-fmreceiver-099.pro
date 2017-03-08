@@ -170,8 +170,10 @@ sdrplay {
 	DEFINES		+= HAVE_SDRPLAY
 	FORMS		+= ./input/sdrplay/sdrplay-widget.ui
 	INCLUDEPATH	+= ./input/sdrplay
-	HEADERS		+= ./input/sdrplay/sdrplay.h 
-	SOURCES		+= ./input/sdrplay/sdrplay.cpp 
+	HEADERS		+= ./input/sdrplay/sdrplay.h \
+	                   ./input/sdrplay/sdrplayselect.h
+	SOURCES		+= ./input/sdrplay/sdrplay.cpp \
+	                   ./input/sdrplay/sdrplayselect.cpp
 }
 #
 #	the AIRSPY
