@@ -16,6 +16,9 @@ keypad.
 Note further that this version now supports a maintained programlist,
 a list maintained between invocations of the program.
 
+Finally, I was experimenting with a scanning function, one that stops
+whenever the S/N ration is above a certain level. Still lots to be done.
+
 This version is nof supported, but works pretty well.
 
 

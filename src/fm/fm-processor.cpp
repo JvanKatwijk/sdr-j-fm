@@ -4,23 +4,23 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Programming
  *
- *    This file is part of the SDR-J program suite.
- *    Many of the ideas as implemented in SDR-J are derived from
+ *    This file is part of the SDR-J-FM program.
+ *    Many of the ideas as implemented in SDR-J-FM are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    SDR-J-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    SDR-J-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with SDR-J-FM; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
@@ -79,6 +79,8 @@
 	this	-> freezer		= 0;
 	this	-> squelchOn		= false;
 	this	-> scanning		= false;
+	Lgain				= 20;
+	Rgain				= 20;
 
 	myRdsDecoder			= NULL;
 
@@ -136,9 +138,9 @@
 	rdsLevel	= 0;
 //	Since data is coming with a pretty high rate, we need to filter
 //	and decimate in an efficient way. We have an optimized
-//	decimating filter (optimized or not, ot takes quite some
+//	decimating filter (optimized or not, it takes quite some
 //	cycles when entering with high rates)
-	fmBandfilter		= new DecimatingFIR (51,
+	fmBandfilter		= new DecimatingFIR (25,
 	                                             fmRate / 2,
 	                                             inputRate,
 	                                             decimatingScale);
@@ -365,8 +367,8 @@ double		displayBuffer_lf [displaySize];
 int32_t		i, k;
 DSPCOMPLEX	out;
 DSPCOMPLEX	pcmSample;
-int16_t		hfCount	= 0;
-int16_t		lfCount	= 0;
+int32_t		hfCount	= 0;
+int32_t		lfCount	= 0;
 int32_t		 aa, amount;
 squelch		mySquelch (1, workingRate / 10, workingRate / 20, workingRate); 
 int32_t		audioAmount;
@@ -376,11 +378,11 @@ common_fft	*scan_fft  	= new common_fft (1024);
 DSPCOMPLEX	*scanBuffer	= scan_fft -> getVector ();
 int		localP		= 0;
 #define	RDS_DECIMATOR	8
-	this	-> myRdsDecoder		= new rdsDecoder (myRadioInterface,
+	myRdsDecoder		= new rdsDecoder (myRadioInterface,
 	                                                  fmRate / RDS_DECIMATOR,
 	                                                  mySinCos);
 
-	running	= true;
+	running	= true;		// will be set from the outside
 	while (running) {
 	   while (running && (myRig -> Samples () < bufferSize)) 
 	      msleep (1);	// should be enough

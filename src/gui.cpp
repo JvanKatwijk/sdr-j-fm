@@ -265,6 +265,7 @@ int	k;
 	frequencyforPICode	= 0;
 	theSelector	-> hide ();
 	myRig		= new virtualInput ();
+	setTuner (Khz (94700));
 	inputRate	= myRig	-> getRate ();
 	fmRate		= mapRates (inputRate);
 
@@ -1643,7 +1644,7 @@ void    RadioInterface::set_freqSave    (void) {
 }
 
 void    RadioInterface::handle_myLine (void) {
-int32_t freq    = myRig -> getVFOFrequency ();
+int32_t freq    = myRig -> getVFOFrequency () + LOFrequency;
 QString programName     = myLine -> text ();
         myList  -> addRow (programName, QString::number (freq / Khz (1)));
         delete myLine;

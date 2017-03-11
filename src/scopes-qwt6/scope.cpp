@@ -302,7 +302,7 @@ int	i, j;
 	Marker		-> setLineStyle (QwtPlotMarker::VLine);
 	Marker		-> setLinePen (QPen (Qt::black));
 	Marker		-> attach (plotgrid);
-	this		-> attach (plotgrid);
+//	this		-> attach (plotgrid);
 	IndexforMarker	= 0;
 
 	lm_picker	= new QwtPlotPicker (plot -> canvas ());

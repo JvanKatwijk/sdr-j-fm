@@ -5,23 +5,22 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    JFF Consultancy
  *
- *    This file is part of the JFF SDR (JSDR).
- *    Many of the ideas as implemented in JSDR are derived from
+ *    This file is part of the SDR-J-FM program
+ *    Many of the ideas as implemented in SDR-J-FM are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
  *
- *    JSDR is free software; you can redistribute it and/or modify
+ *    SDR-J-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
+ *    the Free Software Foundation as version 2 of the License.
  *
- *    JSDR is distributed in the hope that it will be useful,
+ *    SDR-J-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with JSDR; if not, write to the Free Software
+ *    along with SDR-J-FM; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
@@ -324,7 +323,7 @@ DSPFLOAT	sum	= 0.0;
 //
 //====================================================================
 //
-//	decimationFilter
+//	decimating filter
 
 	DecimatingFIR::DecimatingFIR (int16_t firSize,
 	                              int32_t low,
@@ -358,7 +357,6 @@ DSPFLOAT	sum	= 0.0;
 
 	for (i = 0; i < filterSize; i ++)
 	   filterKernel [i] = DSPCOMPLEX (tmp [i] / sum, tmp [i]);
-
 }
 
 DSPCOMPLEX *DecimatingFIR::getKernel (void) {
@@ -427,7 +425,7 @@ int16_t		index;
 //	we are working with a circular buffer, we take two steps
 //	we move from ip .. 0 with i going from 0 .. ip -1
 	for (i = 0; i <= ip; i ++) {
-	   index =  ip - i - 1;
+	   index =  ip - i;
 	   tmp 	+= Buffer [index] * filterKernel [i];
 	}
 //	and then we take the rest
