@@ -274,7 +274,7 @@ int	i, j;
 // A color bar on the right axis
 	rightAxis -> setColorBarEnabled (true);
 
-	plotData = new double [Displaysize * Rastersize];
+	plotData = new double [2 * Displaysize * Rastersize];
 	for (i = 0; i < Rastersize; i ++)
  	   for (j = 0; j < Displaysize; j ++)
 	      plotData [i * Displaysize + j] = (double)i / Rastersize;
