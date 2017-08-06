@@ -2,7 +2,7 @@
 A simple FM receiver
 -------------------
 
-The FM receiver will operate with AIRSPY, SDRplay and dabsticks.
+The FM receiver will operate with AIRSPY, SDRplay and DABsticks.
 
 For creating an executable: install the required libraries use qmake.
 
@@ -19,6 +19,6 @@ a list maintained between invocations of the program.
 Finally, I was experimenting with a scanning function, one that stops
 whenever the S/N ration is above a certain level. Still lots to be done.
 
-This version is nof supported, but works pretty well.
+This version is not supported, but works pretty well.
 
 

@@ -128,8 +128,8 @@ QString stationList     = QDir::homePath ();
 	fflush (stdout);
 	fflush (stderr);
 	qDebug ("It is done\n");
-	delete MyRadioInterface;
-	ISettings	-> ~QSettings ();
-	exit (1);
+	ISettings	-> sync ();
+//	delete MyRadioInterface;
+//	ISettings	-> ~QSettings ();
 }
 

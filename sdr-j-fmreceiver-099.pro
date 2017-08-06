@@ -122,6 +122,7 @@ CONFIG	+= sdrplay
 CONFIG	+= airspy
 DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
+LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 LIBS	+= -lfftw3f
@@ -155,13 +156,13 @@ LIBS += -lsamplerate
 #	the devices
 dabstick {
 	DEFINES		+= HAVE_DABSTICK
-	FORMS		+= ./input/dabstick/dabstick-widget.ui
-	INCLUDEPATH	+= ./input/dabstick
-	DEPENDPATH	+= ./input/dabstick
-	HEADERS		+= ./input/dabstick/dabstick.h \
-	                   ./input/dabstick/dongleselect.h
-	SOURCES		+= ./input/dabstick/dabstick.cpp \
-	                   ./input/dabstick/dongleselect.cpp
+	FORMS		+= ./input/rtlsdr-handler/dabstick-widget.ui
+	INCLUDEPATH	+= ./input/rtlsdr-handler
+	DEPENDPATH	+= ./input/rtlsdr-handler
+	HEADERS		+= ./input/rtlsdr-handler/rtlsdr-handler.h \
+	                   ./input/rtlsdr-handler/dongleselect.h
+	SOURCES		+= ./input/rtlsdr-handler/rtlsdr-handler.cpp \
+	                   ./input/rtlsdr-handler/dongleselect.cpp
 }
 #
 #	the SDRplay

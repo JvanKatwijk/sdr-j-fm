@@ -68,11 +68,11 @@ typedef	char *(* pfnrtlsdr_get_device_name)(int);
 //	This class is a simple wrapper around the
 //	rtlsdr library that is read is as dll
 //	It does not do any processing itself.
-class	dabStick: public virtualInput, public Ui_dabstickWidget {
+class	rtlsdrHandler: public virtualInput, public Ui_dabstickWidget {
 Q_OBJECT
 public:
-			dabStick	(QSettings *, bool, bool *);
-			~dabStick	(void);
+			rtlsdrHandler	(QSettings *, bool, bool *);
+			~rtlsdrHandler	(void);
 	void		setVFOFrequency	(int32_t);
 	int32_t		getVFOFrequency	(void);
 	int32_t		setExternalRate	(int32_t);
@@ -116,9 +116,9 @@ private:
 	pfnrtlsdr_get_center_freq rtlsdr_get_center_freq;
 	pfnrtlsdr_get_tuner_gains rtlsdr_get_tuner_gains;
 	pfnrtlsdr_set_tuner_gain_mode rtlsdr_set_tuner_gain_mode;
+	pfnrtlsdr_set_agc_mode rtlsdr_set_agc_mode;
 	pfnrtlsdr_set_sample_rate rtlsdr_set_sample_rate;
 	pfnrtlsdr_get_sample_rate rtlsdr_get_sample_rate;
-	pfnrtlsdr_set_agc_mode rtlsdr_set_agc_mode;
 	pfnrtlsdr_set_tuner_gain rtlsdr_set_tuner_gain;
 	pfnrtlsdr_get_tuner_gain rtlsdr_get_tuner_gain;
 	pfnrtlsdr_reset_buffer rtlsdr_reset_buffer;

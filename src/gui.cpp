@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the  SDR-J series.
- *    Many of the ideas as implemented in the SDR-J are derived from
- *    other work, made available through the (a) GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -52,7 +49,7 @@
 #include	"airspy-handler.h"
 #endif
 #ifdef	HAVE_DABSTICK
-#include	"dabstick.h"
+#include	"rtlsdr-handler.h"
 #endif
 #ifdef	HAVE_EXTIO
 #include	"extio-handler.h"
@@ -409,6 +406,7 @@ void	RadioInterface::TerminateProcess (void) {
 //	It is pretty important that no one is attempting to
 //	set things within the FMprocessor when it is
 //	being deleted
+	myRig	-> stopReader ();
 	setDevice (QString ("dummy"));	// will select a virtualinput
 	accept ();
 	qDebug () <<  "Termination started";
@@ -559,7 +557,7 @@ bool	success;
 #endif
 #ifdef	HAVE_DABSTICK
 	if (s == "dabstick")
-	   myRig	= new dabStick (fmSettings, true, &success);
+	   myRig	= new rtlsdrHandler (fmSettings, true, &success);
 	else
 #endif
 #ifdef	HAVE_EXTIO
