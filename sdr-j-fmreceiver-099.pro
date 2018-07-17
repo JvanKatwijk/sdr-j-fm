@@ -120,6 +120,7 @@ CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
 CONFIG	+= airspy
+CONFIG	+= hackrf
 DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
@@ -139,11 +140,12 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
-CONFIG		+= pmsdr
+#CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-CONFIG		+= airspy
-CONFIG		+= dabstick
-CONFIG		+= elad_s1
+#CONFIG		+= airspy
+#CONFIG		+= dabstick
+#CONFIG		+= elad_s1
+CONFIG		+= hackrf
 DESTDIR		= ./linux-bin
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
@@ -187,6 +189,19 @@ airspy {
 	                   /usr/local/include/libairspy
 	HEADERS		+= ./input/airspy/airspy-handler.h 
 	SOURCES		+= ./input/airspy/airspy-handler.cpp 
+}
+#
+#
+#	the AIRSPY
+#
+hackrf {
+	DEFINES		+= HAVE_HACKRF
+	FORMS		+= ./input/hackrf-handler/hackrf-widget.ui
+	DEPENDPATH	+= ./input/hackrf-handler
+	INCLUDEPATH	+= ./input/hackrf-handler
+	                   /usr/local/include/libhackrf
+	HEADERS		+= ./input/hackrf-handler/hackrf-handler.h 
+	SOURCES		+= ./input/hackrf-handler/hackrf-handler.cpp 
 }
 #
 #	the elad-s1

@@ -57,6 +57,9 @@
 #ifdef	HAVE_ELAD_S1
 #include	"elad-s1.h"
 #endif
+#ifdef	HAVE_HACKRF
+#include	"hackrf-handler.h"
+#endif
 #ifdef __MINGW32__
 #include	<iostream>
 #include	<windows.h>
@@ -157,6 +160,9 @@ int	k;
 #endif
 #ifdef	HAVE_AIRSPY
 	deviceSelector	-> addItem ("airspy");
+#endif
+#ifdef	HAVE_HACKRF
+	deviceSelector	-> addItem ("hackrf");
 #endif
 #ifdef	HAVE_ELAD_S1
 	deviceSelector	-> addItem ("elad-s1");
@@ -548,6 +554,17 @@ bool	success;
 #ifdef	HAVE_AIRSPY
 	if (s == "airspy")
 	   myRig	= new airspyHandler (fmSettings, true, &success);
+	else
+#endif
+#ifdef	HAVE_HACKRF
+	if (s == "hackrf") {
+	   success	= true;
+	   try {
+	      myRig	= new hackrfHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
 	else
 #endif
 #ifdef	HAVE_ELAD_S1

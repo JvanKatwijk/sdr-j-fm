@@ -2,7 +2,25 @@
 A simple FM receiver
 -------------------
 
-The FM receiver will operate with AIRSPY, SDRplay and DABsticks.
+![fm receiver](/fmreceiver.png?raw=true)
+
+-------------------------------------------------------------------------
+
+In spite of the foreseen move from analog to digital radio, there
+are still lots of FM stations in the FM broadcast band.
+
+The FM receiver software is an experimental receiver, with quite some settings.
+A simpler version, just to listen to radio, is in the WFM-RPI repository.
+
+
+The program shows 2 spectra, one is the spectrum of the incoming signal,
+the other is the spectrum of the decoded signal.
+
+
+-------------------------------------------------------------------------
+
+The FM receiver will operate with the SDRplay, DABsticks, the AIRspy and
+the HACKrf devices.
 
 For creating an executable: install the required libraries use qmake.
 

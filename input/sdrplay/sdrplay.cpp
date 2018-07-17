@@ -101,7 +101,7 @@ ULONG APIkeyValue_length = 255;
 	}
 
 	my_mir_sdr_ApiVersion (&ver);
-	if (ver < 2.05) {
+	if (ver < 2.13) {
            fprintf (stderr, "sorry, library too old\n");
            *success = false;
            return;
@@ -274,17 +274,20 @@ int16_t	sdrplay::maxGain	(void) {
 static
 void myStreamCallback (int16_t		*xi,
 	               int16_t		*xq,
-	               uint32_t	firstSampleNum, 
+	               uint32_t		firstSampleNum, 
 	               int32_t		grChanged,
 	               int32_t		rfChanged,
 	               int32_t		fsChanged,
-	               uint32_t	numSamples,
-	               uint32_t	reset,
+	               uint32_t		numSamples,
+	               uint32_t		reset,
+	               uint32_t		hwRemoved,
 	               void		*cbContext) {
 int16_t	i;
 sdrplay	*p	= static_cast<sdrplay *> (cbContext);
 DSPCOMPLEX *localBuf = (DSPCOMPLEX *)alloca (numSamples * sizeof (DSPCOMPLEX));
 
+	if (reset || hwRemoved)
+	   return;
 	for (i = 0; i <  (int)numSamples; i ++)
 	   localBuf [i] = DSPCOMPLEX (float (xi [i]) / 2048.0,
 	                              float (xq [i]) / 2048.0);

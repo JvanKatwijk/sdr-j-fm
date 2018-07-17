@@ -124,8 +124,8 @@ uint32_t samplerate_count;
         inputRate    = 0;
         for (i = 0; i < samplerate_count; i ++) {
            fprintf (stderr, "%d \n", myBuffer [i]);
-           if (abs (myBuffer [i] - 2000000) < distance) {
-              distance  = abs (myBuffer [i] - 2000000);
+           if (abs ((int)(myBuffer [i]) - 2000000) < distance) {
+              distance  = abs ((int)(myBuffer [i]) - 2000000);
               inputRate = myBuffer [i];
            }
         }

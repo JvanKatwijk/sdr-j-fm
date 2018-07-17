@@ -42,6 +42,7 @@
 #define	EXTIO		0104
 #define	AIRSPY		0110
 #define	PMSDR		0111
+#define	HACKRF		0114
 //
 //	in some cases we anly want to differentiate between sticks
 //	and non-sticks
