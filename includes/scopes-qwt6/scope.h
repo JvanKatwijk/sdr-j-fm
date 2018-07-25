@@ -103,7 +103,7 @@ private:
 	uint16_t	Rastersize;
 	double		*plotData;
 	QwtPlotMarker	*Marker;
-	uint16_t	IndexforMarker;
+	uint32_t	IndexforMarker;
 	QwtPlotPicker	*lm_picker;
 	uint8_t		OneofTwo;
 	QwtLinearColorMap	*colorMap;

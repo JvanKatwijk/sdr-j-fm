@@ -30,7 +30,7 @@
 #include	<QDir>
 #include	<unistd.h>
 #include	"fm-constants.h"
-#include	"gui.h"
+#include	"radio.h"
 
 void	fullPathfor (const char *v, char *out) {
 int16_t	i;

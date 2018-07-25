@@ -25,14 +25,14 @@
  *
  */
 #include	"fm-processor.h"
-#include	"gui.h"
+#include	"radio.h"
 #include	"fm-demodulator.h"
 #include	"fm-constants.h"
 #include	"rds-decoder.h"
 #include	"audiosink.h"
 #include	"squelchClass.h"
 #include	"sincos.h"
-#include	"virtual-input.h"
+#include	"device-handler.h"
 #include	"newconverter.h"
 
 #define	AUDIO_FREQ_DEV_PROPORTION 0.85f
@@ -45,7 +45,7 @@
 //
 //	Note that no decimation done as yet: the samplestream is still
 //	full speed
-	fmProcessor::fmProcessor (virtualInput		*vi,
+	fmProcessor::fmProcessor (deviceHandler		*vi,
 	                          RadioInterface	*RI,
 	                          audioSink		*mySink,
 	                          int32_t		inputRate,

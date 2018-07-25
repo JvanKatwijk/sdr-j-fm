@@ -34,7 +34,7 @@
 #include	<QQueue>
 #include	<QWaitCondition>
 #include	<QMutex>
-#include	<virtual-input.h>
+#include	<device-handler.h>
 #include	"ringbuffer.h"
 
 class		QSettings;
@@ -175,7 +175,7 @@ typedef enum {
   , extHw_modeTX  = 1
 } extHw_ModeRxTxT;
 
-class	ExtioHandler:public virtualInput {
+class	ExtioHandler:public deviceHandler {
 Q_OBJECT
 public:
 			ExtioHandler		(QSettings *,

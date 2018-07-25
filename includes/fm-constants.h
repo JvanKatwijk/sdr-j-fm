@@ -25,8 +25,8 @@
  *
  */
 #
-#ifndef __FM_CONSTANTS
-#define	__FM_CONSTANTS
+#ifndef __FM_CONSTANTS__
+#define	__FM_CONSTANTS__
 
 #include	<math.h>
 #include	<complex>
@@ -73,7 +73,7 @@ using namespace std;
 #define I_Only		0102
 #define	Q_Only		0104
 
-#define	CURRENT_VERSION	"0.995"
+#define	CURRENT_VERSION	"1.0"
 
 #define	MSECFORTIMER	10
 //

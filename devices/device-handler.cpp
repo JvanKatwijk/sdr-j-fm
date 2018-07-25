@@ -26,68 +26,68 @@
  * 	Default (void) implementation of
  * 	virtual input class
  */
-#include	"virtual-input.h"
+#include	"device-handler.h"
 
-	virtualInput::virtualInput (void) {
+	deviceHandler::deviceHandler (void) {
 	lastFrequency	= Mhz (100);
 }
 
-	virtualInput::~virtualInput (void) {
+	deviceHandler::~deviceHandler (void) {
 }
 
-int32_t	virtualInput::getRate	(void) {
+int32_t	deviceHandler::getRate	(void) {
 	return KHz (192);
 }
 
-void	virtualInput::setVFOFrequency (int32_t f) {
+void	deviceHandler::setVFOFrequency (int32_t f) {
 	lastFrequency = f;
 }
 
-int32_t	virtualInput::getVFOFrequency	(void) {
+int32_t	deviceHandler::getVFOFrequency	(void) {
 	return lastFrequency;
 }
 
-bool	virtualInput::legalFrequency	(int32_t f) {
+bool	deviceHandler::legalFrequency	(int32_t f) {
 	(void)f;
 	return true;
 }
 
-int32_t	virtualInput::defaultFrequency	(void) {
+int32_t	deviceHandler::defaultFrequency	(void) {
 	return Khz (94700);
 }
 
-bool	virtualInput::restartReader	(void) {
+bool	deviceHandler::restartReader	(void) {
 	return true;
 }
 
-void	virtualInput::stopReader	(void) {
+void	deviceHandler::stopReader	(void) {
 }
 
-uint8_t	virtualInput::myIdentity	(void) {
+uint8_t	deviceHandler::myIdentity	(void) {
 	return NIX;
 }
 
-int32_t	virtualInput::getSamples	(DSPCOMPLEX *v, int32_t amount) {
+int32_t	deviceHandler::getSamples	(DSPCOMPLEX *v, int32_t amount) {
 	(void)v; 
 	(void)amount; 
 	return 0;
 }
 
-int32_t	virtualInput::getSamples	(DSPCOMPLEX *v, int32_t amount, uint8_t M) {
+int32_t	deviceHandler::getSamples	(DSPCOMPLEX *v, int32_t amount, uint8_t M) {
 	(void)M;
 	(void)v; 
 	(void)amount; 
 	return 0;
 }
 
-int32_t	virtualInput::Samples		(void) {
+int32_t	deviceHandler::Samples		(void) {
 	return 0;
 }
 
-void	virtualInput::resetBuffer	(void) {
+void	deviceHandler::resetBuffer	(void) {
 }
 
-int16_t	virtualInput::bitDepth		(void) {
+int16_t	deviceHandler::bitDepth		(void) {
 	return 10;
 }
 

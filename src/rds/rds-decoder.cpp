@@ -27,7 +27,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	"rds-decoder.h"
-#include	"gui.h"
+#include	"radio.h"
 #include	"iir-filters.h"
 #include	"sincos.h"
 

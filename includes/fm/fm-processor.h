@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef	__FM_PROCESSOR
-#define	__FM_PROCESSOR
+#ifndef	__FM_PROCESSOR__
+#define	__FM_PROCESSOR__
 
 #include	<QThread>
 #include	<QObject>
@@ -39,7 +39,7 @@
 #include	"ringbuffer.h"
 #include	"oscillator.h"
 
-class		virtualInput;
+class		deviceHandler;
 class		RadioInterface;
 class		fm_Demodulator;
 class		rdsDecoder;
@@ -49,7 +49,7 @@ class		newConverter;
 class	fmProcessor:public QThread {
 Q_OBJECT
 public:
-			fmProcessor (virtualInput *,
+			fmProcessor (deviceHandler *,
 	                             RadioInterface *,
 	                             audioSink *,
 	                             int32_t,	// inputRate
@@ -113,7 +113,7 @@ virtual	void		run		(void);
 	void		mapSpectrum	(DSPCOMPLEX *, double *);
 	void		add_to_average	(double *, double *);
 	void		extractLevels	(double *, int32_t);
-	virtualInput	*myRig;
+	deviceHandler	*myRig;
 	RadioInterface	*myRadioInterface;
 	audioSink	*theSink;
 	int32_t		inputRate;

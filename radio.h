@@ -25,13 +25,13 @@
  *
  */
 
-#ifndef __GUI
-#define __GUI
+#ifndef __RADIO__
+#define __RADIO__
 
 #include	"fm-constants.h"
 #include	<QDialog>
 #include	<QInputDialog>
-#include	"ui_sdrgui.h"
+#include	"ui_radio.h"
 #include	<qwt.h>
 #include	<QTimer>
 #include	<QQueue>
@@ -50,7 +50,7 @@ class	fmProcessor;
 class	rdsDecoder;
 class	fft_scope;
 class	audioSink;
-class	virtualInput;
+class	deviceHandler;
 class	programList;
 
 /*
@@ -102,7 +102,7 @@ private:
 	int16_t		filterDepth;
 	audioSink	*our_audioSink;
 	int8_t		channelSelector;
-	virtualInput	*myRig;
+	deviceHandler	*myRig;
 	int16_t		*outTable;
 	int16_t		numberofDevices;
 
@@ -248,6 +248,8 @@ public slots:
 	void	clearMusicSpeechFlag	(void);
 	void	showStrength		(float, float);
 	void	scanresult		(void);
+	void	closeEvent		(QCloseEvent *event);
+
 //
 //	and for the extio handling
 	void	set_ExtFrequency	(int);

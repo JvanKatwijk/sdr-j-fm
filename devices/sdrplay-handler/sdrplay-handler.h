@@ -25,18 +25,18 @@
  *
  */
 
-#ifndef __SDRPLAY__
-#define	__SDRPLAY__
+#ifndef __SDRPLAY_HANDLER__
+#define	__SDRPLAY_HANDLER__
 
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
+#include	<atomic>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
-#include	"virtual-input.h"
+#include	"device-handler.h"
 #include	"ui_sdrplay-widget.h"
 #include	"mirsdrapi-rsp.h"
-#include	"sdrplay.h"	// our header
 
 typedef void (*mir_sdr_StreamCallback_t)(int16_t	*xi,
 	                                 int16_t	*xq,
@@ -74,6 +74,8 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_SetRf)(double drfHz, int abs, int syncUpdate)
 typedef mir_sdr_ErrT (*pfn_mir_sdr_SetFs)(double dfsHz, int abs, int syncUpdate, int reCal);
 
 typedef mir_sdr_ErrT (*pfn_mir_sdr_SetGr)(int gRdB, int abs, int syncUpdate);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_RSP_SetGr)(int gRdB, int lnaState,
+                                                       int abs, int syncUpdate);
 
 typedef mir_sdr_ErrT (*pfn_mir_sdr_SetGrParams)(int minimumGr, int lnaGrThreshold);
 
@@ -100,17 +102,18 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_GetDevices) (mir_sdr_DeviceT *, uint32_t *, u
 typedef mir_sdr_ErrT (*pfn_mir_sdr_GetCurrentGain) (mir_sdr_GainValuesT *);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_GetHwVersion) (unsigned char *);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_RSPII_AntennaControl) (mir_sdr_RSPII_AntennaSelectT);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_rspDuo_TunerSel) (mir_sdr_rspDuo_TunerSelT);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_SetDeviceIdx) (unsigned int);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_ReleaseDeviceIdx) (unsigned int);
 
 
 
 ///////////////////////////////////////////////////////////////////////////
-class	sdrplay: public virtualInput, public Ui_sdrplayWidget {
+class	sdrplayHandler: public deviceHandler, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
-		sdrplay		(QSettings *,  bool *);
-		~sdrplay	(void);
+		sdrplayHandler	(QSettings *);
+		~sdrplayHandler	(void);
 	void	setVFOFrequency	(int32_t);
 	int32_t	getVFOFrequency		(void);
 	bool	legalFrequency		(int32_t);
@@ -123,9 +126,9 @@ public:
 	int32_t	getRate			(void);
 	uint8_t	myIdentity		(void);
 	void	resetBuffer		(void);
-	int16_t	maxGain			(void);
 	int16_t	bitDepth		(void);
 	RingBuffer<DSPCOMPLEX>	*_I_Buffer;
+	int	denominator;
 private:
 	pfn_mir_sdr_StreamInit	my_mir_sdr_StreamInit;
 	pfn_mir_sdr_Reinit	my_mir_sdr_Reinit;
@@ -133,6 +136,7 @@ private:
 	pfn_mir_sdr_SetRf	my_mir_sdr_SetRf;
 	pfn_mir_sdr_SetFs	my_mir_sdr_SetFs;
 	pfn_mir_sdr_SetGr	my_mir_sdr_SetGr;
+        pfn_mir_sdr_RSP_SetGr   my_mir_sdr_RSP_SetGr;
 	pfn_mir_sdr_SetGrParams	my_mir_sdr_SetGrParams;
 	pfn_mir_sdr_SetDcMode	my_mir_sdr_SetDcMode;
 	pfn_mir_sdr_SetDcTrackTime my_mir_sdr_SetDcTrackTime;
@@ -152,9 +156,11 @@ private:
 	pfn_mir_sdr_GetCurrentGain my_mir_sdr_GetCurrentGain;
 	pfn_mir_sdr_GetHwVersion my_mir_sdr_GetHwVersion;
 	pfn_mir_sdr_RSPII_AntennaControl my_mir_sdr_RSPII_AntennaControl;
+        pfn_mir_sdr_rspDuo_TunerSel my_mir_sdr_rspDuo_TunerSel;
 	pfn_mir_sdr_SetDeviceIdx my_mir_sdr_SetDeviceIdx;
 	pfn_mir_sdr_ReleaseDeviceIdx my_mir_sdr_ReleaseDeviceIdx;
 
+	QString		errorCodes	(mir_sdr_ErrT);
 	int16_t         hwVersion;
 	uint32_t        numofDevs;
 	int16_t         deviceIndex;
@@ -164,15 +170,18 @@ private:
 	int32_t		inputRate;
 	int32_t		vfoFrequency;
 	int		currentGred;
+	int		nrBits;
 	bool		libraryLoaded;
-	bool		running;
+	std::atomic<bool>		running;
 	HINSTANCE	Handle;
 	bool		agcMode;
 private slots:
 	void		setExternalGain		(int);
 	void		agcControl_toggled	(int);
+	void		debugControl_toggled	(int);
 	void		set_ppmControl		(int);
-	void		set_antennaControl	(const QString &);
+	void		set_antennaSelect	(const QString &);
+	void		set_tunerSelect		(const QString &);
 };
 #endif
 

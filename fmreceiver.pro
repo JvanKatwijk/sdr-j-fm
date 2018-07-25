@@ -5,7 +5,7 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= sdr-j-fmreceiver-0.99
+TARGET		= fmreceiver-1.0
 QT		+= widgets
 CONFIG		+= console
 QMAKE_CFLAGS	+= -flto -ffast-math
@@ -32,8 +32,8 @@ DEPENDPATH += . \
 	      ./src/fm \
 	      ./src/rds \
 	      ./src/scopes-qwt6 \
-	      ./input \
-	      ./input/filereader
+	      ./devices \
+	      ./devices/filereader
 
 INCLUDEPATH += . \
 	      ..\
@@ -50,11 +50,11 @@ INCLUDEPATH += . \
 	      ./src/fm \
 	      ./src/rds \
 	      ./src/scopes-qwt6 \
-	      ./input \
-	      ./input/filereader
+	      ./devices \
+	      ./devices/filereader
 
 # Input
-HEADERS += ./includes/gui.h \
+HEADERS += ./radio.h \
 	   ./includes/popup-keypad.h \
 	   ./includes/fm-constants.h \
 	   ./includes/various/keyboardfilter.h \
@@ -80,15 +80,15 @@ HEADERS += ./includes/gui.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
 	   ./includes/rds/rds-group.h \
 	   ./includes/rds/rds-groupdecoder.h  \
-	   ./input/virtual-input.h \
-	   ./input/filereader/filereader.h \
-	   ./input/filereader/filehulp.h
+	   ./devices/device-handler.h \
+	   ./devices/filereader/filereader.h \
+	   ./devices/filereader/filehulp.h
 
-FORMS +=   ./sdrgui.ui \
-	   ./input/filereader/filereader-widget.ui
+FORMS +=   ./radio.ui \
+	   ./devices/filereader/filereader-widget.ui
 
-SOURCES += ./src/main.cpp \
-	   ./src/gui.cpp \
+SOURCES += ./main.cpp \
+	   ./radio.cpp \
 	   ./src/popup-keypad.cpp \
 	   ./src/various/keyboardfilter.cpp \
 	   ./src/various/program-list.cpp \
@@ -110,17 +110,17 @@ SOURCES += ./src/main.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \
 	   ./src/rds/rds-group.cpp \
 	   ./src/rds/rds-groupdecoder.cpp \
-	   ./input/virtual-input.cpp \
-	   ./input/filereader/filereader.cpp \
-	   ./input/filereader/filehulp.cpp
+	   ./devices/device-handler.cpp \
+	   ./devices/filereader/filereader.cpp \
+	   ./devices/filereader/filehulp.cpp
 #
 # for windows32 we use:
 win32 {
-CONFIG	+= extio
-CONFIG	+= dabstick
+#CONFIG	+= extio
+#CONFIG	+= dabstick
 CONFIG	+= sdrplay
-CONFIG	+= airspy
-CONFIG	+= hackrf
+#CONFIG	+= airspy
+#CONFIG	+= hackrf
 DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
@@ -140,11 +140,11 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
-#CONFIG		+= pmsdr
+CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-#CONFIG		+= airspy
-#CONFIG		+= dabstick
-#CONFIG		+= elad_s1
+CONFIG		+= airspy
+CONFIG		+= dabstick
+CONFIG		+= elad_s1
 CONFIG		+= hackrf
 DESTDIR		= ./linux-bin
 INCLUDEPATH 	+= /usr/include/qt5/qwt
@@ -158,37 +158,37 @@ LIBS += -lsamplerate
 #	the devices
 dabstick {
 	DEFINES		+= HAVE_DABSTICK
-	FORMS		+= ./input/rtlsdr-handler/dabstick-widget.ui
-	INCLUDEPATH	+= ./input/rtlsdr-handler
-	DEPENDPATH	+= ./input/rtlsdr-handler
-	HEADERS		+= ./input/rtlsdr-handler/rtlsdr-handler.h \
-	                   ./input/rtlsdr-handler/dongleselect.h
-	SOURCES		+= ./input/rtlsdr-handler/rtlsdr-handler.cpp \
-	                   ./input/rtlsdr-handler/dongleselect.cpp
+	FORMS		+= ./devices/rtlsdr-handler/dabstick-widget.ui
+	INCLUDEPATH	+= ./devices/rtlsdr-handler
+	DEPENDPATH	+= ./devices/rtlsdr-handler
+	HEADERS		+= ./devices/rtlsdr-handler/rtlsdr-handler.h \
+	                   ./devices/rtlsdr-handler/dongleselect.h
+	SOURCES		+= ./devices/rtlsdr-handler/rtlsdr-handler.cpp \
+	                   ./devices/rtlsdr-handler/dongleselect.cpp
 }
 #
 #	the SDRplay
 #
 sdrplay {
 	DEFINES		+= HAVE_SDRPLAY
-	FORMS		+= ./input/sdrplay/sdrplay-widget.ui
-	INCLUDEPATH	+= ./input/sdrplay
-	HEADERS		+= ./input/sdrplay/sdrplay.h \
-	                   ./input/sdrplay/sdrplayselect.h
-	SOURCES		+= ./input/sdrplay/sdrplay.cpp \
-	                   ./input/sdrplay/sdrplayselect.cpp
+	FORMS		+= ./devices/sdrplay-handler/sdrplay-widget.ui
+	INCLUDEPATH	+= ./devices/sdrplay-handler
+	HEADERS		+= ./devices/sdrplay-handler/sdrplay-handler.h \
+	                   ./devices/sdrplay-handler/sdrplayselect.h
+	SOURCES		+= ./devices/sdrplay-handler/sdrplay-handler.cpp \
+	                   ./devices/sdrplay-handler/sdrplayselect.cpp
 }
 #
 #	the AIRSPY
 #
 airspy {
 	DEFINES		+= HAVE_AIRSPY
-	FORMS		+= ./input/airspy/airspy-widget.ui
-	DEPENDPATH	+= ./input/airspy
-	INCLUDEPATH	+= ./input/airspy \
+	FORMS		+= ./devices/airspy/airspy-widget.ui
+	DEPENDPATH	+= ./devices/airspy
+	INCLUDEPATH	+= ./devices/airspy \
 	                   /usr/local/include/libairspy
-	HEADERS		+= ./input/airspy/airspy-handler.h 
-	SOURCES		+= ./input/airspy/airspy-handler.cpp 
+	HEADERS		+= ./devices/airspy/airspy-handler.h 
+	SOURCES		+= ./devices/airspy/airspy-handler.cpp 
 }
 #
 #
@@ -196,58 +196,58 @@ airspy {
 #
 hackrf {
 	DEFINES		+= HAVE_HACKRF
-	FORMS		+= ./input/hackrf-handler/hackrf-widget.ui
-	DEPENDPATH	+= ./input/hackrf-handler
-	INCLUDEPATH	+= ./input/hackrf-handler
+	FORMS		+= ./devices/hackrf-handler/hackrf-widget.ui
+	DEPENDPATH	+= ./devices/hackrf-handler
+	INCLUDEPATH	+= ./devices/hackrf-handler
 	                   /usr/local/include/libhackrf
-	HEADERS		+= ./input/hackrf-handler/hackrf-handler.h 
-	SOURCES		+= ./input/hackrf-handler/hackrf-handler.cpp 
+	HEADERS		+= ./devices/hackrf-handler/hackrf-handler.h 
+	SOURCES		+= ./devices/hackrf-handler/hackrf-handler.cpp 
 }
 #
 #	the elad-s1
 #
 elad_s1 {
 	DEFINES		+= HAVE_ELAD_S1
-	FORMS		+= ./input/sw-elad-s1/elad_widget.ui
-	DEPENDPATH	+= ./input/sw-elad-s1
-	INCLUDEPATH	+= ./input/sw-elad-s1 
-	HEADERS		+= ./input/sw-elad-s1/elad-s1.h \
-	                   ./input/sw-elad-s1/elad-worker.h \
-	                   ./input/sw-elad-s1/elad-loader.h
-	SOURCES		+= ./input/sw-elad-s1/elad-s1.cpp \
-	                   ./input/sw-elad-s1/elad-worker.cpp \
-	                   ./input/sw-elad-s1/elad-loader.cpp
+	FORMS		+= ./devices/sw-elad-s1/elad_widget.ui
+	DEPENDPATH	+= ./devices/sw-elad-s1
+	INCLUDEPATH	+= ./devices/sw-elad-s1 
+	HEADERS		+= ./devices/sw-elad-s1/elad-s1.h \
+	                   ./devices/sw-elad-s1/elad-worker.h \
+	                   ./devices/sw-elad-s1/elad-loader.h
+	SOURCES		+= ./devices/sw-elad-s1/elad-s1.cpp \
+	                   ./devices/sw-elad-s1/elad-worker.cpp \
+	                   ./devices/sw-elad-s1/elad-loader.cpp
 }
 #
 #	extio dependencies, windows only
 #
 extio {
 	DEFINES		+= HAVE_EXTIO
-	FORMS		+= ./input/extio-handler/extio-widget.ui
-	INCLUDEPATH	+= ./input/extio-handler
-	DEPENDPATH	+= ./input/extio-handler
-	HEADERS		+= ./input/extio-handler/extio-handler.h \
-			   ./input/extio-handler/virtual-reader.h \
-	           	   ./input/extio-handler/common-readers.h \
-	           	   ./input/extio-handler/card-reader.h 
-	SOURCES		+= ./input/extio-handler/virtual-reader.cpp \
-	           	   ./input/extio-handler/extio-handler.cpp \
-	           	   ./input/extio-handler/common-readers.cpp \
-	           	   ./input/extio-handler/card-reader.cpp 
+	FORMS		+= ./devices/extio-handler/extio-widget.ui
+	INCLUDEPATH	+= ./devices/extio-handler
+	DEPENDPATH	+= ./devices/extio-handler
+	HEADERS		+= ./devices/extio-handler/extio-handler.h \
+			   ./devices/extio-handler/virtual-reader.h \
+	           	   ./devices/extio-handler/common-readers.h \
+	           	   ./devices/extio-handler/card-reader.h 
+	SOURCES		+= ./devices/extio-handler/virtual-reader.cpp \
+	           	   ./devices/extio-handler/extio-handler.cpp \
+	           	   ./devices/extio-handler/common-readers.cpp \
+	           	   ./devices/extio-handler/card-reader.cpp 
 }
 
 pmsdr {
 	DEFINES		+= HAVE_PMSDR
-	FORMS		+= ./input/pmsdr/pmsdr-widget.ui
-	INCLUDEPATH	+= ./input/pmsdr
-	DEPENDPATH	+= ./input/pmsdr
-	HEADERS		+= ./input/pmsdr/pmsdr.h \
-	                   ./input/pmsdr/pmsdr-usb.h \
-	                   ./input/pmsdr/pmsdr-comm.h \
-	                   ./input/pmsdr/pa-reader.h
-	SOURCES		+= ./input/pmsdr/pmsdr.cpp \
-	                   ./input/pmsdr/pmsdr-usb.cpp \
-	                   ./input/pmsdr/pmsdr-comm.cpp \
-	                   ./input/pmsdr/pa-reader.cpp
+	FORMS		+= ./devices/pmsdr/pmsdr-widget.ui
+	INCLUDEPATH	+= ./devices/pmsdr
+	DEPENDPATH	+= ./devices/pmsdr
+	HEADERS		+= ./devices/pmsdr/pmsdr.h \
+	                   ./devices/pmsdr/pmsdr-usb.h \
+	                   ./devices/pmsdr/pmsdr-comm.h \
+	                   ./devices/pmsdr/pa-reader.h
+	SOURCES		+= ./devices/pmsdr/pmsdr.cpp \
+	                   ./devices/pmsdr/pmsdr-usb.cpp \
+	                   ./devices/pmsdr/pmsdr-comm.cpp \
+	                   ./devices/pmsdr/pa-reader.cpp
 }
 

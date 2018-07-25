@@ -27,7 +27,7 @@
 #include	<QDebug>
 #include	<QDateTime>
 #include	"fm-constants.h"
-#include	"gui.h"
+#include	"radio.h"
 #include	"popup-keypad.h"
 #include	"fm-processor.h"
 #include	"fm-demodulator.h"
@@ -37,13 +37,13 @@
 #include	"audiosink.h"
 #include	"program-list.h"
 
-#include	"virtual-input.h"
+#include	"device-handler.h"
 #include	"filereader.h"
 #ifdef	HAVE_PMSDR
 #include	"pmsdr.h"
 #endif
 #ifdef	HAVE_SDRPLAY
-#include	"sdrplay.h"
+#include	"sdrplay-handler.h"
 #endif
 #ifdef	HAVE_AIRSPY
 #include	"airspy-handler.h"
@@ -267,7 +267,7 @@ int	k;
 	currentPIcode		= 0;
 	frequencyforPICode	= 0;
 	theSelector	-> hide ();
-	myRig		= new virtualInput ();
+	myRig		= new deviceHandler ();
 	setTuner (Khz (94700));
 	inputRate	= myRig	-> getRate ();
 	fmRate		= mapRates (inputRate);
@@ -508,7 +508,7 @@ void	RadioInterface::set_changeRate	(int r) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("Sorry, rate low\n"));
 	   delete myRig;
-	   myRig	= new virtualInput ();
+	   myRig	= new deviceHandler ();
 	   inputRate	= myRig -> getRate ();
 	}
 //
@@ -547,8 +547,13 @@ bool	success;
 	delete	myRig;
 	success		= true;		// default for now
 #ifdef	HAVE_SDRPLAY
-	if (s == "sdrplay") 
-	   myRig	= new sdrplay (fmSettings, &success);
+	if (s == "sdrplay") {
+	   try {
+	      myRig	= new sdrplayHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }	
+	}
 	else  
 #endif
 #ifdef	HAVE_AIRSPY
@@ -590,12 +595,12 @@ bool	success;
 	if (s == "filereader")
 	   myRig	= new fileReader (fmSettings, &success);
 	else
-	   myRig	= new virtualInput ();
+	   myRig	= new deviceHandler ();
 	if (!success) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("loading device failed"));
 	   delete myRig;
-	   myRig	= new virtualInput ();
+	   myRig	= new deviceHandler ();
 	   resetSelector	();
 	}
 
@@ -604,7 +609,7 @@ bool	success;
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("Sorry, rate low\n"));
 	   delete myRig;
-	   myRig	= new virtualInput ();
+	   myRig	= new deviceHandler ();
 	   inputRate	= myRig -> getRate ();
 	}
 //
@@ -785,7 +790,9 @@ void	RadioInterface::wheelEvent (QWheelEvent *e) {
 //	
 int32_t	RadioInterface::setTuner (int32_t n) {
 int32_t	vfo;
-//
+
+	if ((n < Mhz (60)) || (n > Mhz (420)))
+	   return Khz (94700);
 //	as long as the requested frequency fits within the current
 //	range - i.e. the full width required for fm demodulation fits -
 //	the vfo remains the same, while the LO is adapted.
@@ -1042,8 +1049,6 @@ void	RadioInterface::localConnects (void) {
 	              this, SLOT (setStart ()));
 	connect	(pauseButton, SIGNAL (clicked (void)),
 	               this, SLOT (clickPause (void)));
-	connect (quitButton, SIGNAL (clicked ()),
-	              this, SLOT (TerminateProcess (void)));
 	connect (streamOutSelector, SIGNAL (activated (int)),
 	              this, SLOT (setStreamOutSelector (int)));
 	connect (HFAverageButton, SIGNAL (clicked (void)),
@@ -1665,4 +1670,21 @@ QString programName     = myLine -> text ();
         delete myLine;
         myLine  = NULL;
 }
+
+#include <QCloseEvent>
+void RadioInterface::closeEvent (QCloseEvent *event) {
+
+        QMessageBox::StandardButton resultButton =
+                        QMessageBox::question (this, "fmRadio",
+                                               tr("Are you sure?\n"),
+                                               QMessageBox::No | QMessageBox::Yes,
+                                               QMessageBox::Yes);
+        if (resultButton != QMessageBox::Yes) {
+           event -> ignore();
+        } else {
+           TerminateProcess ();
+           event -> accept ();
+        }
+}
+
 

@@ -23,7 +23,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include	"popup-keypad.h"
-#include	"gui.h"
+#include	"radio.h"
 //
 //	A simple keypad for the FM receiver. 13 buttons and
 //	an LCD display

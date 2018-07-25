@@ -33,7 +33,7 @@
 #include	<QFrame>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
-#include	"virtual-input.h"
+#include	"device-handler.h"
 #include	"dongleselect.h"
 #include	"ui_dabstick-widget.h"
 
@@ -68,7 +68,7 @@ typedef	char *(* pfnrtlsdr_get_device_name)(int);
 //	This class is a simple wrapper around the
 //	rtlsdr library that is read is as dll
 //	It does not do any processing itself.
-class	rtlsdrHandler: public virtualInput, public Ui_dabstickWidget {
+class	rtlsdrHandler: public deviceHandler, public Ui_dabstickWidget {
 Q_OBJECT
 public:
 			rtlsdrHandler	(QSettings *, bool, bool *);

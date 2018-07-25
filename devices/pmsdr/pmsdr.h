@@ -32,13 +32,13 @@
  *	Both available under a (L)GPL
  */
 
-#ifndef	__PMSDR
-#define	__PMSDR
+#ifndef	__PMSDR__
+#define	__PMSDR__
 
 #include	<QFrame>
 #include	"fm-constants.h"
 #include	"pmsdr-comm.h"
-#include	"virtual-input.h"
+#include	"device-handler.h"
 #include	"ui_pmsdr-widget.h"
 
 class	QSettings;
@@ -66,7 +66,7 @@ struct si570data_ {
         double		fxtal;
 } si570data;
 
-class	pmsdrHandler: public virtualInput, public Ui_pmsdrWidget {
+class	pmsdrHandler: public deviceHandler, public Ui_pmsdrWidget {
 Q_OBJECT
 
 public:

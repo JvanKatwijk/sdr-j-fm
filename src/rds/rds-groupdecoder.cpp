@@ -37,7 +37,7 @@
 #include	"rds-groupdecoder.h"
 #include	<cstring>
 #include	<stdio.h>
-#include	"gui.h"
+#include	"radio.h"
 
 
 //	The alfabets

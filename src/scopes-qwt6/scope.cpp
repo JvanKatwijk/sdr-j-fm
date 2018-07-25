@@ -127,7 +127,7 @@ void	Scope::setBitDepth	(int16_t b) {
 
 	plotgrid		= plot;
 	this	-> Displaysize	= displaysize;
-	plotgrid-> setCanvasBackground (Qt::blue);
+	plotgrid-> setCanvasBackground (Qt::black);
 	grid	= new QwtPlotGrid;
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0601)
 	grid	-> setMajPen (QPen(Qt::white, 0, Qt::DotLine));
@@ -357,8 +357,8 @@ int	width	= (int)(X_axis [Displaysize - 1] - orig);
 	        Displaysize * sizeof (double));
 
 	this		-> detach	();
-	if (WaterfallData != NULL)
-	   delete WaterfallData;
+//	if (WaterfallData != NULL)
+//	   delete WaterfallData;
 
 	WaterfallData = new SpectrogramData (plotData,
 	                                     orig,

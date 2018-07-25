@@ -1,8 +1,8 @@
 #
 /*
- *    Copyright (C) 2008, 2009, 2010
+ *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair programming
  *
  *    This file is part of the SDR-J.
  *    Many of the ideas as implemented in SDR-J are derived from
@@ -22,28 +22,30 @@
  *    You should have received a copy of the GNU General Public License
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
-#ifndef __FILEREADER
-#define	__FILEREADER
+#ifndef __ELAD_S1
+#define	__ELAD_S1
 
-#include	"virtual-input.h"
-#include	<QWidget>
+#include	<QObject>
 #include	<QFrame>
-#include	<QString>
-#include	"ui_filereader-widget.h"
+#include	<QFileDialog>
+#include	"fm-constants.h"
+#include	"device-handler.h"
+#include	"ringbuffer.h"
+#include	"ui_elad_widget.h"
+#include	<libusb-1.0/libusb.h>
 
-class	QLabel;
 class	QSettings;
-class	fileHulp;
-/*
- */
-class	fileReader: public virtualInput, public Ui_filereaderWidget {
+class	eladWorker;
+class	eladLoader;
+typedef	DSPCOMPLEX(*makeSampleP)(uint8_t *);
+
+class	eladHandler: public deviceHandler, public Ui_elad_widget {
 Q_OBJECT
 public:
-		fileReader		(QSettings *, bool *);
-		~fileReader		(void);
+		eladHandler		(QSettings *, bool, bool *);
+		~eladHandler		(void);
 	void	setVFOFrequency		(int32_t);
 	int32_t	getVFOFrequency		(void);
 	bool	legalFrequency		(int32_t);
@@ -51,21 +53,30 @@ public:
 
 	bool	restartReader		(void);
 	void	stopReader		(void);
-	int32_t	Samples			(void);
 	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t	Samples			(void);
 	int32_t	getRate			(void);
 	int16_t	bitDepth		(void);
-protected:
-	void		setup_Device	(void);
+private	slots:
+	void	setGainReduction	(void);
+	void	setMHzOffset		(int);
+	void	setFilter		(void);
+	void	setAttenuation		(int);
+private:
+	QSettings	*eladSettings;
+	bool		deviceOK;
+	eladLoader	*theLoader;
+	eladWorker	*theWorker;
+	RingBuffer<uint8_t>	*_I_Buffer;
+	int32_t		theRate;
 	QFrame		*myFrame;
-	fileHulp	*myReader;
-	QLabel		*indicator;
-	QLabel		*fileDisplay;
-	int32_t		inputRate;
-	int32_t		lastFrequency;
-	int16_t		attenuationLevel;
-private slots:
-	void		set_attenuation	(int);
+	int32_t		vfoFrequency;
+	int32_t		vfoOffset;
+	int		gainReduced;
+	int		localFilter;
+	uint8_t		conversionNumber;
+	int16_t		iqSize;
+	int16_t		attenuation;
 };
 #endif
 

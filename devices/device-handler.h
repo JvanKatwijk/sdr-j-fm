@@ -27,8 +27,8 @@
  *	want the interface with different devices (including  filehandling)
  *	to be transparent
  */
-#ifndef	__VIRTUAL_INPUT__
-#define	__VIRTUAL_INPUT__
+#ifndef	__DEVICE_HANDLER__
+#define	__DEVICE_HANDLER__
 
 #include	<stdint.h>
 #include	"fm-constants.h"
@@ -55,11 +55,11 @@
   *	The class is not completely virtual, since it is
   *	used as a default in case selecting a "real" class did not work out
   */
-class	virtualInput: public QThread {
+class	deviceHandler: public QThread {
 Q_OBJECT
 public:
-			virtualInput 	(void);
-virtual			~virtualInput 	(void);
+			deviceHandler 	(void);
+virtual			~deviceHandler 	(void);
 virtual		int32_t	getRate		(void);
 virtual		void	setVFOFrequency	(int32_t);
 virtual		int32_t	getVFOFrequency	(void);
