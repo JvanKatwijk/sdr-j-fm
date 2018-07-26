@@ -41,7 +41,22 @@ int     RSP2_Table [] = {0, 10, 15, 21, 24, 34, 39, 45, 64};
 static
 int     RSPduo_Table [] = {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
 
+static
+int	get_lnaGRdB (int hwVersion, int lnaState) {
+	switch (hwVersion) {
+	   case 1:
+	      return RSP1_Table [lnaState];
 
+	   case 2:
+	      return RSP2_Table [lnaState];
+
+	   default:
+	      return RSP1A_Table [lnaState];
+	}
+}
+
+//
+//	here we start
 	sdrplayHandler::sdrplayHandler  (QSettings *s) {
 mir_sdr_ErrT	err;
 float	ver;
@@ -139,17 +154,30 @@ ULONG APIkeyValue_length = 255;
 	
 	_I_Buffer	= new RingBuffer<DSPCOMPLEX>(2 * 1024 * 1024);
 	vfoFrequency	= Khz (94700);
-	vfoOffset	= 0;
-	agcMode		= false;
 
 	sdrplaySettings		-> beginGroup ("sdrplaySettings");
-	ifgainSlider 		-> setValue (
-	            sdrplaySettings -> value ("externalGain", 10). toInt ());
+	ifgainSlider            -> setValue (
+                    sdrplaySettings -> value ("sdrplay-ifgrdb", 20). toInt ());
 //      show the value
         GRdBDisplay             -> display (ifgainSlider -> value ());
 
+	lnaGainSetting          -> setValue (
+                    sdrplaySettings -> value ("sdrplay-lnastate", 0). toInt ());
 	ppmControl		-> setValue (
 	            sdrplaySettings -> value ("sdrplay-ppm", 0). toInt ());
+	bool    debugFlag       =
+                    sdrplaySettings -> value ("sdrplay-debug", 0). toInt ();
+        if (!debugFlag)
+           debugControl -> hide ();
+
+	agcMode         =
+                    sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt ();
+        if (agcMode) {
+           agcControl -> setChecked (true);
+           ifgainSlider         -> hide ();
+           gainsliderLabel      -> hide ();
+        }
+
 	sdrplaySettings	-> endGroup ();
 
 	err	= my_mir_sdr_GetDevices (devDesc, &numofDevs, uint32_t (4));
@@ -225,7 +253,7 @@ ULONG APIkeyValue_length = 255;
               deviceLabel       -> setText ("RSP-II");
               break;
            case 3:
-              lnaGainSetting    -> setRange (0, 8);
+              lnaGainSetting    -> setRange (0, 9);
               deviceLabel       -> setText ("RSP-DUO");
               break;
            default:
@@ -274,15 +302,26 @@ ULONG APIkeyValue_length = 255;
         connect (ppmControl, SIGNAL (valueChanged (int)),
                  this, SLOT (set_ppmControl (int)));
 
+       lnaGRdBDisplay          -> display (get_lnaGRdB (hwVersion,
+                                           lnaGainSetting -> value ()));
+
 	running. store (false);
 }
 
 	sdrplayHandler::~sdrplayHandler	(void) {
 	stopReader ();
 	sdrplaySettings	-> beginGroup ("sdrplaySettings");
-	sdrplaySettings	-> setValue ("externalGain", ifgainSlider -> value ());
-	sdrplaySettings	-> setValue ("sdrplay-ppm", ppmControl -> value ());
-	sdrplaySettings	-> endGroup ();
+        sdrplaySettings -> setValue ("sdrplayGain", ifgainSlider -> value ());
+        sdrplaySettings -> setValue ("sdrplay-ppm", ppmControl -> value ());
+        sdrplaySettings -> setValue ("sdrplay-ifgrdb",
+                                            ifgainSlider -> value ());
+        sdrplaySettings -> setValue ("sdrplay-lnastate",
+                                      lnaGainSetting -> value ());
+        sdrplaySettings -> setValue ("sdrplay-agcMode",
+                                          agcControl -> isChecked () ? 1 : 0);
+        sdrplaySettings -> endGroup ();
+        sdrplaySettings -> sync ();
+
 	delete myFrame;
 	if (!libraryLoaded)
 	   return;
@@ -360,21 +399,7 @@ int     lnaState        = lnaGainSetting	-> value ();
 }
 
 int32_t	sdrplayHandler::getVFOFrequency	(void) {
-	return vfoFrequency - vfoOffset;
-}
-
-static
-int	get_lnaGRdB (int hwVersion, int lnaState) {
-	switch (hwVersion) {
-	   case 1:
-	      return RSP1_Table [lnaState];
-
-	   case 2:
-	      return RSP2_Table [lnaState];
-
-	   default:
-	      return RSP1A_Table [lnaState];
-	}
+	return vfoFrequency;
 }
 
 void	sdrplayHandler::set_ifgainReduction	(int newGain) {
@@ -382,6 +407,8 @@ mir_sdr_ErrT	err;
 int	GRdB		= ifgainSlider	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 
+	if (!running. load ())
+	   return;
 	(void)newGain;
 
 	if (agcMode)	// should not happen, the slider is not visible
@@ -399,6 +426,9 @@ int	lnaState	= lnaGainSetting -> value ();
 
 void	sdrplayHandler::set_lnagainReduction (int lnaState) {
 mir_sdr_ErrT err;
+
+	if (!running. load ())
+	   return;
 
 	if (!agcMode) {
 	   set_ifgainReduction (0);
@@ -476,14 +506,33 @@ int     lnaState        = lnaGainSetting -> value ();
 	   fprintf (stderr, "error code = %d\n", err);
 	   return false;
 	}
+
 	my_mir_sdr_SetPpm (double (ppmControl -> value ()));
-	err		= my_mir_sdr_SetDcMode (4, 1);
-	err		= my_mir_sdr_SetDcTrackTime (63);
-//
-	my_mir_sdr_SetSyncUpdatePeriod ((int)(inputRate / 3));
-	my_mir_sdr_SetSyncUpdateSampleNum (samplesPerPacket);
-	my_mir_sdr_DCoffsetIQimbalanceControl (0, 1);
-	running. store (true);
+	if (err != mir_sdr_Success)
+           fprintf (stderr, "error = %s\n",
+                        errorCodes (err). toLatin1 (). data ());
+        if (agcControl -> isChecked ()) {
+           my_mir_sdr_AgcControl (this -> agcMode,
+                                  -30,
+                                  0, 0, 0, 0, lnaGainSetting -> value ());
+           ifgainSlider         -> hide ();
+           gainsliderLabel      -> hide ();
+        }
+
+        err             = my_mir_sdr_SetDcMode (4, 1);
+        if (err != mir_sdr_Success)
+           fprintf (stderr, "error = %s\n",
+                        errorCodes (err). toLatin1 (). data ());
+
+	err             = my_mir_sdr_SetDcMode (4, 1);
+        if (err != mir_sdr_Success)
+           fprintf (stderr, "error = %s\n",
+                        errorCodes (err). toLatin1 (). data ());
+        err             = my_mir_sdr_SetDcTrackTime (63);
+        if (err != mir_sdr_Success)
+           fprintf (stderr, "error = %s\n",
+                        errorCodes (err). toLatin1 (). data ());
+        running. store (true);
 	return true;
 }
 
@@ -713,11 +762,13 @@ void	sdrplayHandler::agcControl_toggled (int agcMode) {
 	                       0, 0, 0, 0, lnaGainSetting -> value ());
 	if (agcMode == 0) {
 	   ifgainSlider		-> show ();
+	   gainsliderLabel      -> show ();
 	   set_ifgainReduction (0);
 	}
 	else {
 	   ifgainSlider		-> hide ();
-	}
+	   gainsliderLabel      -> hide ();
+        }
 }
 
 
