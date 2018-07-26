@@ -25,10 +25,10 @@
 #include	<QSettings>
 #include	<QHBoxLayout>
 #include	<QLabel>
+#include	<QMessageBox>
 #include	"sdrplay-handler.h"
 #include	"sdrplayselect.h"
 
-#define	DEFAULT_GRED	40
 static
 int     RSP1_Table [] = {0, 24, 19, 43};
 
@@ -407,8 +407,11 @@ mir_sdr_ErrT	err;
 int	GRdB		= ifgainSlider	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 
-	if (!running. load ())
+	if (!running. load ()) {
+	   QMessageBox::warning (myFrame, tr ("Warning"),
+                             tr ("Changing slider value only has effect after start\n"));
 	   return;
+	}
 	(void)newGain;
 
 	if (agcMode)	// should not happen, the slider is not visible
@@ -427,8 +430,11 @@ int	lnaState	= lnaGainSetting -> value ();
 void	sdrplayHandler::set_lnagainReduction (int lnaState) {
 mir_sdr_ErrT err;
 
-	if (!running. load ())
+	if (!running. load ()) {
+	   QMessageBox::warning (myFrame, tr ("Warning"),
+                             tr ("Altering setting only has effect after start\n"));
 	   return;
+	}
 
 	if (!agcMode) {
 	   set_ifgainReduction (0);
