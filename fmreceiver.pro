@@ -116,11 +116,11 @@ SOURCES += ./main.cpp \
 #
 # for windows32 we use:
 win32 {
-#CONFIG	+= extio
-#CONFIG	+= dabstick
+CONFIG	+= extio
+CONFIG	+= dabstick
 CONFIG	+= sdrplay
 #CONFIG	+= airspy
-#CONFIG	+= hackrf
+CONFIG	+= hackrf
 DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
@@ -142,7 +142,7 @@ LIBS	+= -lwinpthread
 unix { 
 CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-CONFIG		+= airspy
+#CONFIG		+= airspy
 CONFIG		+= dabstick
 CONFIG		+= elad_s1
 CONFIG		+= hackrf
