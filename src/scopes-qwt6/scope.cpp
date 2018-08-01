@@ -157,8 +157,13 @@ void	Scope::setBitDepth	(int16_t b) {
 	Marker		-> setLineStyle (QwtPlotMarker::VLine);
 	Marker		-> setLinePen (QPen (Qt::red));
 	Marker		-> attach (plotgrid);
-	plotgrid	-> enableAxis (QwtPlot::yLeft);
+	oldmarkerValue	= -1;
+	counter		= 0;
 
+	maxLabel	= new QwtPlotTextLabel ();
+	minLabel	= new QwtPlotTextLabel ();
+
+	plotgrid	-> enableAxis (QwtPlot::yLeft);
 	lm_picker	= new QwtPlotPicker (plot -> canvas ());
 	QwtPickerMachine *lpickerMachine =
 	              new QwtPickerClickPointMachine ();
@@ -211,11 +216,11 @@ void	SpectrumViewer::rightMouseClick (const QPointF &point) {
 void	SpectrumViewer::ViewSpectrum (double *X_axis,
 		                      double *Y1_value,
 	                              double amp,
-	                              int32_t marker) {
+	                              int32_t markerValue) {
 uint16_t	i;
 
 	amp		= amp / 100 * (-get_db (0));
-	IndexforMarker	= marker;
+	IndexforMarker	= markerValue;
 	plotgrid	-> setAxisScale (QwtPlot::xBottom,
 				         (double)X_axis [0],
 				         X_axis [Displaysize - 1]);
@@ -226,12 +231,46 @@ uint16_t	i;
 	for (i = 0; i < Displaysize; i ++) 
 	   Y1_value [i] = get_db (Y1_value [i]); 
 
+	double s = 0, max = get_db (0);
+
+	for (i = 0; i < Displaysize; i ++) {
+	   s += Y1_value [i];
+	   if (!isnan (Y1_value [i]) && (Y1_value [i] > max))
+	      max = Y1_value [i];
+	}
+	double avg	= s / Displaysize;
+
 	SpectrumCurve	-> setBaseline (get_db (0));
 	Y1_value [0]	= get_db (0);
 	Y1_value [Displaysize - 1] = get_db (0);
 
 	SpectrumCurve	-> setSamples (X_axis, Y1_value, Displaysize);
-	Marker		-> setXValue (marker);
+	if (--counter < 0) {
+	   counter = 10;
+	   QwtText MarkerLabel_1  =  QwtText (QString::number (max));
+	   QwtText MarkerLabel_2  =  QwtText (QString::number (avg));
+	   QFont font1 ("Courier New");
+	   font1.	setPixelSize (30);;
+	   MarkerLabel_1.    setFont (font1);
+	   MarkerLabel_1.    setColor (Qt::white);
+	   MarkerLabel_1. setRenderFlags (Qt::AlignLeft | Qt::AlignTop);
+	   MarkerLabel_2.    setFont (font1);
+	   MarkerLabel_2.    setColor (Qt::white);
+	   MarkerLabel_2. setRenderFlags (Qt::AlignRight | Qt::AlignTop);
+	   maxLabel	-> detach ();
+	   maxLabel	-> setText (MarkerLabel_1);
+	   maxLabel	-> attach (plotgrid);
+	   minLabel	-> detach ();
+	   minLabel	-> setText (MarkerLabel_2);
+	   minLabel	-> attach (plotgrid);
+	   Marker       -> detach ();
+	   Marker       = new QwtPlotMarker ();
+	   Marker       -> setLineStyle (QwtPlotMarker::VLine);
+	   Marker       -> setLinePen (QPen (Qt::white, 3.0));
+	   Marker       -> attach (plotgrid);
+	   Marker       -> setXValue (markerValue);
+	   oldmarkerValue   = markerValue;
+	}
 	plotgrid	-> replot(); 
 }
 

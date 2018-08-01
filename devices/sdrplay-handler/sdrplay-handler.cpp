@@ -483,7 +483,8 @@ void	myGainChangeCallback (uint32_t	GRdB,
 	                      void	*cbContext) {
 sdrplayHandler  *p      = static_cast<sdrplayHandler *> (cbContext);
         p -> GRdBDisplay        -> display ((int)GRdB);
-        p -> lnaGRdBDisplay     -> display ((int)lnaGRdB);
+	(void)lnaGRdB;
+//	p -> lnaGRdBDisplay     -> display ((int)lnaGRdB);
 }
 
 bool	sdrplayHandler::restartReader	(void) {

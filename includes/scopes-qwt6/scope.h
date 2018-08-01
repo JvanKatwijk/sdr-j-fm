@@ -38,6 +38,7 @@
 #include	<qwt_color_map.h>
 #include	<qwt_plot_spectrogram.h>
 #include	<qwt_plot_zoomer.h>
+#include	<qwt_plot_textlabel.h>
 #include	<qwt_plot_panner.h>
 #include	<qwt_plot_layout.h>
 #include	<qwt_scale_widget.h>
@@ -136,6 +137,10 @@ private:
 	int16_t		bitDepth;
 	int32_t		normalizer;
 	float		get_db		(float);
+	int		oldmarkerValue;
+	int		counter;
+	QwtPlotTextLabel *maxLabel;
+	QwtPlotTextLabel *minLabel;
 private slots:
 	void	leftMouseClick (const QPointF &);
 	void	rightMouseClick (const QPointF &);
