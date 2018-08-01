@@ -68,6 +68,7 @@ public:
 void	Display 	(double *, double *, double, int32_t);
 void	SelectView	(uint8_t);
 void	setBitDepth	(int16_t);
+int	currentMode	(void);
 private:
 	QwtPlot		*Plotter;
 	uint16_t	Displaysize;
@@ -106,13 +107,16 @@ private:
 	QwtPlotMarker	*Marker;
 	uint32_t	IndexforMarker;
 	QwtPlotPicker	*lm_picker;
+	QwtPlotPicker	*rm_picker;
 	uint8_t		OneofTwo;
 	QwtLinearColorMap	*colorMap;
 	QwtScaleWidget		*rightAxis;
 private slots:
 	void	leftMouseClick (const QPointF &);
+	void	rightMouseClick (const QPointF &);
 signals:
 	void	leftClicked (int);
+	void	rightClicked (int);
 };
 /*
  *	The spectrumDisplay

@@ -184,16 +184,13 @@ private slots:
 	void	setAttenuation		(int);
 	void	setIQBalance		(int);
 
-	void	setHFplotterView	(const QString &);
-	void	setHFAverager		(void);
-
 	void	setStreamOutSelector	(int);
 	void	abortSystem		(int);
 	void	TerminateProcess	(void);
 	void	make_newProcessor	(void);
 	void	stopDumping		(void);
 	void	setDevice		(const QString &);
-	void	setVolume		(int);
+//	void	setVolume		(int);
 	void	set_dumping		(void);
 	void	set_audioDump		(void);
 
@@ -224,6 +221,7 @@ private slots:
         void    handle_myLine           (void);
 
 public slots:
+	void	setHFplotterView	(int);
 	void	handle_freqButton	(void);
 	void	newFrequency		(int);
 	void	hfBufferLoaded		(void);

@@ -5,7 +5,7 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-1.0
+TARGET		= fmreceiver-1.2
 QT		+= widgets
 CONFIG		+= console
 QMAKE_CFLAGS	+= -flto -ffast-math

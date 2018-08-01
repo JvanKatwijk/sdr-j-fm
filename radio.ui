@@ -208,7 +208,7 @@
      <x>180</x>
      <y>40</y>
      <width>791</width>
-     <height>221</height>
+     <height>251</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -229,7 +229,7 @@
     <rect>
      <x>180</x>
      <y>300</y>
-     <width>101</width>
+     <width>91</width>
      <height>31</height>
     </rect>
    </property>
@@ -355,34 +355,13 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>140</y>
-     <width>71</width>
+     <y>230</y>
+     <width>151</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>Pause</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="HFAverageButton">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>270</y>
-     <width>101</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>9</pointsize>
-    </font>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Touching this button will cause the spectrum to freeze. Unfreeze by touching the button again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <property name="text">
-    <string>HF Freeze</string>
    </property>
   </widget>
   <widget class="QSpinBox" name="minimumSelect">
@@ -525,34 +504,6 @@
     <enum>QLCDNumber::Flat</enum>
    </property>
   </widget>
-  <widget class="QComboBox" name="HFplotterView">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>270</y>
-     <width>121</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>9</pointsize>
-    </font>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select between a spectrumview or a waterfall.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-   <item>
-    <property name="text">
-     <string>spectrumview</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>waterfall</string>
-    </property>
-   </item>
-  </widget>
   <widget class="QSlider" name="squelchSlider">
    <property name="geometry">
     <rect>
@@ -591,28 +542,6 @@
     <string>squelchOff</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="startButton">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>70</y>
-     <width>71</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="autoFillBackground">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>START</string>
-   </property>
-  </widget>
   <widget class="QComboBox" name="theSelector">
    <property name="geometry">
     <rect>
@@ -626,9 +555,9 @@
   <widget class="QPushButton" name="audioDump">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>270</x>
      <y>300</y>
-     <width>121</width>
+     <width>81</width>
      <height>31</height>
     </rect>
    </property>
@@ -757,9 +686,9 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>260</y>
+     <y>290</y>
      <width>421</width>
-     <height>301</height>
+     <height>271</height>
     </rect>
    </property>
    <property name="toolTip">
@@ -933,8 +862,8 @@
   <widget class="QComboBox" name="logging">
    <property name="geometry">
     <rect>
-     <x>400</x>
-     <y>270</y>
+     <x>350</x>
+     <y>300</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -976,9 +905,9 @@
   <widget class="QPushButton" name="logSaving">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>440</x>
      <y>300</y>
-     <width>91</width>
+     <width>51</width>
      <height>31</height>
     </rect>
    </property>
@@ -1934,7 +1863,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>230</y>
+     <y>140</y>
      <width>151</width>
      <height>31</height>
     </rect>
@@ -2389,9 +2318,9 @@
    <property name="geometry">
     <rect>
      <x>510</x>
-     <y>270</y>
+     <y>300</y>
      <width>20</width>
-     <height>261</height>
+     <height>231</height>
     </rect>
    </property>
    <property name="sliderPosition">

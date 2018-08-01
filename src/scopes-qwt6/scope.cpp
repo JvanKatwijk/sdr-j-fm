@@ -20,7 +20,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with JSDR; if not, write to the Free Software
+ *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include	"scope.h"
@@ -43,6 +43,10 @@
 	         SIGNAL (leftClicked (int)),
 	         this,
 	         SLOT (leftClicked (int)));
+	connect (Waterfall,
+	         SIGNAL (rightClicked (int)),
+	         this,
+	         SLOT (rightClicked (int)));
 }
 
 	Scope::~Scope (void) {
@@ -50,6 +54,10 @@
 	   delete Spectrum;
 	if (Waterfall != NULL)
 	   delete Waterfall;
+}
+
+int	Scope::currentMode (void) {
+	return CurrentWidget;
 }
 
 void	Scope::leftClicked (int n) {
@@ -95,6 +103,11 @@ void	Scope::SelectView (uint8_t n) {
 	            SIGNAL (leftClicked (int)),
 	            this,
 	            SLOT (leftClicked (int)));
+	   connect (Waterfall,
+	            SIGNAL (rightClicked (int)),
+	            this,
+	            SLOT (rightClicked (int)));
+	   
 	   CurrentWidget = WATERFALL_MODE;
 	}
 }
@@ -353,6 +366,15 @@ int	i, j;
 	connect (lm_picker, SIGNAL (selected (const QPointF&)),
 	         this, SLOT (leftMouseClick (const QPointF &)));
 
+	rm_picker	= new QwtPlotPicker (plot -> canvas ());
+	QwtPickerMachine *rpickerMachine =
+	              new QwtPickerClickPointMachine ();
+	rm_picker	-> setStateMachine (rpickerMachine);
+	rm_picker	-> setMousePattern (QwtPlotPicker::MouseSelect1,
+	                                    Qt::RightButton);
+	connect (rm_picker, SIGNAL (selected (const QPointF&)),
+	         this, SLOT (rightMouseClick (const QPointF &)));
+
 	plotgrid	-> replot ();
 }
 
@@ -365,6 +387,10 @@ int	i, j;
 
 void	WaterfallViewer::leftMouseClick (const QPointF &point) {
 	leftClicked ((int)(point. x()) - IndexforMarker);
+}
+
+void	WaterfallViewer::rightMouseClick (const QPointF &point) {
+	rightClicked ((int)(point. x()) - IndexforMarker);
 }
 
 void	WaterfallViewer::ViewWaterfall (double *X_axis,

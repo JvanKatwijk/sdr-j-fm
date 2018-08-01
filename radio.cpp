@@ -532,8 +532,6 @@ void	RadioInterface::setDevice (const QString &s) {
 QString	file;
 bool	success;
 
-//	note that the reader may be running a separate thread,
-//	so give it time to stop properly
 //	The fm processor is a client of the rig, so the
 //	fm processor has to go first
 	myRig	-> stopReader ();
@@ -644,6 +642,7 @@ bool	success;
 	
 #endif
 	myRig -> setVFOFrequency (currentFreq);
+	setStart ();
 }
 //
 //	Just for convenience packed as a function
@@ -1045,14 +1044,12 @@ SF_INFO	*sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
  *	are connected here.
  */
 void	RadioInterface::localConnects (void) {
-	connect (startButton, SIGNAL (clicked ()),
-	              this, SLOT (setStart ()));
+//	connect (startButton, SIGNAL (clicked ()),
+//	              this, SLOT (setStart ()));
 	connect	(pauseButton, SIGNAL (clicked (void)),
 	               this, SLOT (clickPause (void)));
 	connect (streamOutSelector, SIGNAL (activated (int)),
 	              this, SLOT (setStreamOutSelector (int)));
-	connect (HFAverageButton, SIGNAL (clicked (void)),
-	              this, SLOT (setHFAverager (void)));
 	connect (deviceSelector, SIGNAL (activated (const QString &)),
 	              this, SLOT (setDevice (const QString &)));
 	connect (dumpButton, SIGNAL (clicked (void)),
@@ -1067,8 +1064,6 @@ void	RadioInterface::localConnects (void) {
 
 	connect (IQbalanceSlider, SIGNAL (valueChanged (int) ),
 		      this, SLOT (setIQBalance (int) ) );
-	connect (HFplotterView, SIGNAL (activated (const QString &)),
-	              this, SLOT (setHFplotterView (const QString &)));
 /*
  *	Mode setters
  */
@@ -1129,12 +1124,6 @@ void	RadioInterface::setfmDeemphasis	(const QString& s) {
 	else
 	   myFMprocessor	-> setDeemphasis (1);
 }
-
-void	RadioInterface::setVolume (int v) {
-	if (myFMprocessor != NULL)
-	   myFMprocessor	-> setVolume ((int16_t)v);
-}
-//
 
 void	RadioInterface::setCRCErrors	(int n) {
 	crcErrors	-> display (n);
@@ -1495,21 +1484,12 @@ int16_t	i;
 	                    0);
 }
 
-void	RadioInterface::setHFplotterView (const QString &s) {
-	if (s == "waterfall") {
-	   HFviewMode = WATERFALL_MODE;
-	}
-	else {	// s == "spectrumView"
-	   HFviewMode = SPECTRUM_MODE;
-	}
-
-	hfScope	-> SelectView (HFviewMode);
-}
-
-void	RadioInterface::setHFAverager (void) {
-	HFAverager	= !HFAverager;
-	if (myFMprocessor != NULL)
-	   myFMprocessor	-> setFreezer (HFAverager);
+void	RadioInterface::setHFplotterView (int offset) {
+	(void)offset;
+	if (hfScope -> currentMode () == WATERFALL_MODE)
+	   hfScope -> SelectView (SPECTRUM_MODE);
+	else
+	   hfScope -> SelectView (WATERFALL_MODE);
 }
 
 void	RadioInterface::setup_HFScope	() {
@@ -1523,6 +1503,10 @@ void	RadioInterface::setup_HFScope	() {
 	         SIGNAL (clickedwithLeft (int)),
 	         this,
 	         SLOT (AdjustFrequency (int)));
+	connect (hfScope,
+	         SIGNAL (clickedwithRight (int)),
+	         this,
+	         SLOT (setHFplotterView (int)));
 }
 
 void	RadioInterface::setup_LFScope	(void) {
