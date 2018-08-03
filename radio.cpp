@@ -591,7 +591,7 @@ bool	success;
 	else
 #endif
 	if (s == "filereader")
-	   myRig	= new fileReader (fmSettings, &success);
+	   myRig	= new fileReader (fmSettings);
 	else
 	   myRig	= new deviceHandler ();
 	if (!success) {

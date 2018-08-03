@@ -259,7 +259,7 @@ uint16_t	i;
 
 	SpectrumCurve	-> setSamples (X_axis, Y1_value, Displaysize);
 	if (--counter < 0) {
-	   counter = 10;
+	   counter = 5;
 	   QwtText MarkerLabel_1  =  QwtText (QString::number (max));
 	   QwtText MarkerLabel_2  =  QwtText (QString::number (avg));
 	   QFont font1 ("Courier New");

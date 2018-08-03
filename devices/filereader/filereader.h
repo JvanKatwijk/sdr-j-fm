@@ -42,7 +42,7 @@ class	fileHulp;
 class	fileReader: public deviceHandler, public Ui_filereaderWidget {
 Q_OBJECT
 public:
-		fileReader		(QSettings *, bool *);
+		fileReader		(QSettings *);
 		~fileReader		(void);
 	void	setVFOFrequency		(int32_t);
 	int32_t	getVFOFrequency		(void);

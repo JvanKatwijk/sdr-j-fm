@@ -31,7 +31,7 @@
 #include	"filereader.h"
 #include	"ui_filereader-widget.h"
 
-	fileReader::fileReader	(QSettings *s, bool *success) {
+	fileReader::fileReader	(QSettings *s) {
 	(void)s;
 	this	-> myFrame	= new QFrame (NULL);
 	setupUi		(this -> myFrame);
