@@ -8,9 +8,8 @@ TEMPLATE	= app
 TARGET		= fmreceiver-1.2
 QT		+= widgets
 CONFIG		+= console
-QMAKE_CFLAGS	+= -flto -ffast-math
-QMAKE_CXXFLAGS	+= -flto -ffast-math
-QMAKE_LFLAGS	+= -flto
+QMAKE_CFLAGS	+= -O3 -ffast-math
+QMAKE_CXXFLAGS	+= -O3 -ffast-math
 #QMAKE_CXXFLAGS	+= -pg
 #QMAKE_CFLAGS	+= -pg
 #QMAKE_LFLAGS	+= -pg
@@ -119,7 +118,7 @@ win32 {
 CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
-#CONFIG	+= airspy
+CONFIG	+= airspy
 CONFIG	+= hackrf
 DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
@@ -186,7 +185,7 @@ airspy {
 	FORMS		+= ./devices/airspy/airspy-widget.ui
 	DEPENDPATH	+= ./devices/airspy
 	INCLUDEPATH	+= ./devices/airspy \
-	                   /usr/local/include/libairspy
+	                   ./devices/airspy/libairspy
 	HEADERS		+= ./devices/airspy/airspy-handler.h 
 	SOURCES		+= ./devices/airspy/airspy-handler.cpp 
 }
