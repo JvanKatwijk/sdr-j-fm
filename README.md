@@ -34,8 +34,8 @@ linux distributions do not support qwt in cooperation with Qt5.
 Windows
 -------------------------------------------------------------------------------------
 
-For Windows, the releases section of this repository contains an installer that will
-install the executable as werrl as required libraries. Note that the installer will call upon
+For Windows, the releases section of this repository contains an installer, setup-fmreceiver-  that will
+install the executable as well as required libraries. Note that the installer will call upon
 an installer for the dll implementing the api to get access to the SDRplay
 
 ------------------------------------------------------------------------------------------
