@@ -22,11 +22,25 @@ The FM receiver will operate with the SDRplay, DABsticks, the AIRspy and
 the HACKrf devices. In this version, one has to select the device,
 then press the start button.
 
-
-For creating an executable: install the required libraries use qmake.
+--------------------------------------------------------------------------------
+Linux
+--------------------------------------------------------------------------------
+For creating an executable under: install the required libraries use qmake.
 
 Note that the software is made for Qt5 and qwt6. Unfortunately, some
 linux distributions do not support qwt in cooperation with Qt5.
+
+-------------------------------------------------------------------------------------
+Windows
+-------------------------------------------------------------------------------------
+
+For Windows, the releases section of this repository contains an installer that will
+install the executable as werrl as required libraries. Note that the installer will call upon
+an installer for the dll implementing the api to get access to the SDRplay
+
+------------------------------------------------------------------------------------------
+Notes
+--------------------------------------------------------------------------------------------
 
 Note that in the current version, the keypad on the GUI disappeared,
 it is replaced by a button that can be pressed to activate a separate
