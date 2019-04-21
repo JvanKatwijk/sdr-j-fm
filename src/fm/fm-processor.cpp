@@ -140,7 +140,7 @@
 //	and decimate in an efficient way. We have an optimized
 //	decimating filter (optimized or not, it takes quite some
 //	cycles when entering with high rates)
-	fmBandfilter		= new DecimatingFIR (25,
+	fmBandfilter		= new DecimatingFIR (15 * decimatingScale,
 	                                             fmRate / 2,
 	                                             inputRate,
 	                                             decimatingScale);

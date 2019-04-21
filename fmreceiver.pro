@@ -7,12 +7,17 @@
 TEMPLATE	= app
 TARGET		= fmreceiver-1.2
 QT		+= widgets
-CONFIG		+= console
 QMAKE_CFLAGS	+= -O3 -ffast-math
 QMAKE_CXXFLAGS	+= -O3 -ffast-math
 #QMAKE_CXXFLAGS	+= -pg
 #QMAKE_CFLAGS	+= -pg
 #QMAKE_LFLAGS	+= -pg
+QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
+RC_ICONS        =  fm-icon.ico
+RESOURCES       += resources.qrc
+
+TRANSLATIONS = i18n/de_DE.ts i18n/it_IT.ts i18n/hu_HU.ts
+
 DEPENDPATH += . \
 	      ..\
 	      ../.. \
@@ -115,12 +120,24 @@ SOURCES += ./main.cpp \
 #
 # for windows32 we use:
 win32 {
-CONFIG	+= extio
+DESTDIR	= ../../windows-fmreceiver
+exists ("./.git") {
+   GITHASHSTRING = $$system(git rev-parse --short HEAD)
+   !isEmpty(GITHASHSTRING) {
+       message("Current git hash = $$GITHASHSTRING")
+       DEFINES += GITHASH=\\\"$$GITHASHSTRING\\\"
+   }
+}
+isEmpty(GITHASHSTRING) {
+    DEFINES += GITHASH=\\\"------\\\"
+}
+
+CONFIG	-= console
+#CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
 CONFIG	+= airspy
 CONFIG	+= hackrf
-DESTDIR	= ../../windows-bin
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
@@ -139,13 +156,25 @@ LIBS	+= -lwinpthread
 #
 #for fedora and ubuntu  we use
 unix { 
+DESTDIR		= ./linux-bin
+exists ("./.git") {
+   GITHASHSTRING = $$system(git rev-parse --short HEAD)
+   !isEmpty(GITHASHSTRING) {
+       message("Current git hash = $$GITHASHSTRING")
+       DEFINES += GITHASH=\\\"$$GITHASHSTRING\\\"
+   }
+}
+isEmpty(GITHASHSTRING) {
+    DEFINES += GITHASH=\\\"------\\\"
+}
+
+CONFIG		+= console
 CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-#CONFIG		+= airspy
+CONFIG		+= airspy
 CONFIG		+= dabstick
 CONFIG		+= elad_s1
 CONFIG		+= hackrf
-DESTDIR		= ./linux-bin
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
