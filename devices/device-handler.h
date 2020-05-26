@@ -5,6 +5,7 @@
  *    Lazy Chair Programming
  *
  *    This file is part of the SDR-J.
+ *
  *    Many of the ideas as implemented in SDR-J are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
@@ -43,8 +44,10 @@
 #define	AIRSPY		0110
 #define	PMSDR		0111
 #define	HACKRF		0114
+#define	LIME		0120
+#define	SDRPLAY_V3	0121
 //
-//	in some cases we anly want to differentiate between sticks
+//	in some cases we only want to differentiate between sticks
 //	and non-sticks
 
 #define	someStick(x)	((x) & 03)

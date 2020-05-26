@@ -136,6 +136,7 @@ CONFIG	-= console
 #CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
+CONFIG	+= sdrplay-v3
 CONFIG	+= airspy
 CONFIG	+= hackrf
 # includes in mingw differ from the includes in fedora linux
@@ -171,6 +172,7 @@ isEmpty(GITHASHSTRING) {
 CONFIG		+= console
 CONFIG		+= pmsdr
 CONFIG		+= sdrplay
+CONFIG		+= sdrplay-v3
 CONFIG		+= airspy
 CONFIG		+= dabstick
 CONFIG		+= elad_s1
@@ -205,6 +207,18 @@ sdrplay {
 	                   ./devices/sdrplay-handler/sdrplayselect.h
 	SOURCES		+= ./devices/sdrplay-handler/sdrplay-handler.cpp \
 	                   ./devices/sdrplay-handler/sdrplayselect.cpp
+}
+#	the SDRplay
+#
+sdrplay-v3 {
+	DEFINES		+= HAVE_SDRPLAY_V3
+	DEPENDPATH	+= ./devices/sdrplay-handler-v3
+	INCLUDEPATH	+= ./devices/sdrplay-handler-v3 \
+	                   ./devices/sdrplay-handler-v3/include
+	HEADERS		+= ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
+	                   ./devices/sdrplay-handler-v3/sdrplay-commands.h 
+	SOURCES		+= ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp 
+	FORMS		+= ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
 }
 #
 #	the AIRSPY

@@ -2,9 +2,10 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
+ *
  *    Many of the ideas as implemented in SDR-J are derived from
  *    other work, made available through the GNU general Public License. 
  *    All copyrights of the original authors are recognized.
@@ -22,7 +23,6 @@
  *    You should have received a copy of the GNU General Public License
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
 #ifndef __SDRPLAY_HANDLER__
@@ -112,16 +112,17 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_ReleaseDeviceIdx) (unsigned int);
 class	sdrplayHandler: public deviceHandler, public Ui_sdrplayWidget {
 Q_OBJECT
 public:
-		sdrplayHandler	(QSettings *);
-		~sdrplayHandler	(void);
-	void	setVFOFrequency	(int32_t);
+		sdrplayHandler		(QSettings *);
+		~sdrplayHandler		(void);
+	void	setVFOFrequency		(int32_t);
 	int32_t	getVFOFrequency		(void);
 	bool	legalFrequency		(int32_t);
 	int32_t	defaultFrequency	(void);
 
 	bool	restartReader		(void);
 	void	stopReader		(void);
-	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t	getSamples		(std::complex<float> *,
+	                                             int32_t, uint8_t);
 	int32_t	Samples			(void);
 	int32_t	getRate			(void);
 	uint8_t	myIdentity		(void);

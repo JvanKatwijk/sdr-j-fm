@@ -45,6 +45,9 @@
 #ifdef	HAVE_SDRPLAY
 #include	"sdrplay-handler.h"
 #endif
+#ifdef	HAVE_SDRPLAY_V3
+#include	"sdrplay-handler-v3.h"
+#endif
 #ifdef	HAVE_AIRSPY
 #include	"airspy-handler.h"
 #endif
@@ -154,6 +157,9 @@ int	k;
 #endif
 #ifdef	HAVE_SDRPLAY
 	deviceSelector	-> addItem ("sdrplay");
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+	deviceSelector	-> addItem ("sdrplay-v3");
 #endif
 #ifdef	HAVE_DABSTICK
 	deviceSelector	-> addItem ("dabstick");
@@ -548,6 +554,16 @@ bool	success;
 	if (s == "sdrplay") {
 	   try {
 	      myRig	= new sdrplayHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }	
+	}
+	else  
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+	if (s == "sdrplay-v3") {
+	   try {
+	      myRig	= new sdrplayHandler_v3 (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }	
