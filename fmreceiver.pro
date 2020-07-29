@@ -9,9 +9,9 @@ TARGET		= fmreceiver-1.2
 QT		+= widgets
 QMAKE_CFLAGS	+= -O3 -ffast-math
 QMAKE_CXXFLAGS	+= -O3 -ffast-math
-#QMAKE_CXXFLAGS	+= -pg
-#QMAKE_CFLAGS	+= -pg
-#QMAKE_LFLAGS	+= -pg
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_CFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -139,11 +139,13 @@ CONFIG	+= sdrplay
 CONFIG	+= sdrplay-v3
 CONFIG	+= airspy
 CONFIG	+= hackrf
+CONFIG	+= lime
+CONFIG	+= pluto
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
-LIBS	+= -lfftw3f
+LIBS		+= -lfftw3f
 LIBS	+= -lportaudio
 LIBS	+= -lqwt-qt5
 LIBS	+= -lsndfile
@@ -177,6 +179,8 @@ CONFIG		+= airspy
 CONFIG		+= dabstick
 CONFIG		+= elad_s1
 CONFIG		+= hackrf
+CONFIG		+= lime
+CONFIG		+= pluto
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
@@ -245,6 +249,28 @@ hackrf {
 	HEADERS		+= ./devices/hackrf-handler/hackrf-handler.h 
 	SOURCES		+= ./devices/hackrf-handler/hackrf-handler.cpp 
 }
+
+#
+lime  {
+        DEFINES         += HAVE_LIME
+        INCLUDEPATH     += ./devices/lime-handler
+        DEPENDPATH      += ./devices/lime-handler
+        HEADERS         += ./devices/lime-handler/lime-handler.h \
+                           ./devices/lime-handler/lime-widget.h \
+                           ./devices/lime-handler/LMS7002M_parameters.h
+        SOURCES         += ./devices/lime-handler/lime-handler.cpp
+}
+
+pluto	{
+	DEFINES		+= HAVE_PLUTO
+	QT              += network
+        INCLUDEPATH     += ./devices/pluto-handler
+        HEADERS         += ./devices/pluto-handler/pluto-handler.h
+        SOURCES         += ./devices/pluto-handler/pluto-handler.cpp
+        FORMS           += ./devices/pluto-handler/pluto-widget.ui
+        LIBS            += -liio -lad9361
+}
+
 #
 #	the elad-s1
 #

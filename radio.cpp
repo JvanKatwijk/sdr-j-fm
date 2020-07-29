@@ -4,14 +4,14 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the  SDR-J series.
+ *    This file is part of the fm software
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fm software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fm software is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
@@ -57,11 +57,17 @@
 #ifdef	HAVE_EXTIO
 #include	"extio-handler.h"
 #endif
-#ifdef	HAVE_ELAD_S1
-#include	"elad-s1.h"
-#endif
 #ifdef	HAVE_HACKRF
 #include	"hackrf-handler.h"
+#endif
+#ifdef	HAVE_LIME
+#include	"lime-handler.h"
+#endif
+#ifdef	HAVE_PLUTO
+#include	"pluto-handler.h"
+#endif
+#ifdef	HAVE_ELAD_S1
+#include	"elad-s1.h"
 #endif
 #ifdef __MINGW32__
 #include	<iostream>
@@ -113,7 +119,7 @@ int	k;
   *	(as long as it is reasonable)
   */
 	this		-> displaySize	=
-                            fmSettings -> value ("displaySize", 1024). toInt ();
+                            fmSettings -> value ("displaySize", 512). toInt ();
 	if ((displaySize & (displaySize - 1)) != 0)
 	   displaySize = 1024;
 	if (displaySize < 128)
@@ -140,7 +146,7 @@ int	k;
 	                                          50). toInt ();
 	this		-> repeatRate	= 
 	                     fmSettings -> value ("repeatRate",
-	                                          8). toInt ();
+	                                          5). toInt ();
 	this		-> averageCount	 =
 	                     fmSettings -> value ("averageCount",
 	                                          5). toInt ();
@@ -169,6 +175,12 @@ int	k;
 #endif
 #ifdef	HAVE_HACKRF
 	deviceSelector	-> addItem ("hackrf");
+#endif
+#ifdef	HAVE_LIME
+	deviceSelector	-> addItem ("lime");
+#endif
+#ifdef	HAVE_PLUTO
+	deviceSelector	-> addItem ("pluto");
 #endif
 #ifdef	HAVE_ELAD_S1
 	deviceSelector	-> addItem ("elad-s1");
@@ -405,6 +417,9 @@ void	RadioInterface::TerminateProcess (void) {
 	   sf_close (dumpfilePointer);
 	}
 
+	if (myFMprocessor != nullptr)
+	   delete myFMprocessor;
+
 	if (audioDumping) {
 	   our_audioSink		-> stopDumping ();
 	   sf_close (audiofilePointer);
@@ -419,9 +434,10 @@ void	RadioInterface::TerminateProcess (void) {
 //	set things within the FMprocessor when it is
 //	being deleted
 	myRig	-> stopReader ();
-	setDevice (QString ("dummy"));	// will select a virtualinput
+//	setDevice (QString ("dummy"));	// will select a virtualinput
 	accept ();
 	qDebug () <<  "Termination started";
+	delete myRig;
 
 	delete	mykeyPad;
 	delete	myList;
@@ -540,12 +556,15 @@ bool	success;
 
 //	The fm processor is a client of the rig, so the
 //	fm processor has to go first
-	myRig	-> stopReader ();
+	if (myRig != nullptr)
+	   myRig	-> stopReader ();
+	myRig	= nullptr;
 	if (myFMprocessor != NULL) {
 	   myFMprocessor	-> stop ();
 	   delete myFMprocessor;
 	   myFMprocessor	= NULL;
 	}
+
 	runMode		= IDLE;
 	ExtioLock	= false;
 	delete	myRig;
@@ -571,8 +590,13 @@ bool	success;
 	else  
 #endif
 #ifdef	HAVE_AIRSPY
-	if (s == "airspy")
-	   myRig	= new airspyHandler (fmSettings, true, &success);
+	if (s == "airspy") {
+	   try {
+	      myRig	= new airspyHandler (fmSettings, true, &success);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
 	else
 #endif
 #ifdef	HAVE_HACKRF
@@ -586,14 +610,42 @@ bool	success;
 	}
 	else
 #endif
+#ifdef	HAVE_LIME
+	if (s == "lime") {
+	   success	= true;
+	   try {
+	      myRig	= new limeHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
+	else
+#endif
+#ifdef	HAVE_PLUTO
+	if (s == "pluto") {
+	   success	= true;
+	   try {
+	      myRig	= new plutoHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
+	else
+#endif
 #ifdef	HAVE_ELAD_S1
 	if (s == "elad-s1")
 	   myRig	= new eladHandler (fmSettings, true, &success);
 	else
 #endif
 #ifdef	HAVE_DABSTICK
-	if (s == "dabstick")
-	   myRig	= new rtlsdrHandler (fmSettings, true, &success);
+	if (s == "dabstick") {
+	   success	= true;
+	   try {
+	      myRig	= new rtlsdrHandler (fmSettings, true, &success);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
 	else
 #endif
 #ifdef	HAVE_EXTIO
@@ -606,16 +658,23 @@ bool	success;
 	   myRig	= new pmsdrHandler (fmSettings, &success);
 	else
 #endif
-	if (s == "filereader")
-	   myRig	= new fileReader (fmSettings);
+	if (s == "filereader") {
+	   success 	= true;
+	   try {
+	      myRig	= new fileReader (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
 	else
 	   myRig	= new deviceHandler ();
 	if (!success) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("loading device failed"));
-	   delete myRig;
-	   myRig	= new deviceHandler ();
+	   if (myRig == nullptr)
+	      myRig	= new deviceHandler ();
 	   resetSelector	();
+	   return;
 	}
 
 	inputRate	= myRig	-> getRate ();

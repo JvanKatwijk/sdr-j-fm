@@ -354,7 +354,7 @@ int16_t	bankFor_sdr (int32_t freq) {
 }
 
 bool	sdrplayHandler::legalFrequency (int32_t f) {
-	return (bankFor_sdr (f) != -1);
+	return MHz (60) <= f && f <= MHz (250);
 }
 
 int32_t	sdrplayHandler::defaultFrequency	(void) {
@@ -369,7 +369,7 @@ int     GRdB		= GRdBSelector    	-> value ();
 int     lnaState        = lnaGainSetting	-> value ();
 
 
-	if (bankFor_sdr (newFrequency) == -1)
+	if (!legalFrequency (newFrequency))
 	   return;
 
 	if (!running. load ()) {

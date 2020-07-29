@@ -42,6 +42,10 @@ static
 int	RSPduo_Table []	= {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
 
 static
+int     RSPDx_Table []  = {0, 3, 6, 9, 12, 15, 24,27, 30, 33, 36, 39, 42, 45,
+                           48, 51, 54, 57, 60, 53, 66, 69, 72, 75, 78, 81, 84};
+
+static
 int	get_lnaGRdB (int hwVersion, int lnaState) {
 	switch (hwVersion) {
 	   case 1:
@@ -56,6 +60,9 @@ int	get_lnaGRdB (int hwVersion, int lnaState) {
 
 	   case 3:
 	      return RSPduo_Table [lnaState];
+
+           case 4:
+              return RSPDx_Table [lnaState];
 	}
 }
 
@@ -130,6 +137,7 @@ int	get_lnaGRdB (int hwVersion, int lnaState) {
 	sdrplaySettings	-> sync();
 
 	myFrame. hide ();
+	fprintf (stderr, "end of sdrplay-handler-v3\n");
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -148,7 +156,7 @@ int32_t	sdrplayHandler_v3::getVFOFrequency() {
 }
 
 bool	sdrplayHandler_v3::legalFrequency	(int32_t f) {
-	return true;
+	return MHz (60) <= f && f <= MHz (250);
 }
 
 int32_t	sdrplayHandler_v3::defaultFrequency	() {
@@ -529,6 +537,13 @@ uint32_t                ndev;
 	      denominator	= 2048;
 	      nrBits		= 12;
 	      has_antennaSelect	= false;
+	      break;
+	   case 4:		// RSP-Dx
+	      lna_upperBound	= 26;
+	      deviceModel	= "RSP-Dx";
+	      denominator	= 2048;
+	      nrBits		= 14;
+	      has_antennaSelect	= true;
 	      break;
 	   default:
 	   case 255:		// RSP-1A

@@ -5,9 +5,6 @@
  *    Lazy Chair Programming
  *
  *    This file is part of the SDR-J-FM program.
- *    Many of the ideas as implemented in SDR-J-FM are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -384,8 +381,10 @@ int		localP		= 0;
 
 	running	= true;		// will be set from the outside
 	while (running) {
-	   while (running && (myRig -> Samples () < bufferSize)) 
+	   while (running && (myRig -> Samples () < bufferSize)) {
 	      msleep (1);	// should be enough
+	   }
+	   
 	   if (!running)
 	      break;
 
@@ -404,7 +403,6 @@ int		localP		= 0;
 	   }
 
 	   amount = myRig -> getSamples (dataBuffer, bufferSize, inputMode);
-
 	   aa = amount >= spectrumSize ? spectrumSize : amount;
 //	for the HFscope
 	   if (++hfCount > (inputRate / bufferSize) / repeatRate) {
