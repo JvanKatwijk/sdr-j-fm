@@ -2,6 +2,18 @@
 A simple FM receiver
 -------------------
 
+------------------------------------------------------------------------
+New: support for the Adalm Pluto
+------------------------------------------------------------------------
+
+The Adalm pluto is now supported for both the Windows and the Linux version.
+Since the software has to run on systems where support for the Pluto is
+not installed, the driver software had to be adapted as with
+other devices: on selecting the device, functions will be read-in from the
+device library. To reduce dependency on external libraries, the filtering
+software does not depend on the AD9361 library, but is "hard coded",
+based on output from this library
+
 ![fm receiver](/fmreceiver.png?raw=true)
 
 -------------------------------------------------------------------------
@@ -15,16 +27,16 @@ A simpler version, just to listen to radio, is in the WFM-RPI repository.
 The program shows 2 spectra, one is the spectrum of the incoming signal,
 the other is the spectrum of the decoded signal.
 
-
 -------------------------------------------------------------------------
 Supported devices
 -------------------------------------------------------------------------
 
+The FM receiver does not support automatic device selection,
+one has to select the device, then press the start button.
 The FM receiver will operate with the SDRplay, DABsticks, the AIRspy,
-and HACKrf devices. Note that there are two entries for use with the
+Lime devices, Pluto and HACKrf devices. Note that there are two entries for use with the
 SDRplay, one using the 2.13 library, the other one using the 3.06 (or 07)
 library.
-In this version, there is no automatic device selection, one has to select the device, then press the start button.
 
 --------------------------------------------------------------------------------
 Linux

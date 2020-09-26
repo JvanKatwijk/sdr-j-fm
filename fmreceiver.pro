@@ -120,7 +120,7 @@ SOURCES += ./main.cpp \
 #
 # for windows32 we use:
 win32 {
-DESTDIR	= ../../windows-fmreceiver
+DESTDIR	= /usr/shared/sdr-j-development/w32-programs/windows-fmreceiver
 exists ("./.git") {
    GITHASHSTRING = $$system(git rev-parse --short HEAD)
    !isEmpty(GITHASHSTRING) {
@@ -265,10 +265,11 @@ pluto	{
 	DEFINES		+= HAVE_PLUTO
 	QT              += network
         INCLUDEPATH     += ./devices/pluto-handler
-        HEADERS         += ./devices/pluto-handler/pluto-handler.h
+        HEADERS         += ./devices/pluto-handler/pluto-handler.h \
+	                   ./devices/pluto-handler/fmFilter.h
         SOURCES         += ./devices/pluto-handler/pluto-handler.cpp
         FORMS           += ./devices/pluto-handler/pluto-widget.ui
-        LIBS            += -liio -lad9361
+#	LIBS            += -liio -lad9361
 }
 
 #
