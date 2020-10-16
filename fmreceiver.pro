@@ -171,21 +171,21 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
-CONFIG		+= console
-CONFIG		+= pmsdr
+#CONFIG		+= console
+#CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-CONFIG		+= sdrplay-v3
-CONFIG		+= airspy
-CONFIG		+= dabstick
-CONFIG		+= elad_s1
-CONFIG		+= hackrf
-CONFIG		+= lime
+#CONFIG		+= sdrplay-v3
+#CONFIG		+= airspy
+#CONFIG		+= dabstick
+#CONFIG		+= elad_s1
+#CONFIG		+= hackrf
+#CONFIG		+= lime
 CONFIG		+= pluto
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
 #for fedora 21
-LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
+LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
 LIBS += -lsamplerate
 }
 
