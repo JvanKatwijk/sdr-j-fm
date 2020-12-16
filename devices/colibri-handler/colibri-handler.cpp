@@ -62,7 +62,7 @@
 	fprintf (stderr, "and opening device 0 was ok\n");
         m_loader.setFrequency (m_deskriptor, defaultFrequency ());
 
-	this		-> lastFrequency	= defaultFrequency;
+	this		-> lastFrequency	= defaultFrequency ();
 	fprintf (stderr, "set on %d\n", lastFrequency);
 	colibriSettings -> beginGroup ("colibriSettings");
 	int gainSetting = colibriSettings -> value ("colibri-gain", 20). toInt ();

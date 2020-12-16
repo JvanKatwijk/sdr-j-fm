@@ -2,27 +2,23 @@
 /*
  *    Copyright (C) 2010, 2011, 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fm software
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fm software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fm software is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fm software; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  *
  * 	This particular driver is a very simple wrapper around the
  * 	librtlsdr.  In order to keep things simple, we dynamically
@@ -88,7 +84,7 @@ virtual void	run (void) {
 };
 //
 //	Our wrapper is a simple classs
-	rtlsdrHandler::rtlsdrHandler (QSettings *s, bool full, bool *success) {
+	rtlsdrHandler::rtlsdrHandler (QSettings *s, bool full) {
 int16_t	deviceCount;
 int32_t	r;
 int16_t	deviceIndex;
@@ -117,7 +113,6 @@ int	k;
 	   rateSelector	-> addItem (QString::number (inputRate / Khz (1)));
 	}
 	  
-	*success			= false;	// just the default
 	libraryLoaded			= false;
 	open				= false;
 	_I_Buffer			= NULL;
@@ -165,16 +160,14 @@ int	k;
 	r			= this -> rtlsdr_open (&device, deviceIndex);
 	if (r < 0) {
 	   fprintf (stderr, "Opening dabstick failed\n");
-	   *success = false;
-	   return;
+	   throw (21);
 	}
 	open			= true;
 	r			= this -> rtlsdr_set_sample_rate (device,
 	                                                          inputRate);
 	if (r < 0) {
 	   fprintf (stderr, "Setting samplerate failed\n");
-	   *success = false;
-	   return;
+	   throw (22);
 	}
 
 	r			= this -> rtlsdr_get_sample_rate (device);
@@ -210,7 +203,6 @@ int	k;
 	KhzOffset	-> setValue (dabSettings -> value ("KhzOffset", 0). toInt ());
 	HzOffset	-> setValue (dabSettings -> value ("HzOffset", 0). toInt ());
 	dabSettings	-> endGroup ();
-	*success 		= true;
 	return;
 
 err:
@@ -223,7 +215,7 @@ err:
 #endif
 	libraryLoaded	= false;
 	open		= false;
-	*success	= false;
+	throw (23);
 	return;
 }
 
@@ -262,7 +254,6 @@ bool	rtlsdrHandler::legalFrequency (int32_t f) {
 int32_t	rtlsdrHandler::defaultFrequency	(void) {
 	return Khz (94700);
 }
-//
 //
 bool	rtlsdrHandler::restartReader	(void) {
 int32_t	r;
@@ -362,12 +353,6 @@ uint8_t	*tempBuffer = (uint8_t *)alloca (2 * size * sizeof (uint8_t));
 	    V [i] = DSPCOMPLEX ((float (tempBuffer [2 * i] - 127)) / 128.0,
 	                        (float (tempBuffer [2 * i + 1] - 127)) / 128.0);
 	return amount / 2;
-}
-
-int32_t	rtlsdrHandler::getSamples 	(DSPCOMPLEX  *V,
-	                         int32_t size, uint8_t M) {
-	(void)M;
-	return getSamples (V, size);
 }
 
 int32_t	rtlsdrHandler::Samples	(void) {

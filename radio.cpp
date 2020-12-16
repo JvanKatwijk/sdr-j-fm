@@ -658,7 +658,7 @@ bool	success;
 	if (s == "dabstick") {
 	   success	= true;
 	   try {
-	      myRig	= new rtlsdrHandler (fmSettings, true, &success);
+	      myRig	= new rtlsdrHandler (fmSettings, true);
 	   } catch (int e) {
 	      success = false;
 	   }
