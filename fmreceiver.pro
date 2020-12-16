@@ -133,7 +133,7 @@ isEmpty(GITHASHSTRING) {
 }
 
 CONFIG	-= console
-#CONFIG	+= extio
+CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
 CONFIG	+= sdrplay-v3
@@ -181,6 +181,7 @@ CONFIG		+= sdrplay
 #CONFIG		+= hackrf
 #CONFIG		+= lime
 CONFIG		+= pluto
+CONFIG		+= colibri
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
@@ -318,5 +319,17 @@ pmsdr {
 	                   ./devices/pmsdr/pmsdr-usb.cpp \
 	                   ./devices/pmsdr/pmsdr-comm.cpp \
 	                   ./devices/pmsdr/pa-reader.cpp
+}
+
+colibri {
+        DEFINES         += HAVE_COLIBRI
+        DEPENDPATH      += ./devices/colibri-handler
+        INCLUDEPATH     += ./devices/colibri-handler
+        HEADERS         += ./devices/colibri-handler/colibri-handler.h \
+                           ./devices/colibri-handler/LibLoader.h \
+                           ./devices/colibri-handler/common.h
+        SOURCES         += ./devices/colibri-handler/colibri-handler.cpp \
+                           ./devices/colibri-handler/LibLoader.cpp
+        FORMS           += ./devices/colibri-handler/colibri-widget.ui
 }
 

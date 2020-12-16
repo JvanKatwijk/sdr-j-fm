@@ -190,7 +190,8 @@ public:
 	bool		restartReader		(void);
 	void		stopReader		(void);
 	int32_t		Samples			(void);
-	int32_t		getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
+	int32_t		getSamples		(std::complex<float> *,
+	                                             int32_t, uint8_t);
 	int16_t		bitDepth		(void);
 
 	void		putonQueue		(int);
@@ -213,6 +214,7 @@ public:
 	bool		isStarted;
 
 private:
+	RingBuffer<std::complex<float>>	theBuffer;
 	void		run		(void);
 	bool		running;
 	QQueue<int>	commandQueue;
@@ -224,7 +226,6 @@ private:
 	int32_t		base_32;
 	int32_t		inputRate;
 	bool		loadFunctions	(void);
-	RingBuffer<DSPCOMPLEX>	*theBuffer;
 //	functions to be extracted from the dll
 	pfnInitHW	InitHW;		// should be available
 	pfnOpenHW	OpenHW;		// should be available

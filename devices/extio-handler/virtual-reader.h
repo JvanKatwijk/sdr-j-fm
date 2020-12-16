@@ -3,8 +3,8 @@
 //	For the different formats for input, we have
 //	different readers, with one "mother" reader.
 //	Note that the cardreader is quite different here
-#ifndef	__VIRTUAL_READER
-#define	__VIRTUAL_READER
+#ifndef	__VIRTUAL_READER__
+#define	__VIRTUAL_READER__
 
 #include	<stdint.h>
 #include	<stdio.h>
@@ -16,10 +16,10 @@
 //	made fitting the framework
 class	virtualReader {
 protected:
-RingBuffer<DSPCOMPLEX>	*theBuffer;
+RingBuffer<std::complex<float>>	*theBuffer;
 int32_t	blockSize;
 public:
-		virtualReader	(RingBuffer<DSPCOMPLEX> *p);
+		virtualReader	(RingBuffer<std::complex<float>> *p);
 virtual		~virtualReader	(void);
 virtual void	restartReader	(int32_t s);
 virtual void	stopReader	(void);

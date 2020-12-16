@@ -7,7 +7,7 @@
 //	This is the - almost empty - default implementation
 #include	"virtual-reader.h"
 
-	virtualReader::virtualReader	(RingBuffer<DSPCOMPLEX> *p) {
+	virtualReader::virtualReader	(RingBuffer<std::complex<float>> *p) {
 	theBuffer	= p;
 	blockSize	= -1;
 }

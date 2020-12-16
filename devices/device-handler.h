@@ -43,6 +43,7 @@
 #define	LIME		0120
 #define	SDRPLAY_V3	0121
 #define	PLUTO		0122
+#define	COLIBRI		0124
 //
 //	in some cases we only want to differentiate between sticks
 //	and non-sticks

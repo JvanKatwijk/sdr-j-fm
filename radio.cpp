@@ -63,6 +63,9 @@
 #ifdef	HAVE_LIME
 #include	"lime-handler.h"
 #endif
+#ifdef	HAVE_COLIBRI
+#include	"colibri-handler.h"
+#endif
 #ifdef	HAVE_PLUTO
 #include	"pluto-handler.h"
 #endif
@@ -178,6 +181,9 @@ int	k;
 #endif
 #ifdef	HAVE_LIME
 	deviceSelector	-> addItem ("lime");
+#endif
+#ifdef	HAVE_COLIBRI
+	deviceSelector	-> addItem ("colibri");
 #endif
 #ifdef	HAVE_PLUTO
 	deviceSelector	-> addItem ("pluto");
@@ -621,6 +627,17 @@ bool	success;
 	}
 	else
 #endif
+#ifdef	HAVE_COLIBRI
+	if (s == "colibri") {
+	   success	= true;
+	   try {
+	      myRig	= new colibriHandler (fmSettings);
+	   } catch (int e) {
+	      success = false;
+	   }
+	}
+	else
+#endif
 #ifdef	HAVE_PLUTO
 	if (s == "pluto") {
 	   success	= true;
@@ -865,8 +882,8 @@ void	RadioInterface::wheelEvent (QWheelEvent *e) {
 int32_t	RadioInterface::setTuner (int32_t n) {
 int32_t	vfo;
 
-	if ((n < Mhz (60)) || (n > Mhz (420)))
-	   return Khz (94700);
+//	if ((n < Mhz (60)) || (n > Mhz (420)))
+//	   return Khz (94700);
 //	as long as the requested frequency fits within the current
 //	range - i.e. the full width required for fm demodulation fits -
 //	the vfo remains the same, while the LO is adapted.

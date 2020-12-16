@@ -2,19 +2,16 @@
 /*
  *    Copyright (C) 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fm receiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fm receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fm receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
@@ -34,7 +31,7 @@
  *	ringbuffer and making samples available for the user
  */
 
-	cardReader::cardReader 	(RingBuffer<DSPCOMPLEX> *p,
+	cardReader::cardReader 	(RingBuffer<std::complex<float>> *p,
 	                         QComboBox *s):virtualReader (p) {
 int16_t	i;
 	this	-> theBuffer	= p;
@@ -215,7 +212,7 @@ int	cardReader::paCallback_i (
 		const PaStreamCallbackTimeInfo	*timeInfo,
 	        PaStreamCallbackFlags		statusFlags,
 	        void				*userData) {
-RingBuffer<DSPCOMPLEX>	*inB;
+RingBuffer<std::complex<float>>	*inB;
 float *inp	= (float *)inputBuffer;
 cardReader	*ud	= reinterpret_cast <cardReader *>(userData);
 
@@ -226,10 +223,10 @@ cardReader	*ud	= reinterpret_cast <cardReader *>(userData);
 	if (inputBuffer != NULL) {
 	   if (ud -> paCallbackReturn == paContinue) {
 	      uint32_t i;
-	      DSPCOMPLEX temp [framesPerBuffer];
+	      std::complex<float> temp [framesPerBuffer];
 	      inB =  ud -> theBuffer;
 	      for (i = 0; i < framesPerBuffer; i ++)
-	         temp [i] = DSPCOMPLEX (inp [2 * i], inp [2 * i + 1]);
+	         temp [i] = std::complex<float> (inp [2 * i], inp [2 * i + 1]);
 	      (void) ((inB) -> putDataIntoBuffer (temp, framesPerBuffer));
 	   }
 	}

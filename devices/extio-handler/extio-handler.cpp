@@ -2,25 +2,22 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fm-receiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fm-receiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fm-receiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fm-receiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
@@ -91,7 +88,8 @@ int	extioCallback (int cnt, int status, float IQoffs, void *IQData) {
 //	are dealt with by the producer of the extio, so here 
 //	no frame whatsoever.
 	ExtioHandler::ExtioHandler (QSettings *s,
-	                            QComboBox *theSelector, bool *success) {
+	                            QComboBox *theSelector, bool *success):
+	                               theBuffer (1024 * 1024) {
 #ifdef	__MINGW32__
 char	temp [256];
 wchar_t	*windowsName;
@@ -163,9 +161,33 @@ int16_t	wchars_num;
 	if (!((*InitHW) (rigName, rigModel, hardwareType))) {
 	   QMessageBox::warning (NULL, tr ("sdr"),
 	                               tr ("init failed\n"));
-	   exit (1);
+	   throw (23);
 	}
-	theBuffer	= new RingBuffer<DSPCOMPLEX>(1024 * 1024);
+
+	SetCallback (extioCallback);
+        if (!(*OpenHW)()) {
+           QMessageBox::warning (NULL, tr ("sdr"),
+                                       tr ("Opening hardware failed\n"));
+           FREELIBRARY (Handle);
+           throw (24);
+        }
+        fprintf (stderr, "Hw open successful\n");
+
+	ShowGUI ();
+
+	bool go_on	= false;
+	while (!go_on) {
+	   int actualRate	= GetHWSR ();
+	   QString f	= QString::number (actualRate / 1000) + "KHz is OK?";
+	   QMessageBox::StandardButton testButton =
+	         QMessageBox::question (nullptr, "extio",
+	                                tr (f. toLatin1 (). data ()),
+	                                QMessageBox::No | QMessageBox::Yes,
+	                                QMessageBox::Yes);
+	   if (testButton == QMessageBox::Yes)
+	      go_on = true;
+	}
+
 	fprintf (stderr, "hardware type = %d\n", hardwareType);
 	switch (hardwareType) {
 	   case exthwNone:
@@ -179,7 +201,7 @@ int16_t	wchars_num;
 
 	   case exthwSCdata:
 	      theSelector -> show ();
-	      theReader	= new cardReader (theBuffer, theSelector);
+	      theReader	= new cardReader (&theBuffer, theSelector);
 	      if (!((cardReader *)theReader) -> worksFine ()) {
 	         QMessageBox::warning (NULL, tr ("sdr"),
 	                                     tr ("cannot handle soundcard"));
@@ -189,28 +211,20 @@ int16_t	wchars_num;
 	               this, SLOT (set_streamSelector (int)));
 	      break;
 	   case exthwUSBdata16:
-	      theReader	= new reader_16 (theBuffer, base_16);
+	      theReader	= new reader_16 (&theBuffer, base_16);
 	      break;
 	   case exthwUSBdata24:
-	      theReader	= new reader_24 (theBuffer, base_24);
+	      theReader	= new reader_24 (&theBuffer, base_24);
 	      break;
 	   case exthwUSBdata32:
-	      theReader	= new reader_32 (theBuffer, base_32);
+	      theReader	= new reader_32 (&theBuffer, base_32);
 	      break;
 	   case exthwUSBfloat32:
 	      fprintf (stderr, "buffer with float input allocated\n");
-	      theReader	= new reader_float (theBuffer);
+	      theReader	= new reader_float (&theBuffer);
 	      break;
 	}
 
-	SetCallback (extioCallback);
-	if (!(*OpenHW)()) {
-	   QMessageBox::warning (NULL, tr ("sdr"),
-	                               tr ("Opening hardware failed\n"));
-	   exit (1);
-	}
-	ShowGUI ();
-	fprintf (stderr, "Hw open successful\n");
 	start ();
 	*success	= true;
 }
@@ -380,27 +394,28 @@ void	ExtioHandler::stopReader	(void) {
 }
 
 int32_t	ExtioHandler::Samples		(void) {
-int32_t	x = theBuffer -> GetRingBufferReadAvailable ();
+int32_t	x = theBuffer. GetRingBufferReadAvailable ();
 	if (x < 0)
 	   fprintf (stderr, "toch een fout in ringbuffer\n");
 	return x;
 }
 
-int32_t	ExtioHandler::getSamples		(DSPCOMPLEX *buffer,
+int32_t	ExtioHandler::getSamples		(std::complex<float> *buffer,
 	                                         int32_t number,
 	                                         uint8_t mode) {
 int32_t	amount, i;
 
 	if (mode == IandQ) {
-	   amount	= theBuffer -> getDataFromBuffer (buffer, number);
+	   amount	= theBuffer. getDataFromBuffer (buffer, number);
 	   return amount;
 	}
-	DSPCOMPLEX temp [number];
-	amount = theBuffer -> getDataFromBuffer (temp, number);
+	std::complex<float> temp [number];
+	amount = theBuffer. getDataFromBuffer (temp, number);
 	for (i = 0; i < amount; i ++)
 	   switch (mode) {
 	      default:
-	         buffer [i] = DSPCOMPLEX (imag (temp [i]), real (temp [i]));
+	         buffer [i] = std::complex<float> (imag (temp [i]),
+	                                               real (temp [i]));
 	         break;
 	   }
 	return amount;
