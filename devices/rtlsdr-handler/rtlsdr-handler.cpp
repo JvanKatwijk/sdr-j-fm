@@ -355,6 +355,11 @@ uint8_t	*tempBuffer = (uint8_t *)alloca (2 * size * sizeof (uint8_t));
 	return amount / 2;
 }
 
+int32_t rtlsdrHandler::getSamples (std::complex<float> *V, int32_t size, uint8_t M) {
+	(void)M;
+	return getSamples (V, size);
+}
+
 int32_t	rtlsdrHandler::Samples	(void) {
 	return _I_Buffer	-> GetRingBufferReadAvailable () / 2;
 }

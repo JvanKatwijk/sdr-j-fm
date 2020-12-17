@@ -107,6 +107,7 @@ float	gainValue	= -31.5 + newGain * 0.5;
 	if (gainValue <= 6) {
            m_loader.setPream (m_deskriptor, newGain);
 	   actualGain	-> display (gainSelector -> value () * 0.5 + -31.5);
+	   fprintf (stderr, "gain set to %d\n", actualGain -> value ());
 	}
 }
 
@@ -118,6 +119,7 @@ void	colibriHandler::handle_iqSwitcher	()  {
 	   switchLabel -> setText ("I/Q");
 }
 
+static int cnt	= 0;
 static
 bool	the_callBackRx (std::complex<float> *buffer, uint32_t len,
 	                               bool overload, void *ctx) {
@@ -125,6 +127,11 @@ colibriHandler *p = static_cast<colibriHandler *>(ctx);
 
 	(void)overload;
 	p -> _I_Buffer. putDataIntoBuffer (buffer, len);
+	cnt += len;
+	if (cnt > 1920000) {
+	   fprintf (stderr, "x");
+	   cnt = 0;
+	}
 	return true;
 }
 
@@ -132,6 +139,7 @@ bool	colibriHandler::restartReader	() {
 	if (running. load())
 	   return true;		// should not happen
 
+	fprintf (stderr, "reader is going to start\n");
 	m_loader.start (m_deskriptor, (SampleRateIndex)Sr_1920kHz,
                         the_callBackRx,
 	                this);
@@ -142,18 +150,33 @@ bool	colibriHandler::restartReader	() {
 void	colibriHandler::stopReader() {
 	if (!running. load())
 	   return;
+	fprintf (stderr, "reader is going to stop\n");
 	m_loader. stop (m_deskriptor);
+	running. store (false);
 }
 
 int32_t	colibriHandler::getSamples (std::complex<float> *V, int32_t size) { 
+static int teller	= 0;
+	teller += size;
+	if (size > 1920000) {
+	   fprintf (stderr, "y");
+	   teller = 0;
+	}
 	if (iqSwitcher) {
 	   std::complex<float> xx [size];
 	   _I_Buffer. getDataFromBuffer (xx, size);
 	   for (int i = 0; i < size; i ++)
 	      V[i] = std::complex<float> (imag (xx [i]), real (xx [i]));
+	   return size;
 	}
 	else
 	   return _I_Buffer. getDataFromBuffer (V, size);
+}
+
+int32_t colibriHandler::getSamples	(std::complex<float> *V,
+	                                  int32_t size, uint8_t M) {
+	(void)M;
+	return getSamples (V, size);
 }
 
 int32_t	colibriHandler::Samples () {
