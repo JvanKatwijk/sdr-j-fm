@@ -33,7 +33,7 @@
 	                                  myFrame (nullptr) {
 	colibriSettings		= s;
 	setupUi (&myFrame);
-	QString libName = "/home/jan/Downloads/ColibriNANO_lib/library/linux64/libcolibrinano_lib.so";
+	QString libName = "libcolibrinano_lib.so";
 	if (!m_loader. load (libName. toLatin1 () .data ())) {
            QMessageBox::critical (nullptr, "colibri",
 	                          tr("Failed to load colibrinano_lib.so"));
@@ -107,7 +107,8 @@ float	gainValue	= -31.5 + newGain * 0.5;
 	if (gainValue <= 6) {
            m_loader.setPream (m_deskriptor, newGain);
 	   actualGain	-> display (gainSelector -> value () * 0.5 + -31.5);
-	   fprintf (stderr, "gain set to %d\n", actualGain -> value ());
+	   fprintf (stderr, "gain set to %f\n", 
+	                            gainSelector -> value () * 0.5 + -31.5);
 	}
 }
 
@@ -119,7 +120,7 @@ void	colibriHandler::handle_iqSwitcher	()  {
 	   switchLabel -> setText ("I/Q");
 }
 
-static int cnt	= 0;
+//static int cnt	= 0;
 static
 bool	the_callBackRx (std::complex<float> *buffer, uint32_t len,
 	                               bool overload, void *ctx) {
@@ -127,11 +128,11 @@ colibriHandler *p = static_cast<colibriHandler *>(ctx);
 
 	(void)overload;
 	p -> _I_Buffer. putDataIntoBuffer (buffer, len);
-	cnt += len;
-	if (cnt > 1920000) {
-	   fprintf (stderr, "x");
-	   cnt = 0;
-	}
+//	cnt += len;
+//	if (cnt > 1920000) {
+//	   fprintf (stderr, "x");
+//	   cnt = 0;
+//	}
 	return true;
 }
 
@@ -156,12 +157,6 @@ void	colibriHandler::stopReader() {
 }
 
 int32_t	colibriHandler::getSamples (std::complex<float> *V, int32_t size) { 
-static int teller	= 0;
-	teller += size;
-	if (size > 1920000) {
-	   fprintf (stderr, "y");
-	   teller = 0;
-	}
 	if (iqSwitcher) {
 	   std::complex<float> xx [size];
 	   _I_Buffer. getDataFromBuffer (xx, size);
@@ -188,7 +183,7 @@ void	colibriHandler::resetBuffer() {
 }
 
 int16_t	colibriHandler::bitDepth () {
-	return 12;
+	return 24;
 }
 
 QString	colibriHandler::deviceName	() {
