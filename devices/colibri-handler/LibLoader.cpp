@@ -7,7 +7,7 @@ bool LibLoader::load(const char *file)
 #endif
 {
 #ifndef __linux__
-	hDLL = LoadLibrary(file.data());
+	hDLL = LoadLibrary (file);
 #else
 #  define GetProcAddress dlsym
 	hDLL = dlopen(file, RTLD_LAZY);

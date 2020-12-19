@@ -120,7 +120,7 @@ SOURCES += ./main.cpp \
 #
 # for windows32 we use:
 win32 {
-DESTDIR	= /usr/shared/sdr-j-development/w32-programs/windows-fmreceiver
+DESTDIR	= /usr/shared/w32-programs/windows-fmreceiver
 exists ("./.git") {
    GITHASHSTRING = $$system(git rev-parse --short HEAD)
    !isEmpty(GITHASHSTRING) {
@@ -141,6 +141,7 @@ CONFIG	+= airspy
 CONFIG	+= hackrf
 CONFIG	+= lime
 CONFIG	+= pluto
+CONFIG	+= colibri
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
@@ -325,11 +326,8 @@ colibri {
         DEFINES         += HAVE_COLIBRI
         DEPENDPATH      += ./devices/colibri-handler
         INCLUDEPATH     += ./devices/colibri-handler
-        HEADERS         += ./devices/colibri-handler/colibri-handler.h \
-                           ./devices/colibri-handler/LibLoader.h \
-                           ./devices/colibri-handler/common.h
-        SOURCES         += ./devices/colibri-handler/colibri-handler.cpp \
-                           ./devices/colibri-handler/LibLoader.cpp
+        HEADERS         += ./devices/colibri-handler/colibri-handler.h 
+        SOURCES         += ./devices/colibri-handler/colibri-handler.cpp 
         FORMS           += ./devices/colibri-handler/colibri-widget.ui
 }
 
