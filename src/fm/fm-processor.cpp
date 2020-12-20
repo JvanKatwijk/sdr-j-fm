@@ -262,7 +262,7 @@ DSPFLOAT	fmProcessor::get_dcComponent	(void) {
 }
 
 const char  *fmProcessor::nameofDecoder	(void) {
-	if (running)
+//	if (running)
 	   return TheDemodulator -> nameofDecoder ();
 	return " ";
 }

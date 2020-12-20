@@ -349,8 +349,8 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                               spectrumAmplitudeSlider_lf -> value ());
 	s	-> setValue ("IQbalanceSlider",
 	                               IQbalanceSlider	-> value ());
-	s	-> setValue ("inputModeSelect",
-	                               inputModeSelect	-> currentText ());
+//	s	-> setValue ("inputModeSelect",
+//	                               inputModeSelect	-> currentText ());
 //
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect", 
@@ -1159,8 +1159,8 @@ void	RadioInterface::localConnects (void) {
 /*
  *	Mode setters
  */
-	connect (inputModeSelect, SIGNAL (activated(const QString&) ),
-	              this, SLOT (setInputMode (const QString&) ) );
+//	connect (inputModeSelect, SIGNAL (activated(const QString&) ),
+//	              this, SLOT (setInputMode (const QString&) ) );
 
 	connect (fc_plus, SIGNAL (clicked (void)),
 	              this, SLOT (autoIncrementButton (void)));
@@ -1328,6 +1328,8 @@ int8_t	decoder	= 0;
 	   return;
 	myFMprocessor	-> setFMdecoder (decoder);
 	decoderDisplay	-> setText (QString (myFMprocessor -> nameofDecoder ()));
+	fprintf (stderr, "we printen %s\n",
+	                   myFMprocessor -> nameofDecoder ());
 }
 //
 void	RadioInterface::setfmLFcutoff (const QString &s) {
@@ -1742,6 +1744,9 @@ void    RadioInterface::set_freqSave    (void) {
 void    RadioInterface::handle_myLine (void) {
 int32_t freq    = myRig -> getVFOFrequency () + LOFrequency;
 QString programName     = myLine -> text ();
+	fprintf (stderr, "adding %s %s\n",
+	                  programName. toLatin1 (). data (),
+	                  QString::number (freq / Khz (1)). toLatin1 (). data ());
         myList  -> addRow (programName, QString::number (freq / Khz (1)));
         delete myLine;
         myLine  = NULL;

@@ -5,13 +5,13 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-1.2
+TARGET		= fmreceiver-2.0
 QT		+= widgets
-QMAKE_CFLAGS	+= -O3 -ffast-math
-QMAKE_CXXFLAGS	+= -O3 -ffast-math
-#QMAKE_CXXFLAGS	+= -g
-#QMAKE_CFLAGS	+= -g
-#QMAKE_LFLAGS	+= -g
+#QMAKE_CFLAGS	+= -O3 -ffast-math
+#QMAKE_CXXFLAGS	+= -O3 -ffast-math
+QMAKE_CXXFLAGS	+= -g
+QMAKE_CFLAGS	+= -g
+QMAKE_LFLAGS	+= -g
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -175,12 +175,12 @@ isEmpty(GITHASHSTRING) {
 #CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay
-#CONFIG		+= sdrplay-v3
-#CONFIG		+= airspy
-#CONFIG		+= dabstick
-#CONFIG		+= elad_s1
-#CONFIG		+= hackrf
-#CONFIG		+= lime
+CONFIG		+= sdrplay-v3
+CONFIG		+= airspy
+CONFIG		+= dabstick
+CONFIG		+= elad_s1
+CONFIG		+= hackrf
+CONFIG		+= lime
 CONFIG		+= pluto
 CONFIG		+= colibri
 INCLUDEPATH 	+= /usr/include/qt5/qwt

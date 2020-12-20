@@ -1,9 +1,25 @@
 
-A simple FM receiver
--------------------
+A simple FM receiver V2.0
+-------------------------
+
+-----------------------------------------------------------------------
+New: resizable widgets
+-----------------------------------------------------------------------
+
+It was an item on my todo list, redesiging the GUI such that the main
+widget - and most of the widgets for device support - are resizable.
+Having that done was the main reason to renumber the version to 2.0
+
+-----------------------------------------------------------------------
+New: resizable widgets
+-----------------------------------------------------------------------
+
+It was an item on my todo list, redesiging the GUI such that the main
+widget - and most of the widgets for device support - are resizable.
+Having that dome wasd the main reason to renumber the version into 3.0
 
 ------------------------------------------------------------------------
-New: support for the Adalm Pluto
+New: support for the Adalm Pluto and experimentally for ColibriNano
 ------------------------------------------------------------------------
 
 The Adalm pluto is now supported for both the Windows and the Linux version.
@@ -13,6 +29,12 @@ other devices: on selecting the device, functions will be read-in from the
 device library. To reduce dependency on external libraries, the filtering
 software does not depend on the AD9361 library, but is "hard coded",
 based on output from this library
+
+As an experiment support for the ColibriNano is added. While I do not 
+possess such a device, am SDR collegue has and helped me with the
+installation and incorporation of support for the Colibri.
+Note that since the colibri supports to up to 55 MHz, it is the second Nyquist
+zone that is used for FM
 
 ![fm receiver](/fmreceiver.png?raw=true)
 
@@ -32,7 +54,7 @@ the other is the spectrum of the decoded signal.
 Supported devices
 -------------------------------------------------------------------------
 
-The FM receiver does not support automatic device selection,
+The FM receiver does NOT support automatic device selection,
 one has to select the device, then press the start button.
 The FM receiver will operate with the SDRplay, DABsticks, the AIRspy,
 Lime devices, Pluto and HACKrf devices. Note that there are two entries for use with the
