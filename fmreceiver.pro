@@ -7,11 +7,11 @@
 TEMPLATE	= app
 TARGET		= fmreceiver-2.0
 QT		+= widgets
-#QMAKE_CFLAGS	+= -O3 -ffast-math
-#QMAKE_CXXFLAGS	+= -O3 -ffast-math
-QMAKE_CXXFLAGS	+= -g
-QMAKE_CFLAGS	+= -g
-QMAKE_LFLAGS	+= -g
+QMAKE_CFLAGS	+= -O3 -ffast-math
+QMAKE_CXXFLAGS	+= -O3 -ffast-math
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_CFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc

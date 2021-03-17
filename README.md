@@ -87,6 +87,41 @@ can be installed by the following script
 	sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
 	sudo apt-get install qtbase5-dev
 
+The file "fmreceiver.pro", in the section "unix",
+adaptations may have to be made for the proper configuration
+If
+
+	#CONFIG		+= console
+
+is uncommented, the software will write some data to it, merely to
+see/show that everything works
+
+Comment the devices that ar enot available out
+
+#CONFIG		+= pmsdr
+CONFIG		+= sdrplay
+CONFIG		+= sdrplay-v3
+CONFIG		+= airspy
+CONFIG		+= dabstick
+CONFIG		+= elad_s1
+CONFIG		+= hackrf
+CONFIG		+= lime
+CONFIG		+= pluto
+CONFIG		+= colibri
+
+It happens that Fedora (the system I am working on) and Debian derived
+systems have different naming for the qwt library
+
+For Ubuntu the line
+
+#LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
+
+and for fedora the line
+
+LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
+
+seems to work
+
 Of course, library support for devices that are part of the configuration
 needs to be installed.
 
