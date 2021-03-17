@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1066</width>
-    <height>619</height>
+    <width>1129</width>
+    <height>759</height>
    </rect>
   </property>
   <property name="palette">
@@ -1087,7 +1087,12 @@
              </item>
              <item>
               <property name="text">
-               <string>rds on</string>
+               <string>RDS-1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RDS-2</string>
               </property>
              </item>
             </widget>

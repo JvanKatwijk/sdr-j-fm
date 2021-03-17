@@ -230,7 +230,7 @@ void	rdsDecoder::processBit (bool bit) {
 	          ;	// error decoding the rds group
 	      }
 
-	      my_rdsGroup -> clear ();
+//	      my_rdsGroup -> clear ();
 	      break;
 	}
 }

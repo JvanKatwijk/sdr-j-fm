@@ -1302,8 +1302,9 @@ void	RadioInterface::setfmMode (const QString &s) {
 void	RadioInterface::setfmRdsSelector (const QString &s) {
 	if (myFMprocessor == NULL)
 	   return;
-	rdsModus = (s == "rds on" ? rdsDecoder::RDS1 :
-	            rdsDecoder::NO_RDS);
+	rdsModus = s == "RDS-1" ? rdsDecoder::RDS1 :
+	           s == "RDS-2" ? rdsDecoder::RDS2 :
+	                                 rdsDecoder::NO_RDS;
 	myFMprocessor	-> setfmRdsSelector (rdsModus);
 }
 

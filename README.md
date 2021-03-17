@@ -54,20 +54,49 @@ the other is the spectrum of the decoded signal.
 Supported devices
 -------------------------------------------------------------------------
 
-The FM receiver does NOT support automatic device selection,
-one has to select the device, then press the start button.
-The FM receiver will operate with the SDRplay, DABsticks, the AIRspy,
-Lime devices, Pluto and HACKrf devices. Note that there are two entries for use with the
-SDRplay, one using the 2.13 library, the other one using the 3.06 (or 07)
-library.
+The FM software supports (obviously depending on the configuration)
+
+* rtlsdr based sticks
+
+* SDRplay devices, both  for the 2.13 and 3.07 library
+
+* airspy
+
+* hackrf
+
+* lime
+
+* pluto
 
 --------------------------------------------------------------------------------
 Linux
 --------------------------------------------------------------------------------
 For creating an executable under: install the required libraries use qmake.
+For e,g. Ubuntu (i.e. Debian like) systems, the required libraries
+can be installed by the following script
 
-Note that the software is made for Qt5 and qwt6. Unfortunately, some
-linux distributions do not support qwt in cooperation with Qt5.
+	sudo apt-get update
+	sudo apt-get install git cmake
+	sudo apt-get install qt5-qmake build-essential g++
+	sudo apt-get install pkg-config
+	sudo apt-get install libsndfile1-dev qt5-default
+	sudo apt-get install libfftw3-dev portaudio19-dev
+	sudo apt-get install zlib1g-dev
+	sudo apt-get install libusb-1.0-0-dev mesa-common-dev
+	sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
+	sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
+	sudo apt-get install qtbase5-dev
+
+Of course, library support for devices that are part of the configuration
+needs to be installed.
+
+For SDRplay devices it is easy: download them from www.sdrplay.com
+
+for "dabsticks" one might try the library that can be downloaded from
+the distribution's repository, however, in some cases one needs
+to blacklist the device.
+
+For other devices there are no (known) precompiled libraries
 
 -------------------------------------------------------------------------------
 Windows
