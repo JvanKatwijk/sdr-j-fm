@@ -2,13 +2,12 @@
 A simple FM receiver V2.0
 -------------------------
 
------------------------------------------------------------------------
-New: resizable widgets
------------------------------------------------------------------------
+-------------------------------------------------------------------------
+Nww: appImage (july 2021)
+------------------------------------------------------------------------
 
-It was an item on my todo list, redesiging the GUI such that the main
-widget - and most of the widgets for device support - are resizable.
-Having that done was the main reason to renumber the version to 2.0
+An appImage was create for use with common devices, like DABstick,
+SDRplay etc
 
 -----------------------------------------------------------------------
 New: resizable widgets
