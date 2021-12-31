@@ -43,6 +43,7 @@
 #include	<qwt_plot_layout.h>
 #include	<qwt_scale_widget.h>
 #include	<QBrush>
+#include	<QPen>
 #include	<QTimer>
 #include	<stdint.h>
 #include	"spectrogramdata.h"
