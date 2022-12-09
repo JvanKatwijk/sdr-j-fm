@@ -5,11 +5,11 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-2.0
+TARGET		= fmreceiver-3.0
 QT		+= widgets
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -O3 -ffast-math
-QMAKE_CXXFLAGS	+= -O3 -ffast-math
+QMAKE_CFLAGS	+= -lfto -ffast-math
+QMAKE_CXXFLAGS	+= -lfto -ffast-math
 #QMAKE_CXXFLAGS	+= -g
 #QMAKE_CFLAGS	+= -g
 #QMAKE_LFLAGS	+= -g
@@ -76,15 +76,21 @@ HEADERS += ./radio.h \
 	   ./includes/various/iir-filters.h \
 	   ./includes/various/Xtan2.h \
 	   ./includes/output/audiosink.h \
+	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
            ./includes/scopes-qwt6/spectrogramdata.h \
 	   ./includes/scopes-qwt6/fft-scope.h \
 	   ./includes/fm/fm-demodulator.h \
+	   ./includes/fm/pilot-recover.h \
 	   ./includes/fm/fm-processor.h \
 	   ./includes/rds/rds-decoder.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
 	   ./includes/rds/rds-group.h \
 	   ./includes/rds/rds-groupdecoder.h  \
+	   ./includes/sdr/agc.h  \
+           ./includes/sdr/costas.h  \
+           ./includes/sdr/time_sync.h  \
+           ./includes/sdr/shaping_filter.h  \
 	   ./devices/device-handler.h \
 	   ./devices/filereader/filereader.h \
 	   ./devices/filereader/filehulp.h
@@ -96,6 +102,7 @@ SOURCES += ./main.cpp \
 	   ./radio.cpp \
 	   ./src/popup-keypad.cpp \
 	   ./src/various/keyboardfilter.cpp \
+	   ./src/various/squelchClass.cpp \
 	   ./src/various/program-list.cpp \
            ./src/various/fft.cpp \
 	   ./src/various/oscillator.cpp \
@@ -107,14 +114,17 @@ SOURCES += ./main.cpp \
 	   ./src/various/iir-filters.cpp \
 	   ./src/various/Xtan2.cpp \
 	   ./src/output/audiosink.cpp \
+	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
 	   ./src/scopes-qwt6/fft-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
+	   ./src/fm/pilot-recover.cpp \
 	   ./src/fm/fm-processor.cpp \
 	   ./src/rds/rds-decoder.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \
 	   ./src/rds/rds-group.cpp \
 	   ./src/rds/rds-groupdecoder.cpp \
+	   ./src/sdr/shaping_filter.cpp \
 	   ./devices/device-handler.cpp \
 	   ./devices/filereader/filereader.cpp \
 	   ./devices/filereader/filehulp.cpp

@@ -1,4 +1,3 @@
-#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -21,17 +20,16 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include	"rds-group.h"
-#include	<stdio.h>
+#include "rds-group.h"
+#include <stdio.h>
 
-	RDSGroup::RDSGroup	(void) {
+	RDSGroup::RDSGroup	() {
 	clear ();
 }
 
-	RDSGroup::~RDSGroup	(void) {
-}
+	RDSGroup::~RDSGroup	() {}
 
-void	RDSGroup::clear		(void) {
+void	RDSGroup::clear		() {
 	rdsBlocks [BLOCK_A]	= 0;
 	rdsBlocks [BLOCK_B]	= 0;
 	rdsBlocks [BLOCK_C]	= 0;
@@ -62,23 +60,22 @@ void		RDSGroup::setBlock	(RdsBlock b, uint16_t v) {
 	rdsBlocks [b] = v;
 }
 
-uint16_t	RDSGroup::getPiCode	(void) {
+uint16_t	RDSGroup::getPiCode	() {
 	return rdsBlocks [BLOCK_A] & 0xFFFF;
 }
 
-uint16_t	RDSGroup::getGroupType	(void) {
+uint16_t	RDSGroup::getGroupType	() {
 	return (rdsBlocks [BLOCK_B] >> 12) & 0xF;
 }
 
-bool		RDSGroup::isTypeBGroup	(void) {
+bool		RDSGroup::isTypeBGroup	() {
 	return ((rdsBlocks [BLOCK_B] >> 11) & 0x1) != 0;
 }
 
-bool		RDSGroup::isTpFlagSet	(void) {
+bool		RDSGroup::isTpFlagSet	() {
 	return ((rdsBlocks [BLOCK_B] >> 10) & 0x1) != 0;
 }
 
-uint16_t	RDSGroup::getProgrammeType (void) {
+uint16_t	RDSGroup::getProgrammeType () {
 	return (rdsBlocks [BLOCK_B] >> 5) & 0x1F;
 }
-

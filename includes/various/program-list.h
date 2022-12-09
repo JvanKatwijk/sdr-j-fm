@@ -22,8 +22,8 @@
  *    You should have received a copy of the GNU General Public License
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef	__PROGRAM_LIST
-#define	__PROGRAM_LIST
+#ifndef	__PROGRAM_LIST_H
+#define	__PROGRAM_LIST_H
 
 #include	<QWidget>
 #include	<QScrollArea>
@@ -35,26 +35,25 @@
 
 class	RadioInterface;
 
-class programList:public QObject {
+
+class	programList:public QObject {
 Q_OBJECT
 public:
-		programList	(RadioInterface *, QString);
-		~programList	(void);
+		programList	(RadioInterface *,
+	                            const QString &, QScrollArea *);
+		~programList	();
 	void	addRow		(const QString &, const QString &);
-	void	show		(void);
-	void	hide		(void);
-	void	loadTable	(void);
-	void	saveTable	(void);
+	void	loadTable	();
+	void	saveTable	();
 private slots:
 	void	tableSelect	(int, int);
 	void	removeRow	(int, int);
 signals:
 	void	newFrequency	(int);
 private:
+	RadioInterface		*myParent;
 	QScrollArea		*myWidget;
 	QTableWidget	*tableWidget;
 	QString		saveName;
 };
-
 #endif
-

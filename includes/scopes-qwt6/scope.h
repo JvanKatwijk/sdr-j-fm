@@ -66,7 +66,7 @@ Q_OBJECT
 public:
 	Scope (QwtPlot *, uint16_t, uint16_t);
 	~Scope (void);
-void	Display 	(double *, double *, double, int32_t);
+void	Display 	(double *, double *, double, int32_t marker = 0);
 void	SelectView	(uint8_t);
 void	setBitDepth	(int16_t);
 int	currentMode	(void);

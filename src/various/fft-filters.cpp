@@ -1,4 +1,3 @@
-#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -21,11 +20,11 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include	"fft-filters.h"
-#include	"fir-filters.h"
-#include	<cstring>
+#include "fft-filters.h"
+#include "fir-filters.h"
+#include <cstring>
+
 	fftFilter::fftFilter (int32_t size, int16_t degree) {
-int32_t	i;
 
 	fftSize		= size;
 	filterDegree	= degree;
@@ -33,7 +32,7 @@ int32_t	i;
 	NumofSamples	= fftSize - OverlapSize;
 
 	MyFFT		= new common_fft	(fftSize);
-	FFT_A		= MyFFT		-> 	getVector ();
+	FFT_A		= MyFFT		->	getVector ();
 	MyIFFT		= new common_ifft	(fftSize);
 	FFT_C		= MyIFFT	->	getVector ();
 
@@ -43,7 +42,7 @@ int32_t	i;
 
 	Overloop	= new DSPCOMPLEX [OverlapSize];
 	inp		= 0;
-	for (i = 0; i < fftSize; i ++) {
+	for (int i = 0; i < fftSize; i ++) {
 	   FFT_A [i] = 0;
 	   FFT_C [i] = 0;
 	   filterVector [i] = 0;
@@ -60,33 +59,32 @@ int32_t	i;
 }
 
 void	fftFilter::setSimple (int32_t low, int32_t high, int32_t rate) {
-int32_t i;
-BasicBandPass	*BandPass	= new BasicBandPass ((int16_t)filterDegree,
+BasicBandPass *BandPass		= new BasicBandPass ((int16_t)filterDegree,
 	                                             low, high, rate);
 
-	for (i = 0; i < filterDegree; i ++)
+	for (int i = 0; i < filterDegree; i++)
 	   filterVector [i] = (BandPass -> getKernel ()) [i];
-	memset (&filterVector [filterDegree], 0,
-	                (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
-	FilterFFT	-> do_FFT ();
-	inp		= 0;
-	delete	BandPass;
+
+        memset (&filterVector [filterDegree], 0,
+                        (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
+        FilterFFT       -> do_FFT ();
+        inp             = 0;
+        delete  BandPass;
 }
 
 void	fftFilter::setBand (int32_t low, int32_t high, int32_t rate) {
-int32_t	i;
 BandPassFIR	*BandPass	= new BandPassFIR ((int16_t)filterDegree,
 	                                           low, high,
 	                                           rate);
 
-	for (i = 0; i < filterDegree; i ++)
-	   filterVector [i] = (BandPass -> getKernel ()) [i];
-//	   filterVector [i] = conj ((BandPass -> getKernel ()) [i]);
-	memset (&filterVector [filterDegree], 0,
-	                (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
-	FilterFFT	-> do_FFT ();
-	inp		= 0;
-	delete	BandPass;
+      for (int i = 0; i < filterDegree; i ++)
+           filterVector [i] = (BandPass -> getKernel ()) [i];
+//         filterVector [i] = conj ((BandPass -> getKernel ()) [i]);
+        memset (&filterVector [filterDegree], 0,
+                        (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
+        FilterFFT       -> do_FFT ();
+        inp             = 0;
+        delete  BandPass;
 }
 
 void	fftFilter::setLowPass (int32_t low, int32_t rate) {
@@ -105,7 +103,6 @@ LowPassFIR	*LowPass	= new LowPassFIR ((int16_t)filterDegree,
 }
 
 DSPFLOAT	fftFilter::Pass (DSPFLOAT x) {
-int32_t		j;
 DSPFLOAT	sample;
 
 	sample	= real (FFT_C [inp]);
@@ -117,14 +114,14 @@ DSPFLOAT	sample;
 	               (fftSize - NumofSamples) * sizeof (DSPCOMPLEX));
 	   MyFFT	-> do_FFT ();
 
-	   for (j = 0; j < fftSize; j ++) {
+	   for (int j = 0; j < fftSize; j ++) {
 	      FFT_C [j] = FFT_A [j] * filterVector [j];
               FFT_C [j] = DSPCOMPLEX (real (FFT_C [j]) * 3,
                                       imag (FFT_C [j]) * 3);
 	   }
 
 	   MyIFFT	-> do_IFFT ();
-	   for (j = 0; j < OverlapSize; j ++) {
+	   for (int j = 0; j < OverlapSize; j ++) {
 	      FFT_C [j] += Overloop [j];
 	      Overloop [j] = FFT_C [NumofSamples + j];
 	   }
@@ -159,4 +156,39 @@ int16_t		j;
 	return sample;
 }
 
+
+	fftFilterHilbert::fftFilterHilbert (int32_t size, int16_t degree):
+	                                              fftFilter (size, degree) {
+	setHilbert ();
+}
+
+DSPCOMPLEX	fftFilterHilbert::Pass (DSPFLOAT x) {
+	return fftFilter::Pass (DSPCOMPLEX (x, 0));
+}
+
+void	fftFilterHilbert::setHilbert () {
+// set the frequency coefficients directly (set negative spectrum to zero)
+
+	if ((fftSize & 0x1) == 0) {		// even fftSize
+	   filterVector [0] = 1.0f;
+
+	   for (int i = 1; i < fftSize / 2; i++) 
+	      filterVector [i] = 2.0f;
+
+	   filterVector [fftSize / 2] = 1.0f;
+
+	   for (int i = fftSize / 2 + 1; i < fftSize; i++)
+	      filterVector [i] = 0.0f;
+	}
+	else {					// odd fftsize
+	   filterVector [0] = 1.0f;
+	   for (int i = 1; i < (fftSize + 1) / 2; i++)
+	      filterVector [i] = 2.0f;
+
+	   for (int i = (fftSize - 1) / 2 + 1; i < fftSize; i++)
+	      filterVector[i] = 0.0f;
+	}
+
+	inp = 0;
+}
 

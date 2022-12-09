@@ -29,49 +29,11 @@
 #include	"fm-constants.h"
 #include	"radio.h"
 
-void	fullPathfor (const char *v, char *out) {
-int16_t	i;
-QString	homeDir;
+static const QString styleSheet =
+	        #include "./stylesheets/Adaptic.qss"
+//	        #include "./stylesheets/Combinear.qss"
+;
 
-	if (v == NULL) {
-	   sprintf (out, "%s", "weet niet");
-	   return;	// should not happen
-	}
-
-	if (v [0] == '/') {		// full path specified
-	   sprintf (out, "%s", v);
-	   return;
-	}
-
-	homeDir = QDir::homePath ();
-	homeDir. append ("/");
-	homeDir. append (v);
-	homeDir	= QDir::toNativeSeparators (homeDir);
-	sprintf (out, "%s", homeDir. toLatin1 (). data ());
-	fprintf (stderr, "ini file = %s\n", out);
-
-	for (i = 0; out [i] != 0; i ++);
-	if (out [i - 4] != '.' ||
-	    out [i - 3] != 'i' ||
-	    out [i - 2] != 'n' ||
-	    out [i - 1] != 'i') {
-	    out [i] = '.';
-	    out [i + 1] = 'i';
-	    out [i + 2] = 'n';
-	    out [i + 3] = 'i';
-	    out [i + 4] = 0;
-	}
-}
-
-bool	fileExists (char *v) {
-FILE *f;
-
-	f = fopen (v, "r");
-	if (f == NULL)
-	   return false;
-	fclose (f);
-	return true;
-}
 #define	DEFAULT_INI	".jsdr-fm.ini"
 #define	STATION_LIST	".jsdr-fm-stations.bin"
 
@@ -115,7 +77,10 @@ QString stationList     = QDir::homePath ();
 #if QT_VERSION >= 0x050600
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
+
 	QApplication a (argc, argv);
+	a. setStyleSheet(styleSheet);
+
         MyRadioInterface = new RadioInterface (ISettings,
 	                                       stationList, outputRate);
         MyRadioInterface -> show ();

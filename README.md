@@ -1,6 +1,16 @@
 
-A simple FM receiver V2.0
+A simple FM receiver V3.0
 -------------------------
+
+========================================================================
+
+Some significant modifications were makde by Thomas Neder, apart from the
+"skin", most mods were "under the hood". 
+The version number of now 3.0
+
+
+![fm receiver](/fmreceiver.png?raw=true)
+
 
 -------------------------------------------------------------------------
 Nww: appImage (july 2021)
@@ -35,7 +45,6 @@ installation and incorporation of support for the Colibri.
 Note that since the colibri supports to up to 55 MHz, it is the second Nyquist
 zone that is used for FM
 
-![fm receiver](/fmreceiver.png?raw=true)
 
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -47,7 +56,8 @@ The FM receiver software is an experimental receiver, with quite some settings.
 A simpler version, just to listen to radio, is in the WFM-RPI repository.
 
 The program shows 2 spectra, one is the spectrum of the incoming signal,
-the other is the spectrum of the decoded signal.
+the other is - depending on the setting - part of the decoded signal
+or part of the RDS signal
 
 -------------------------------------------------------------------------
 Supported devices

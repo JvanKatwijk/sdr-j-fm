@@ -1,4 +1,3 @@
-#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -21,12 +20,12 @@
  *
  */
 
-#include	"fir-filters.h"
-#ifndef	__MINGW32__
-#ifdef	__FREEBSD__
-#include	<stdlib.h>
+#include  "fir-filters.h"
+#ifndef __MINGW32__
+#ifdef  __FREEBSD__
+#include  <stdlib.h>
 #else
-#include	"alloca.h"
+#include  "alloca.h"
 #endif
 #endif
 
@@ -35,39 +34,38 @@
 //FIR LowPass
 
 	LowPassFIR::LowPassFIR (int16_t firsize,
-	                        int32_t Fc, int32_t fs):Basic_FIR (firsize) {
+	                        int32_t Fc, int32_t fs) : Basic_FIR(firsize) {
 	sampleRate	= fs;
 	newKernel (Fc);
 }
 
 void	LowPassFIR::newKernel (int32_t Fc) {
-int16_t	i;
-DSPFLOAT	*tmp	= (DSPFLOAT *)alloca (filterSize * sizeof (DSPFLOAT));
-DSPFLOAT	f	= (DSPFLOAT)Fc / sampleRate;
-DSPFLOAT	sum	= 0.0;
+DSPFLOAT	*tmp = (DSPFLOAT *)alloca (filterSize * sizeof(DSPFLOAT));
+DSPFLOAT	f    = (DSPFLOAT)Fc / sampleRate;
+DSPFLOAT	sum  = 0.0;
 
-	for (i = 0; i < filterSize; i ++) {
+	for (int i = 0; i < filterSize; i++) {
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * f;
-	   else 
-	      tmp [i] = sin (2 * M_PI * f * (i - filterSize/2))/ (i - filterSize/2);
+	   else
+	      tmp [i] = sin (2 * M_PI * f * (i - filterSize / 2)) / (i - filterSize / 2);
 //
 //	Blackman window
-	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
-		    0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
+	   tmp [i] *= (0.42 -
+                0.50 * cos(2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
+                0.08 * cos(4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
 
 	   sum += tmp [i];
 	}
 
-	for (i = 0; i < filterSize; i ++)
+	for (int i = 0; i < filterSize; i++)
 	   filterKernel [i] = DSPCOMPLEX (tmp [i] / sum, 0);
 }
 
 	LowPassFIR::~LowPassFIR () {
 }
 
-DSPCOMPLEX	*LowPassFIR::getKernel (void) {
+DSPCOMPLEX	*LowPassFIR::getKernel () {
 	return filterKernel;
 }
 
@@ -75,35 +73,34 @@ DSPCOMPLEX	*LowPassFIR::getKernel (void) {
 //FIR HighPass
 
 	HighPassFIR::HighPassFIR (int16_t firsize,
-	                          int32_t Fc, int32_t fs):Basic_FIR (firsize) {
-	sampleRate	= fs;
+	                          int32_t Fc, int32_t fs) : Basic_FIR(firsize) {
+	sampleRate = fs;
 	newKernel (Fc);
 }
 
 void	HighPassFIR::newKernel (int32_t Fc) {
-int16_t	i;
-DSPFLOAT *tmp	= (DSPFLOAT *)alloca (filterSize * sizeof (DSPFLOAT));
+DSPFLOAT *tmp	= (DSPFLOAT *)alloca (filterSize * sizeof(DSPFLOAT));
 DSPFLOAT f	= (DSPFLOAT)Fc / sampleRate;
 DSPFLOAT sum	= 0.0;
 
-	for (i = 0; i < filterSize; i ++) {
+	for (int i = 0; i < filterSize; i++) {
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * f;
-	   else 
-	      tmp [i] = sin (2 * M_PI * f * (i - filterSize/2))/ (i - filterSize/2);
+	   else
+	      tmp [i] = sin (2 * M_PI * f * (i - filterSize / 2)) / (i - filterSize / 2);
 
-	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
-		    0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
+	   tmp [i] *= (0.42 -
+	           0.50 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
+	           0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
 
 	   sum += tmp [i];
 	}
 
-	for (i = 0; i < filterSize; i ++)
+	for (int i = 0; i < filterSize; i++)
 	   if (i == filterSize / 2)
 	      filterKernel [i] = DSPCOMPLEX (1.0 - tmp [i] / sum, 0);
-	   else  
-	      filterKernel [i] = DSPCOMPLEX (- tmp [i] / sum, 0);
+	   else
+	      filterKernel [i] = DSPCOMPLEX(-tmp [i] / sum, 0);
 }
 
 	HighPassFIR::~HighPassFIR () {
@@ -121,18 +118,17 @@ DSPFLOAT sum	= 0.0;
  */
 static
 DSPFLOAT	Blackman (DSPFLOAT *v, int fsize, DSPFLOAT f) {
-int	i;
-DSPFLOAT		sum = 0;
+DSPFLOAT	sum = 0;
 
-	for (i = 0; i < fsize; i ++) {
+	for (int i = 0; i < fsize; i++) {
 	   if (i == fsize / 2)
 	      v [i] = 2 * M_PI * f;
-	   else 
-	      v [i] = sin (2 * M_PI * f * (i - fsize/2))/ (i - fsize/2);
+	   else
+	      v [i] = sin (2 * M_PI * f * (i - fsize / 2)) / (i - fsize / 2);
 
 	   v [i] *= (0.42 -
-		        0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)fsize) +
-		        0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)fsize));
+	                0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)fsize) +
+	                0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)fsize));
 
 	   sum += v [i];
 	}
@@ -141,41 +137,39 @@ DSPFLOAT		sum = 0;
 }
 
 static
-DSPFLOAT	*BandPassKernel (DSPFLOAT *v, int16_t fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
+DSPFLOAT	*BandPassKernel(DSPFLOAT *v, int16_t fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
 DSPFLOAT	sumA	= 0.0;
 DSPFLOAT	sumB	= 0.0;
-int16_t	i;
 DSPFLOAT	*tmp1	= (DSPFLOAT *)alloca (fsize * sizeof (DSPFLOAT));
 DSPFLOAT	*tmp2	= (DSPFLOAT *)alloca (fsize * sizeof (DSPFLOAT));
 
 	if ((Fcl > 0.5) || (Fch <= Fcl) || (Fch > 0.5)) {
-            fprintf (stderr, "bandpasskernel ??? (%f, %f) %d\n",
-	                  (float)Fcl, (float)Fch, fsize);
+	   fprintf(stderr, "bandpasskernel ??? (%f, %f) %d\n",
+	                 (float)Fcl, (float)Fch, fsize);
 	   Fcl	= 0.2;
 	   Fch	= 0.4;
 	}
-	   
+
 	sumA	= Blackman (tmp1, fsize, Fcl);
-	sumB	= Blackman (tmp2, fsize, Fch);
+	sumB	= Blackman(tmp2, fsize, Fch);
 	/* normalize	*/
-	for (i = 0; i < fsize; i ++) {
-	   tmp1 [i] =   tmp1 [i] / sumA;
+	for (int i = 0; i < fsize; i++) {
+	   tmp1 [i] =	tmp1 [i] / sumA;
 	   tmp2 [i] = - tmp2 [i] / sumB;
-	   v [i] = - (tmp1 [i] + tmp2 [i]);
+	   v [i]    = - (tmp1 [i] + tmp2 [i]);
 	}
 
 	return v;
 }
 
 	BasicBandPass::BasicBandPass (int16_t firsize,
-	                              int32_t low, int32_t high,
-	                              int32_t rate):Basic_FIR (firsize) {
+		                      int32_t low, int32_t high,
+	                              int32_t rate):Basic_FIR(firsize) {
 DSPFLOAT	*t1 = (DSPFLOAT *)alloca (firsize * sizeof (DSPFLOAT));
-int16_t		i;
 
 	t1 = BandPassKernel (t1, filterSize, (DSPFLOAT) low / rate,
-	                                     (DSPFLOAT) high / rate);
-	for (i = 0; i < filterSize; i ++)  
+	                                     (DSPFLOAT)high / rate);
+	for (int i = 0; i < filterSize; i++)
 	   filterKernel [i] = DSPCOMPLEX (t1 [i], t1 [i]);
 }
 
@@ -187,7 +181,7 @@ DSPCOMPLEX	*BasicBandPass::getKernel () {
 }
 
 /*
- *	The bandfilter is for the complex domain. 
+ *	The bandfilter is for the complex domain.
  *	We create a lowpass filter, which stretches over the
  *	positive and negative half, then shift this filter
  *	to the right position to form a nice bandfilter.
@@ -205,25 +199,24 @@ DSPFLOAT	*tmp	= (DSPFLOAT *)alloca (filterSize * sizeof (DSPFLOAT));
 DSPFLOAT	lo	= (DSPFLOAT)((high - low) / 2) / sampleRate;
 DSPFLOAT	shift	= (DSPFLOAT) ((high + low) / 2) / sampleRate;
 DSPFLOAT	sum	= 0.0;
-int16_t	i;
 
-	for (i = 0; i < filterSize; i ++) {
+	for (int i = 0; i < filterSize; i++) {
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * lo;
-	   else 
-	      tmp [i] = sin (2 * M_PI * lo * (i - filterSize /2)) / (i - filterSize/2);
+	   else
+	      tmp [i] = sin (2 * M_PI * lo * (i - filterSize / 2)) / (i - filterSize / 2);
 //
 //	windowing
-	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
-		    0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
+	   tmp [i] *= (0.42 -
+	           0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
+	           0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
 
 	   sum += tmp [i];
 	}
 
-	for (i = 0; i < filterSize; i ++) {	// shifting
+	for (int i = 0; i < filterSize; i++) {    // shifting
 	   DSPFLOAT v = (i - filterSize / 2) * (2 * M_PI * shift);
-	   filterKernel [i] = DSPCOMPLEX (tmp [i] * cos (v) / sum, 
+	   filterKernel [i] = DSPCOMPLEX (tmp [i] * cos (v) / sum,
 	                                  tmp [i] * sin (v) / sum);
 	}
 }
@@ -238,17 +231,17 @@ DSPCOMPLEX	*BandPassFIR::getKernel () {
 //=====================================================================
 /*
  *	adaptive (noise reduction) filter a la
- *	doug smith (Signal, Samples and stuff 3, qex 
+ *	doug smith (Signal, Samples and stuff 3, qex
  *	july 1998.
  *	basic: h(k+ 1) = lambda h(k) + 2 * u * err * x (k)
  *	it really works
  */
 	adaptiveFilter::adaptiveFilter (int fsize) {
-	firsize		= fsize;
-	Kernel		= new DSPFLOAT [fsize];
-	Buffer		= new DSPCOMPLEX [fsize + fsize];
+	firsize = fsize;
+	Kernel  = new DSPFLOAT [fsize];
+	Buffer  = new DSPCOMPLEX [fsize + fsize];
 /*
- * 	we choose a small mu
+ *	we choose a small mu
  */
 	adaptFilter	(0.10);
 }
@@ -259,7 +252,7 @@ DSPCOMPLEX	*BandPassFIR::getKernel () {
 }
 
 void	adaptiveFilter::adaptFilter (DSPFLOAT f) {
-int	i;
+
 	mu = 0.20;
 	if (f > 0 && f < 1)
 	   mu = f;
@@ -268,21 +261,20 @@ int	i;
 
 	Kernel [0] = 1.0;
 
-	for (i = 1; i < firsize; i ++) {
+	for (int i = 1; i < firsize; i++) {
 	   Kernel[i]	= 0;
 	   Buffer [i]	= 0;
 	   Buffer [firsize + i] = 0;
 	}
 
-	err	= 0.5;
+	err = 0.5;
 }
 /*
- * 	Passing here is more DSPCOMPLEX since we 
- * 	adapt the filtercoeeficients at the same time
+ *  Passing here is more DSPCOMPLEX since we
+ *  adapt the filtercoeeficients at the same time
  */
 DSPCOMPLEX adaptiveFilter::Pass (DSPCOMPLEX z) {
 DSPCOMPLEX	tmp = 0;
-int	i;
 DSPFLOAT	sum	= 0.0;
 /*
  *	first filter with delayed elements
@@ -292,7 +284,7 @@ DSPFLOAT	sum	= 0.0;
  */
 	Buffer [ip] = z;
 
-	for (i = 0; i < firsize; i ++) {
+	for (int i = 0; i < firsize; i++) {
 	   int index = (ip + firsize - i);
 	   if (index < 0)
 	      index += 2 * firsize;
@@ -307,12 +299,12 @@ DSPFLOAT	sum	= 0.0;
 /*
  *	... and adapt the kernel elements accordingly
  */
-	for (i = 0; i < firsize; i ++) {
-	   Kernel [i] = 0.95 * Kernel [i] + 2.0 * mu * err * real (z);
+	for (int i = 0; i < firsize; i++) {
+	   Kernel [i] = 0.95 * Kernel [i] + 2.0 * mu * err * real(z);
 	   sum += Kernel [i];
 	}
 
-	for (i = 0; i < firsize; i ++) 
+	 for (int i = 0; i < firsize; i++)
 	   Kernel [i] /= sum;
 	return tmp;
 }
@@ -321,10 +313,10 @@ DSPFLOAT	sum	= 0.0;
 //
 //	decimating filter
 
-	DecimatingFIR::DecimatingFIR (int16_t firSize,
-	                              int32_t low,
-	                              int32_t fs,
-	                              int16_t Dm):Basic_FIR (firSize) {
+DecimatingFIR::DecimatingFIR (int16_t firSize,
+                              int32_t low,
+                              int32_t fs,
+                              int16_t Dm):Basic_FIR (firSize) {
 
 	sampleRate		= fs;
 	decimationFactor	= Dm;
@@ -333,25 +325,24 @@ DSPFLOAT	sum	= 0.0;
 }
 
 void	DecimatingFIR::newKernel (int32_t low) {
-int16_t	i;
 DSPFLOAT	*tmp	= (DSPFLOAT *)alloca (filterSize * sizeof (DSPFLOAT));
 DSPFLOAT	f	= (DSPFLOAT)low / sampleRate;
 DSPFLOAT	sum	= 0.0;
 
-	for (i = 0; i < filterSize; i ++) {
+	for (int i = 0; i < filterSize; i++) {
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * f;
-	   else 
-	      tmp [i] = sin (2 * M_PI * f * (i - filterSize/2))/ (i - filterSize/2);
+	   else
+	      tmp [i] = sin (2 * M_PI * f * (i - filterSize / 2)) / (i - filterSize / 2);
 
-	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
-		    0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
+	   tmp [i] *= (0.42 -
+	           0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
+	           0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
 
 	   sum += tmp [i];
 	}
 
-	for (i = 0; i < filterSize; i ++)
+	for (int i = 0; i < filterSize; i++)
 	   filterKernel [i] = DSPCOMPLEX (tmp [i] / sum, tmp [i]);
 }
 
@@ -364,7 +355,6 @@ DSPCOMPLEX *DecimatingFIR::getKernel (void) {
 	                              int32_t high,
 	                              int32_t fs,
 	                              int16_t Dm):Basic_FIR (firSize) {
-
 	sampleRate		= fs;
 	decimationFactor	= Dm;
 	decimationCounter	= 0;
@@ -374,27 +364,26 @@ DSPCOMPLEX *DecimatingFIR::getKernel (void) {
 void	DecimatingFIR::newKernel (int32_t low, int32_t high) {
 DSPFLOAT	*tmp	= (DSPFLOAT *)alloca (filterSize * sizeof (DSPFLOAT));
 DSPFLOAT	lo	= (DSPFLOAT)((high - low) / 2) / sampleRate;
-DSPFLOAT	shift	= (DSPFLOAT) ((high + low) / 2) / sampleRate;
+DSPFLOAT	shift	= (DSPFLOAT)((high + low) / 2) / sampleRate;
 DSPFLOAT	sum	= 0.0;
-int16_t	i;
 
-	for (i = 0; i < filterSize; i ++) {
+	for (int i = 0; i < filterSize; i++) {
 	   if (i == filterSize / 2)
 	      tmp [i] = 2 * M_PI * lo;
-	   else 
-	      tmp [i] = sin (2 * M_PI * lo * (i - filterSize /2)) / (i - filterSize/2);
+	   else
+	      tmp [i] = sin (2 * M_PI * lo * (i - filterSize / 2)) / (i - filterSize / 2);
 //
 //	windowing
-	   tmp [i]  *= (0.42 -
-		    0.5 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
-		    0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
+	   tmp [i] *= (0.42 -
+	           0.50 * cos (2 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize) +
+	           0.08 * cos (4 * M_PI * (DSPFLOAT)i / (DSPFLOAT)filterSize));
 
 	   sum += tmp [i];
 	}
 
-	for (i = 0; i < filterSize; i ++) {	// shifting
+	for (int i = 0; i < filterSize; i++) {    // shifting
 	   DSPFLOAT v = (i - filterSize / 2) * (2 * M_PI * shift);
-	   filterKernel [i] = DSPCOMPLEX (tmp [i] * cos (v) / sum, 
+	   filterKernel [i] = DSPCOMPLEX (tmp [i] * cos (v) / sum,
 	                                  tmp [i] * sin (v) / sum);
 	}
 }
@@ -406,13 +395,12 @@ int16_t	i;
 //	sample that comes from the dongle. So, it really should be
 //	optimized.
 bool	DecimatingFIR::Pass (DSPCOMPLEX z, DSPCOMPLEX *z_out) {
-int16_t		i;
 DSPCOMPLEX	tmp	= 0;
 int16_t		index;
 
 	Buffer [ip] = z;
-	if (++ decimationCounter < decimationFactor) {
-	   ip =  (ip + 1) % filterSize;
+	if (++decimationCounter < decimationFactor) {
+	   ip = (ip + 1) % filterSize;
 	   return false;
 	}
 
@@ -420,17 +408,17 @@ int16_t		index;
 //
 //	we are working with a circular buffer, we take two steps
 //	we move from ip .. 0 with i going from 0 .. ip -1
-	for (i = 0; i <= ip; i ++) {
-	   index =  ip - i;
-	   tmp 	+= Buffer [index] * filterKernel [i];
+	for (int i = 0; i <= ip; i++) {
+	   index = ip - i;
+	   tmp  += Buffer [index] * filterKernel [i];
 	}
 //	and then we take the rest
-	for (i = ip + 1; i < filterSize; i ++) {
-	   index =  filterSize + ip - i;
-	   tmp 	+= Buffer [index] * filterKernel [i];
+	for (int i = ip + 1; i < filterSize; i++) {
+	   index = filterSize + ip - i;
+	   tmp  += Buffer [index] * filterKernel [i];
 	}
 
-	ip = (ip + 1) % filterSize;
+	ip     = (ip + 1) % filterSize;
 	*z_out = tmp;
 	return true;
 }
@@ -443,7 +431,7 @@ bool	DecimatingFIR::Pass (DSPFLOAT z, DSPFLOAT *z_out) {
 	}
 
 	decimationCounter = 0;
-	*z_out = Basic_FIR::Pass (z);
+	*z_out            = Basic_FIR::Pass (z);
 	return true;
 }
 
@@ -455,12 +443,12 @@ bool	DecimatingFIR::Pass (DSPFLOAT z, DSPFLOAT *z_out) {
  *	USB and LSB detection.
  */
 	HilbertFilter::HilbertFilter (int16_t fsize, DSPFLOAT f, int32_t rate) {
-	firsize		= fsize;
-	this	-> rate	= rate;
+	firsize    	= fsize;
+	this	-> rate = rate;
 	cosKernel	= new DSPFLOAT [fsize];
 	sinKernel	= new DSPFLOAT [fsize];
 	Buffer		= new DSPCOMPLEX [fsize];
-	adjustFilter (f);
+	adjustFilter(f);
 }
 
 	HilbertFilter::~HilbertFilter () {
@@ -469,24 +457,23 @@ bool	DecimatingFIR::Pass (DSPFLOAT z, DSPFLOAT *z_out) {
 	delete[]	Buffer;
 }
 /*
- * 	the validity of the hilbertshift was validated
- * 	by computing (and displaying) 
- * 	arg (res - DSPCOMPLEX (real (res), real (res)))
- * 	where res = ... -> Pass (s1, s1)
+ *	the validity of the hilbertshift was validated
+ *	by computing (and displaying)
+ *	arg (res - DSPCOMPLEX (real (res), real (res)))
+ *	where res = ... -> Pass (s1, s1)
  */
 void	HilbertFilter::adjustFilter (DSPFLOAT centre) {
 DSPFLOAT	*v1	= (DSPFLOAT *)alloca (firsize * sizeof (DSPFLOAT));
 DSPFLOAT	sum = Blackman (v1, firsize, centre);
-int16_t	i;
 
-	for (i = 0; i < firsize; i ++)
+	for (int i = 0; i < firsize; i++)
 	   v1 [i] = v1 [i] / sum;
 
-	for (i = 0; i < firsize; i ++) {
+	for (int i = 0; i < firsize; i++) {
 	   DSPFLOAT omega = 2.0 * M_PI * centre;
-	   cosKernel [i] = v1 [i] * 
+	   cosKernel [i] = v1 [i] *
 	             cos (omega * (i - ((DSPFLOAT)firsize - 1) / (2.0 * rate)));
-	   sinKernel [i] = v1 [i] * 
+	   sinKernel [i] = v1 [i] *
 	             sin (omega * (i - ((DSPFLOAT)firsize - 1) / (2.0 * rate)));
 	   Buffer [i] = 0;
 	}
@@ -501,12 +488,11 @@ DSPCOMPLEX	HilbertFilter::Pass (DSPFLOAT a, DSPFLOAT b) {
 DSPCOMPLEX	HilbertFilter::Pass (DSPCOMPLEX z) {
 DSPCOMPLEX	tmp = 0;
 DSPFLOAT	re, im;
-int	i;
 
 	Buffer [ip] = z;
 	ip = (ip + 1) % firsize;
 
-	for (i = 0; i < firsize; i ++) {
+	for (int i = 0; i < firsize; i++) {
 	   int16_t index = ip - i;
 	   if (index < 0)
 	      index += firsize;
@@ -518,3 +504,30 @@ int	i;
 	return tmp;
 }
 
+// taken from GnuRadio to calculate the needed tap size
+/*static*/
+int32_t	Basic_FIR::compute_ntaps (const double iSamplFreq,
+	                          const double iTransitionWidth,
+	                          const EWinType iWinType,
+	                          const double iBetaKaiser/*=6.76*/) {
+auto	get_max_win_att = [&]() -> int32_t {
+	switch (iWinType) {
+	   case (WIN_HAMMING):		return 53; break;
+	   case(WIN_HANN):		return 44; break;
+	   case(WIN_BLACKMAN):		return 74; break;
+	   case(WIN_RECTANGULAR):	return 21; break;
+	   case(WIN_KAISER):		return (iBetaKaiser/0.1102 + 8.7); break;
+	   case(WIN_BLACKMAN_HARRIS):	return 92; break;
+	   case(WIN_BARTLETT):		return 27; break;
+	   case(WIN_FLATTOP):		return 93; break;
+	   default:
+	      throw std::out_of_range ("window::max_attenuation: unknown window type provided.");
+	}
+  };
+
+const double a		= get_max_win_att ();
+int ntaps		= (int)(a * iSamplFreq / (22.0 * iTransitionWidth));
+	if ((ntaps & 1) == 0)
+	   ntaps++; // ...make odd
+	return ntaps;
+}

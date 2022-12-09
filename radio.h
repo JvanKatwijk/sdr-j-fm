@@ -1,48 +1,47 @@
-#
 /*
  *    Copyright (C)  2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the SDR-J-FM
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    SDR-J-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    SDR-J-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with SDR-J-FM; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
-#ifndef __RADIO__
-#define __RADIO__
+#ifndef __RADIO_H
+#define __RADIO_H
 
-#include	"fm-constants.h"
+#include	<QTableWidget>
+#include	<QTableWidgetItem>
+#include	<QWidget>
 #include	<QDialog>
 #include	<QInputDialog>
-#include	"ui_radio.h"
-#include	<qwt.h>
-#include	<QTimer>
-#include	<QQueue>
-#include	<QWheelEvent>
 #include	<QLineEdit>
+#include	<QQueue>
+#include	<QTimer>
+#include	<QWheelEvent>
+#include	<qwt.h>
 #include	<sndfile.h>
-#include	"scope.h"
-#include	"iqdisplay.h"
-#include	"ringbuffer.h"
 #include	"fft.h"
 #include	"fir-filters.h"
+#include	"fm-constants.h"
+#include	"iqdisplay.h"
+#include	"ringbuffer.h"
+#include	"scope.h"
+#include	"ui_radio.h"
+#include	"rds-decoder.h"
 
 class	keyPad;
 class	QSettings;
@@ -53,19 +52,20 @@ class	audioSink;
 class	deviceHandler;
 class	programList;
 
+#define	IQ_SCOPE_SIZE	64
 /*
  *	The main gui object. It inherits from
  *	QDialog and the generated form
  */
-class RadioInterface: public QDialog,
-		      private Ui_sdr_j_fm {
+class RadioInterface : public QDialog,
+	               private Ui_sdr_j_fm {
 Q_OBJECT
 public:
-		RadioInterface		(QSettings	*,
-	                                 QString,
-	                                 int32_t,
-	                                 QWidget *parent = NULL);
-		~RadioInterface		();
+		RadioInterface (QSettings *,
+	                        QString,
+	                        int32_t,
+	                        QWidget *parent = nullptr);
+		~RadioInterface ();
 
 private:
 	enum Keyboard {
@@ -75,6 +75,14 @@ private:
 	   SHIFT	= 3
 	};
 
+//	Processing modes
+	enum class ERunStates {
+	   IDLE		= 0100,
+	   PAUSED	= 0101,
+	   RUNNING	= 0102,
+	   STOPPING	= 0103
+	};
+
 	bool		ExtioLock;
 	int16_t		outputDevice;
 	void		localConnects		(void);
@@ -82,12 +90,10 @@ private:
 
 	RingBuffer<double>	*hfBuffer;
 	RingBuffer<double>	*lfBuffer;
-	Scope		*hfScope;
-	Scope		*lfScope;
-	int16_t		scopeAmplification;
-	bool		HFAverager;
-
-	keyPad          *mykeyPad;
+	Scope			*hfScope;
+	Scope			*lfScope;
+//
+	keyPad		*mykeyPad;
 	QSettings	*fmSettings;
 	int32_t		inputRate;
 	int32_t		fmRate;
@@ -107,7 +113,7 @@ private:
 	int16_t		numberofDevices;
 
 	uint8_t		HFviewMode;
-	uint8_t		LFviewMode;
+//	uint8_t		LFviewMode;
 	uint8_t		inputMode;
 	int16_t		currAttSliderValue;
 	DSPFLOAT	attValueL;
@@ -118,11 +124,10 @@ private:
 	int32_t		currentFreq;
 
 	void		restoreGUIsettings	(QSettings *);
-	void		setDetectorScreen	(int16_t);
+//	void		setDetectorScreen	(int16_t);
 
 	int32_t		mapIncrement		(int32_t);
 	int32_t		IncrementInterval	(int16_t);
-	int32_t		setTuner		(int32_t);
 	void		Display			(int32_t);
 	QTimer		*autoIncrementTimer;
 	int16_t		IncrementIndex;
@@ -130,18 +135,17 @@ private:
 	int32_t		fmIncrement;
 	int32_t		minLoopFrequency;
 	int32_t		maxLoopFrequency;
-	
-	void		set_incrementFlag	(int16_t);
-	void		stopIncrementing	(void);
-	int32_t		get_Increment_for	(int16_t);
 
-	void		stop_lcdTimer		(void);
+	void		IncrementFrequency	(int32_t);
+	void		set_incrementFlag	(int16_t);
+	void		stopIncrementing	();
+
+	void		stop_lcdTimer		();
 	int32_t		Panel;
-	int16_t		CurrentRig;
 	QTimer		*displayTimer;
-/*
- *	dumping
- */
+  /*
+   *	dumping
+   */
 	bool		sourceDumping;
 	SNDFILE		*dumpfilePointer;
 
@@ -150,49 +154,63 @@ private:
 
 	fmProcessor	*myFMprocessor;
 	rdsDecoder	*myRdsDecoder;
-	int8_t		rdsModus;
-	int8_t		viewKeuze;
 
 	QString		RadioText;
 	QString		StationLabel;
-	void		IncrementFrequency	(int32_t);
 	int16_t		thresHold;
 	int32_t		currentPIcode;
 	int32_t		frequencyforPICode;
 	int16_t		logTime;
 	FILE		*logFile;
-	int8_t		runMode;
 
-	void		setup_HFScope		(void);
-	void		setup_LFScope		(void);
+	void		setup_HFScope	();
+	void		setup_LFScope	();
 	bool		squelchMode;
-	void		resetSelector		(void);
-	int32_t		mapRates		(int32_t);
+	void		resetSelector	();
+	int32_t		mapRates	(int32_t);
 
-	programList     *myList;
-        QLineEdit       *myLine;
-/*
- *	The private slots link the GUI elements
- *	to the GUI code
- */
+//
+//	added or modified
+	RingBuffer<DSPCOMPLEX>	*iqBuffer;
+	IQDisplay	*iqScope;
+	bool		mAfcActive;
+	float		mAfcAlpha;
+	int32_t		mAfcCurrOffFreq;
+
+	bool		mSuppressTransient;
+	float		mPeakLeftDamped;
+	float		mPeakRightDamped;
+//
+//	end added
+	void		reset_afc		();
+	int32_t		setTuner		(int32_t);
+	rdsDecoder::ERdsMode rdsModus;
+	std::atomic<ERunStates>	runMode;
+	void		setup_IQPlot		();
+
+	QLineEdit	*myLine;
+	programList	*myProgramList;
+  /*
+   *	The private slots link the GUI elements
+   *	to the GUI code
+   */
 private slots:
-	void	setStart		(void);
-	void	updateTimeDisplay	(void);
-	void	clickPause		(void);
+	void	setStart		();
+	void	updateTimeDisplay	();
+	void	clickPause		();
 
-	void	setInputMode		(const QString &);
+//	void	setInputMode		(const QString &);
 	void	setAttenuation		(int);
 	void	setIQBalance		(int);
 
 	void	setStreamOutSelector	(int);
 	void	abortSystem		(int);
-	void	TerminateProcess	(void);
-	void	make_newProcessor	(void);
-	void	stopDumping		(void);
+	void	TerminateProcess	();
+	void	make_newProcessor	();
+	void	stopDumping		();
 	void	setDevice		(const QString &);
-//	void	setVolume		(int);
-	void	set_dumping		(void);
-	void	set_audioDump		(void);
+	void	set_dumping		();
+	void	set_audioDump		();
 
 	void	setfmBandwidth		(const QString &);
 	void	setfmBandwidth		(int);
@@ -201,63 +219,81 @@ private slots:
 	void	setfmDecoder		(const QString &);
 	void	setfmChannelSelector	(const QString &);
 	void	setfmDeemphasis		(const QString &);
-	void	setfmStereoSlider	(int);
 	void	setfmLFcutoff		(const QString &);
 
-	void	autoIncrement_timeout	(void);
-	void	autoIncrementButton	(void);
-	void	autoDecrementButton	(void);
+	void	autoIncrement_timeout	();
+	void	autoIncrementButton	();
+	void	autoDecrementButton	();
 	void	set_fm_increment	(int);
 	void	set_minimum		(int);
 	void	set_maximum		(int);
-	void	IncrementButton		(void);
-	void	DecrementButton		(void);
+	void	IncrementButton		();
+	void	DecrementButton		();
 
 	bool	setupSoundOut		(QComboBox *, audioSink *,
 	                                 int32_t, int16_t *);
 	void	set_squelchValue	(int);
-	void	set_squelchMode		(void);
-	void    set_freqSave            (void);
-        void    handle_myLine           (void);
+	void	set_freqSave		();
+	void	handle_myLine		();
 
+//	added or changed
+//	station list
+//	void	tableSelect		(int, int);
+//	void	removeRow		(int, int);
+//
+//	void	setVolume		(int);
+	void	setfmStereoPanoramaSlider(int);
+	void	setfmStereoBalanceSlider(int);
+	void	setAudioGainSlider	(int n);
+	void	setlfPlotType		(const QString &s);
+	void	setlfPlotZoomFactor	(const QString &s);
+	void	set_squelchMode		(const QString &);
+	void	set_display_delay	(int);
+
+	void	check_afc		(int);
 public slots:
+	void	quickStart		();
 	void	setHFplotterView	(int);
-	void	handle_freqButton	(void);
+	void	handle_freqButton	();
 	void	newFrequency		(int);
-	void	hfBufferLoaded		(void);
-	void	lfBufferLoaded		(void);
+	void	hfBufferLoaded		();
 	void	wheelEvent		(QWheelEvent *);
 	void	setLogging		(const QString &);
-	void	setLogsaving		(void);
+	void	setLogsaving		();
 	void	AdjustFrequency		(int);
 	void	setCRCErrors		(int);
 	void	setSyncErrors		(int);
 	void	setbitErrorRate		(double);
 	void	setGroup		(int);
-	void	setPTYCode		(int);
 	void	setPiCode		(int);
-	void	clearStationLabel	(void);
 	void	setStationLabel		(const QString &);
-	void	clearRadioText		(void);
 	void	setRadioText		(const QString &);
-	void	setAFDisplay		(int);
 	void	setRDSisSynchronized	(bool);
 	void	setMusicSpeechFlag	(int);
-	void	clearMusicSpeechFlag	(void);
-	void	showStrength		(float, float);
-	void	scanresult		(void);
+	void	clearMusicSpeechFlag	();
+	void	scanresult		();
 	void	closeEvent		(QCloseEvent *event);
-
 //
-//	and for the extio handling
+//	changed or added
+	void	lfBufferLoaded		(bool, int);
+	void	iqBufferLoaded		();
+	void	setPTYCode		(int, const QString &);
+//	void	clearStationLabel	();
+//	void	clearRadioText		();
+	void	setAFDisplay		(int, int);
+	void	setSquelchIsActive	(bool);
+//	void	showStrength		(float, float);
+
+	void	showPeakLevel		(const float, const float);
+	void	showDcComponents	(float, float);
+  //
+  //	and for the extio handling
 	void	set_ExtFrequency	(int);
 	void	set_ExtLO		(int);
-	void	set_lockLO		(void);
-	void	set_unlockLO		(void);
-	void	set_stopHW		(void);
-	void	set_startHW		(void);
+	void	set_lockLO		();
+	void	set_unlockLO		();
+	void	set_stopHW		();
+	void	set_startHW		();
 	void	set_changeRate		(int);
 };
-
 #endif
-

@@ -4,7 +4,7 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of thenfm software
+ *    This file is part of the fm software
  *
  *    fm software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -46,6 +46,13 @@
 #include	"dlfcn.h"
 typedef	void	*HINSTANCE;
 #endif
+
+ 
+#ifndef M_PI
+# define M_PI           3.14159265358979323846  /* pi */
+#endif
+using namespace std;
+
 //
 typedef	float	DSPFLOAT;
 //
@@ -69,7 +76,7 @@ using namespace std;
 #define I_Only		0102
 #define	Q_Only		0104
 
-#define	CURRENT_VERSION	"2.0"
+#define	CURRENT_VERSION	"3.0"
 
 #define	MSECFORTIMER	10
 //
@@ -79,7 +86,7 @@ using namespace std;
 #define	RDSBANDFILTER_SIZE	49
 #define	FFT_SIZE		256
 #define	PILOT_WIDTH		1000
-#define	RDS_WIDTH		1500
+#define	RDS_WIDTH		2400
 #define	LEVEL_SIZE		512
 #define	LEVEL_FREQ		3
 //
