@@ -1350,17 +1350,16 @@ void	RadioInterface::setAudioGainSlider (int n) {
 //	Deemphasis	= 75 usec (2122 Hz US)
 void	RadioInterface::setfmDeemphasis (const QString &s) {
 
-	if (myFMprocessor == nullptr)
+  if (myFMprocessor == nullptr)
 	   return;
 
-	if (s == "50")
-	   myFMprocessor        -> setDeemphasis (50);
-        else
-        if (s == "75")
-           myFMprocessor        -> setDeemphasis (75);
-        else
-           myFMprocessor        -> setDeemphasis (1);
 
+  if (s == "Off (AM)") {
+    myFMprocessor -> setDeemphasis(1);
+  }
+  else {
+    myFMprocessor -> setDeemphasis(std::stol(s.toStdString())); // toInt will not work with text after the number
+  }
 }
 
 void	RadioInterface::setCRCErrors (int n) {
@@ -2095,16 +2094,16 @@ void	RadioInterface::reset_afc () {
 
 #include <QCloseEvent>
 void RadioInterface::closeEvent(QCloseEvent *event) {
-	QMessageBox::StandardButton resultButton =
-	         QMessageBox::question (this, "fmRadio",
-	                                tr("Are you sure?\n"),
-	                                QMessageBox::No | QMessageBox::Yes,
-	                                                  QMessageBox::Yes);
+  QMessageBox::StandardButton resultButton =
+           QMessageBox::question (this, "fmRadio",
+                                  tr("Are you sure?\n"),
+                                  QMessageBox::No | QMessageBox::Yes,
+                                                    QMessageBox::Yes);
 
-	if (resultButton != QMessageBox::Yes) {
-	   event -> ignore ();
-	}
-	else {
+  if (resultButton != QMessageBox::Yes) {
+     event -> ignore ();
+  }
+  else {
 	   TerminateProcess ();
 	   event -> accept();
 	}

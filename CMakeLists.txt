@@ -54,6 +54,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #	if you want support for any of these devices, uncomment the line
 #	set(PMSDR true)
 	set(SDRPLAY true)
+#	set(SDRPLAY_V3 true)
 #	set(AIRSPY true)
 	set(DABSTICK true)
 #	set(ELAD_S1 true)
@@ -328,7 +329,53 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   add_definitions (-DHAVE_SDRPLAY)
 	endif (SDRPLAY)
 
-	if (AIRSPY)
+  if (SDRPLAY_V3)
+     find_library (SDRPLAYLIB_V3 libsdrplay_api.so)
+     if (NOT(SDRPLAYLIB_V3))
+        message (FATAL_ERROR "please install sdrplay-v3 library")
+     else (NOT(SDRPLAYLIB_V3))
+        set (extraLibs ${extraLibs} ${SDRPLAYLIB_V3})
+     endif()
+     find_path (SDRPLAYLIB_V3_INCLUDE_DIR
+                NAMES sdrplay_api.h
+                PATHS
+                /usr/local/include/
+     )
+     #message ("Tatata" ${SDRPLAYLIB_V3_INCLUDE_DIR})
+
+     include_directories (${SDRPLAYLIB_V3_INCLUDE_DIR})
+
+     set (${objectName}_UIS
+          ${${objectName}_UIS}
+          ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
+     )
+
+     set (${objectName}_MOCS
+          ${${objectName}_MOCS}
+          ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h
+          #./devices/sdrplay-handler/sdrplayselect.h
+     )
+
+     include_directories (
+       ./devices/sdrplay-handler-v3
+     )
+
+     set ($(objectName)_HDRS
+          ${${objectName}_HDRS}
+          ./devices/sdrplay-handler-v3/sdrplay-handler.h
+          ./devices/sdrplay-handler-v3/sdrplay-commands.h
+     )
+
+     set (${objectName}_SRCS
+          ${${objectName}_SRCS}
+          ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp
+          #./devices/sdrplay-handler-v3/sdrplayselect.cpp
+     )
+
+     add_definitions (-DHAVE_SDRPLAY_V3)
+  endif (SDRPLAY_V3)
+
+  if (AIRSPY)
 	   find_library (AIRSPY_LIB airspy)
 	   if (NOT(AIRSPY_LIB))
 	      message (FATAL_ERROR "please install airspy library")
