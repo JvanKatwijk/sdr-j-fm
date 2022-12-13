@@ -28,6 +28,7 @@
 #include	<QSettings>
 #include	<Qt>
 #include	"radio.h"
+#include	<array>
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
