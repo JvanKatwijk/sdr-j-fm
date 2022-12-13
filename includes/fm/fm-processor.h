@@ -26,6 +26,7 @@
 #include	<QThread>
 #include	<QObject>
 #include	<sndfile.h>
+#include	<atomic>
 #include	"fm-constants.h"
 #include	"fir-filters.h"
 #include	"fft-filters.h"

@@ -42,6 +42,7 @@
 #include	"scope.h"
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
+#include	<atomic>
 
 class	keyPad;
 class	QSettings;

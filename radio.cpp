@@ -502,8 +502,10 @@ bool r = false;
 	         this, &RadioInterface::setAudioGainSlider);
 	connect (cbTestTone, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor->setTestTone(isChecked); });
-	connect (sbDispDelay, qOverload<int>(&QSpinBox::valueChanged),
-	         this, &RadioInterface::set_display_delay);
+//	connect (sbDispDelay, qOverload<int>(&QSpinBox::valueChanged),
+//	         this, &RadioInterface::set_display_delay);
+	connect (sbDispDelay, SIGNAL (valueChanged (int)),
+	         this,  SLOT (set_display_delay (int)));
 
 	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
 

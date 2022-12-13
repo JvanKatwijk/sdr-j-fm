@@ -27,6 +27,7 @@
 #include	<QDate>
 #include	<QLabel>
 #include	<QDebug>
+#include	<atomic>
 #include	"ui_colibri-widget.h"
 #include	"ringbuffer.h"
 #include	"device-handler.h"
