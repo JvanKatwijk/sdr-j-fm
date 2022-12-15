@@ -261,7 +261,7 @@ QComboBox
     border-radius: 3px;
     padding-left: 6px;
     color: lightgray;
-  font-weight: bold;
+	font-weight: bold;
     height: 20px;
 
 }
@@ -272,7 +272,6 @@ QComboBox::disabled
   background-color: #404040;
   color: #656565;
   border-color: #051a39;
-
 }
 
 
@@ -283,10 +282,10 @@ QComboBox:hover
 }
 
 
-QComboBox:on
-{
-    background-color: #979796;
-  color: #000000;
+QComboBox:on {
+	background-color: #979796;
+	color: #363942; 
+/*	color: #000000; */
 
 }
 
@@ -313,7 +312,6 @@ QComboBox::drop-down
     border-left-style: solid;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
-
 }
 
 

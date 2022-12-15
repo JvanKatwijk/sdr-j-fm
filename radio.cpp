@@ -527,6 +527,9 @@ void RadioInterface::TerminateProcess () {
 	   sf_close (audiofilePointer);
 	}
 
+	if (myProgramList != nullptr)
+	   myProgramList -> saveTable ();
+
 	stopIncrementing ();
 	dumpControlState (fmSettings);
 	fmSettings		-> sync ();
@@ -2086,7 +2089,10 @@ QString programName	= myLine -> text ();
 	                 programName. toLatin1 (). data (),
 	                 QString::number (freq / Khz(1)). toLatin1 ().data());
 	myProgramList	-> addRow (programName, QString::number (freq / Khz(1)));
+//	fprintf (stderr, "added %s %d gelukt\n",
+//	                     programName. toLatin1 (). data (), freq);
 	delete myLine;
+	fprintf (stderr, "delete line afgerond\n");
 	myLine = nullptr;
 }
 

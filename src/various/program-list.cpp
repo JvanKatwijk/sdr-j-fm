@@ -48,6 +48,10 @@
                  this, SLOT (removeRow (int, int)));
         connect (this, SIGNAL (newFrequency (int)),
                  mr, SLOT (newFrequency (int)));
+	connect (this, SIGNAL (insertRow (int)),
+	         tableWidget, SLOT (insertRow (int)));
+	connect (this, SIGNAL (removeRow (int)),
+	         tableWidget, SLOT (removeRow (int)));
         loadTable ();
 }
 
@@ -55,13 +59,13 @@
 int16_t rows    = tableWidget -> rowCount ();
 
         for (int i = rows; i > 0; i --)
-           tableWidget -> removeRow (i);
+           removeRow (i);
 }
 
 void	programList::addRow (const QString &name, const QString &freq) {
 int16_t row = tableWidget -> rowCount ();
 
-	tableWidget -> insertRow (row);
+	insertRow (row);
 
 	QTableWidgetItem *item0	= new QTableWidgetItem;
 	item0		-> setTextAlignment (Qt::AlignLeft | Qt::AlignVCenter);
@@ -72,7 +76,6 @@ int16_t row = tableWidget -> rowCount ();
 	item1		-> setTextAlignment (Qt::AlignRight | Qt::AlignVCenter);
 	item1		-> setText (freq);
 	tableWidget	-> setItem (row, 1, item1);
-	fprintf (stderr, "Bijna klaar\n");
 	tableWidget -> resizeColumnsToContents ();
 }
 //
@@ -92,7 +95,7 @@ void	programList::removeRow (int row, int column) {
 	                                     QMessageBox::No | QMessageBox::Yes,
 	                                         QMessageBox::Yes);
 	if (resultButton == QMessageBox::Yes) {
-	   tableWidget -> removeRow (row);
+	   removeRow		(row);
 	   tableWidget -> resizeColumnsToContents ();
 	}
 }

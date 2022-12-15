@@ -35,25 +35,27 @@
 
 class	RadioInterface;
 
-
 class	programList:public QObject {
 Q_OBJECT
 public:
-		programList	(RadioInterface *,
-	                            const QString &, QScrollArea *);
-		~programList	();
-	void	addRow		(const QString &, const QString &);
-	void	loadTable	();
-	void	saveTable	();
+			programList	(RadioInterface *,
+	                                 const QString &, QScrollArea *);
+			~programList	();
+	void		addRow		(const QString &, const QString &);
+	void		loadTable	();
+	void		saveTable	();
 private slots:
-	void	tableSelect	(int, int);
-	void	removeRow	(int, int);
+	void		tableSelect	(int, int);
+	void		removeRow	(int, int);
 signals:
-	void	newFrequency	(int);
+	void		newFrequency	(int);
+	void		insertRow	(int);
+	void		removeRow	(int);
+	void		resizeColumnsToContents ();
 private:
 	RadioInterface		*myParent;
 	QScrollArea		*myWidget;
-	QTableWidget	*tableWidget;
-	QString		saveName;
+	QTableWidget		*tableWidget;
+	QString			saveName;
 };
 #endif
