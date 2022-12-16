@@ -10,9 +10,9 @@ QT		+= widgets
 QMAKE_CXXFLAGS  += -std=c++14
 QMAKE_CFLAGS	+= -lfto -ffast-math
 QMAKE_CXXFLAGS	+= -lfto -ffast-math
-#QMAKE_CXXFLAGS	+= -g
-#QMAKE_CFLAGS	+= -g
-#QMAKE_LFLAGS	+= -g
+#QMAKE_CXXFLAGS	+= -pg
+#QMAKE_CFLAGS	+= -pg
+#QMAKE_LFLAGS	+= -pg
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc

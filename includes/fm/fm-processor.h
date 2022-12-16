@@ -46,6 +46,7 @@ class RadioInterface;
 class audioSink;
 class newConverter;
 
+#define USE_EXTRACT_LEVELS
 template<typename T> class DelayLine {
 public:
 		DelayLine (const T & iDefault) : mDefault (iDefault) {
@@ -138,88 +139,71 @@ public:
 	              int16_t);                 // threshold scanning
 		~fmProcessor () override;
 
-	void	stop			();   // stop the processor
-	void	setfmMode		(FM_Mode);
-	void	setFMdecoder		(const QString &);
-	void	setSoundMode		(uint8_t);
-	void	setStereoPanorama	(int16_t iStereoPan);
-	void	setSoundBalance		(int16_t);
-	void	setDeemphasis		(int16_t);
-	void	setVolume		(const float iVolGainDb);
-	void	setlfcutoff		(int32_t);
-	void	startDumping		(SNDFILE *);
-	void	stopDumping		();
-	void	setBandwidth		(int32_t);
-	void	setBandfilterDegree	(int32_t);
-	void	setAttenuation		(DSPFLOAT, DSPFLOAT);
-	void	setfmRdsSelector	(rdsDecoder::ERdsMode);
-	void	resetRds		();
-	void	set_localOscillator	(int32_t);
-	void	set_squelchMode		(ESqMode iSqMode);
-//	void	setInputMode		(uint8_t);
-	void	setlfPlotType		(ELfPlot);
-	void	setlfPlotZoomFactor	(int32_t);
+	void		stop			();   // stop the processor
+	void		setfmMode		(FM_Mode);
+	void		setFMdecoder		(const QString &);
+	void		setSoundMode		(uint8_t);
+	void		setStereoPanorama	(int16_t iStereoPan);
+	void		setSoundBalance		(int16_t);
+	void		setDeemphasis		(int16_t);
+	void		setVolume		(const float iVolGainDb);
+	void		setlfcutoff		(int32_t);
+	void		startDumping		(SNDFILE *);
+	void		stopDumping		();
+	void		setBandwidth		(int32_t);
+	void		setBandfilterDegree	(int32_t);
+	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
+	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
+	void		resetRds		();
+	void		set_localOscillator	(int32_t);
+	void		set_squelchMode		(ESqMode iSqMode);
+	bool		getSquelchState		();
+//	void		setInputMode		(uint8_t);
+	void		setlfPlotType		(ELfPlot);
+	void		setlfPlotZoomFactor	(int32_t);
 
-//	bool	ok			();
-	bool	isPilotLocked		(float & oLockStrength) const;
-	squelch * getSquelchObj		() const {
-	   return mySquelch;
-	}
-	void	setAutoMonoMode		(const bool iAutoMonoMode) {
-	   autoMono = iAutoMonoMode;
-	}
-	void	setDCRemove		(const bool iDCREnabled) {
-	   DCREnabled = iDCREnabled;
-	   RfDC = 0.0f;
-	}
-	void	triggerDrawNewHfSpectrum () {
-	   fillAveragehfBuffer = true;
-	}
-	void	triggerDrawNewLfSpectrum () {
-//	   spectrumBuffer_lf. clear_content();
-	   fillAveragelfBuffer = true;
-	}
-	void	setTestTone		(const bool iTTEnabled) {
-	   mTestTone. Enabled = iTTEnabled;
-	}
-	void	setDispDelay		(const int iDelay) {
-	   mDelayLine. set_delay_steps (iDelay);
-	}
+	bool		isPilotLocked		(float &oLockStrength) const;
+	void		setAutoMonoMode		(const bool iAutoMonoMode);
+	void		setDCRemove		(const bool iDCREnabled);
+	void		triggerDrawNewHfSpectrum ();
+	void		triggerDrawNewLfSpectrum ();
+	void		setTestTone		(const bool iTTEnabled);
+	void		setDispDelay		(const int iDelay);
 
 #ifdef USE_EXTRACT_LEVELS
-	DSPFLOAT get_pilotStrength	();
-	DSPFLOAT get_rdsStrength	();
-	DSPFLOAT get_noiseStrength	();
+	DSPFLOAT	get_pilotStrength	();
+	DSPFLOAT	get_rdsStrength		();
+	DSPFLOAT	get_noiseStrength	();
 #endif
 
-	DSPFLOAT get_demodDcComponent	();
-	void	startScanning		();
-	void	stopScanning		();
+	DSPFLOAT	get_demodDcComponent	();
+	void		startScanning		();
+	void		stopScanning		();
 	fm_Demodulator::TDecoderListNames & listNameofDecoder();
-	void	set_squelchValue	(int16_t);
+	void		set_squelchValue	(int16_t);
 //
 //	some private functions:
 private:
-	void	run			() override;
-	void	mapSpectrum		(const DSPCOMPLEX * const,
-	                                 double * const, int32_t &);
-	void	mapHalfSpectrum		(const DSPCOMPLEX * const,
-	                                 double * const, int32_t &);
-	void	processLfSpectrum	();
-	void	fill_average_buffer	(const double * const,
+	void		run			();
+	void		mapSpectrum		(const DSPCOMPLEX * const,
+	                                         double * const, int32_t &);
+	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
+	                                         double * const, int32_t &);
+	void		processLfSpectrum	();
+	void		fill_average_buffer	(const double * const,
 	                                             double * const);
-	void	add_to_average		(const double * const,
+	void		add_to_average		(const double * const,
 	                                             double * const);
-	void	extractLevels		(const double * const,
+	void		extractLevels		(const double * const,
 	                                             const int32_t);
-	void	extractLevelsHalfSpectrum(const double * const,
+	void		extractLevelsHalfSpectrum(const double * const,
 	                                             const int32_t);
-	void	sendSampletoOutput	(DSPCOMPLEX);
-	void	insertTestTone		(DSPCOMPLEX & ioS);
-	void	evaluatePeakLevel	(const DSPCOMPLEX s);
+	void		sendSampletoOutput	(DSPCOMPLEX);
+	void		insertTestTone		(DSPCOMPLEX & ioS);
+	void		evaluatePeakLevel	(const DSPCOMPLEX s);
 
-	DSPFLOAT getSignal		(DSPCOMPLEX *, int32_t);
-	DSPFLOAT getNoise		(DSPCOMPLEX *, int32_t);
+	DSPFLOAT 	getSignal		(DSPCOMPLEX *, int32_t);
+	DSPFLOAT 	getNoise		(DSPCOMPLEX *, int32_t);
 
 //	the privates
 private:
@@ -230,6 +214,8 @@ private:
 	newConverter	audioDecimator;
 	DecimatingFIR	fmBandfilter;
 	fftFilter	fmAudioFilter;
+	std::atomic<bool>	newAudioFilter;
+	int		audioFrequency;
 
 	LowPassFIR	*fmFilter;
 	deviceHandler	*myRig;
@@ -288,16 +274,16 @@ private:
 	DSPCOMPLEX	*audioOut;
 
 	struct TestTone {
-	   bool		Enabled	= false;
-	   float	TimePeriod = 2.0f;
-	   float	SignalDuration = 0.025f;
+	   bool		Enabled		= false;
+	   float	TimePeriod	= 2.0f;
+	   float	SignalDuration	= 0.025f;
 	   uint32_t	TimePeriodCounter = 0;
-	   uint32_t	NoSamplRemain = 0;
-	   float	CurPhase = 0.0f;
-	   float	PhaseIncr = 0.0f;
-	} mTestTone {};
+	   uint32_t	NoSamplRemain	= 0;
+	   float	CurPhase	= 0.0f;
+	   float	PhaseIncr	= 0.0f;
+	} testTone {};
 
-	DelayLine<DSPCOMPLEX> mDelayLine {DSPCOMPLEX (-40.0f, -40.0f)};
+	DelayLine<DSPCOMPLEX> delayLine {DSPCOMPLEX (-40.0f, -40.0f)};
 
 	void	process_stereo_or_mono_with_rds (const float,
 	                                         DSPCOMPLEX *,
@@ -336,9 +322,9 @@ private:
 	rdsDecoder::ERdsMode rdsModus;
 
 #ifdef USE_EXTRACT_LEVELS
-	float		NoiseLevel;
-	float		PilotLevel;
-	float		RdsLevel;
+	float		noiseLevel;
+	float		pilotLevel;
+	float		rdsLevel;
 #endif
 
 	DSPFLOAT	K_FM;
@@ -351,13 +337,13 @@ private:
 	int32_t		zoomFactor;
 
 signals:
-	void		setPLLisLocked	(bool);
-	void		hfBufferLoaded	();
-	void		lfBufferLoaded	(bool, int);
-	void		iqBufferLoaded	();
+	void		setPLLisLocked		(bool);
+	void		hfBufferLoaded		();
+	void		lfBufferLoaded		(bool, int);
+	void		iqBufferLoaded		();
 	void		showDcComponents(float, float);
-	void		scanresult	();
-	void		showPeakLevel	(const float, const float);
+	void		scanresult		();
+	void		showPeakLevel		(const float, const float);
 };
 
 #endif

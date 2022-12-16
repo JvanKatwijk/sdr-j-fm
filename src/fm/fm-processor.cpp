@@ -61,11 +61,11 @@
 	                             audioDecimator (fmRate,
 	                                             workingRate,
 	                                             fmRate / 1000),
-	                             fmBandfilter (5 * inputRate / fmRate,
-	                                          fmRate / 2,
-	                                          inputRate,
-	                                          inputRate / fmRate),
-	                             fmAudioFilter (1024, 431) {
+	                             fmBandfilter (4 * inputRate / fmRate + 1,
+	                                           fmRate / 2,
+	                                           inputRate,
+	                                           inputRate / fmRate),
+	                             fmAudioFilter (4096, 756) {
 	this	-> running. store (false);
 	this	-> myRig	= vi;
 	this	-> myRadioInterface = RI;
@@ -86,6 +86,8 @@
 	this	-> Lgain	= 20;
 	this	-> Rgain	= 20;
 
+	this	-> audioFrequency	= 15000;
+	this	-> newAudioFilter. store (false);
 	this	-> squelchMode	= ESqMode::OFF;
 	this	-> spectrumSampleRate = fmRate;
 	this	-> iqBuffer	= iqBuffer;
@@ -180,7 +182,6 @@
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
 	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE) * OMEGA_PILOT;
-//	fmAudioFilter	= new fftFilter (1024, 431);
 	fmAudioFilterActive . store (false);
 
 	rdsDecimator = new newConverter (fmRate, RDS_RATE, fmRate / 1000);
@@ -216,16 +217,16 @@
 
 	displayBuffer_lf = new double [displaySize];
 
-	connect (mySquelch, &squelch::setSquelchIsActive,
-	         myRadioInterface, &RadioInterface::setSquelchIsActive);
-	connect (this, &fmProcessor::hfBufferLoaded,
-	         myRadioInterface, &RadioInterface::hfBufferLoaded);
-	connect (this, &fmProcessor::lfBufferLoaded,
-	         myRadioInterface, &RadioInterface::lfBufferLoaded);
-	connect (this, &fmProcessor::iqBufferLoaded,
-	         myRadioInterface, &RadioInterface::iqBufferLoaded);
-	connect (this, &fmProcessor::showPeakLevel,
-	         myRadioInterface, &RadioInterface::showPeakLevel);
+	connect (mySquelch, SIGNAL (setSquelchIsActive (bool)),
+	         myRadioInterface, SLOT (setSquelchIsActive (bool)));
+	connect (this, SIGNAL (hfBufferLoaded ()),
+	         myRadioInterface, SLOT (hfBufferLoaded ()));
+	connect (this, SIGNAL (lfBufferLoaded (bool, int)),
+	         myRadioInterface, SLOT (lfBufferLoaded (bool, int)));
+	connect (this, SIGNAL (iqBufferLoaded ()),
+	         myRadioInterface, SLOT (iqBufferLoaded ()));
+	connect (this, SIGNAL (showPeakLevel (float, float)),
+	         myRadioInterface, SLOT (showPeakLevel (float, float)));
 	connect (this, SIGNAL (showDcComponents (float,float)),
 	         myRadioInterface, SLOT (showDcComponents (float,float)));
 	connect (this, SIGNAL (scanresult ()),
@@ -261,23 +262,21 @@ void	fmProcessor::stop () {
 #ifdef USE_EXTRACT_LEVELS
 
 DSPFLOAT fmProcessor::get_pilotStrength () {
-	if (running. load ()) {
-//	get_db (0, 128) == 42.14dB
-	   return get_db (PilotLevel, 128) - get_db (0, 128);
-	}
+	if (running. load ()) 
+	   return get_db (pilotLevel, 128) - get_db (0, 128);
 	return 0.0;
 }
 
 DSPFLOAT fmProcessor::get_rdsStrength () {
 	if (running. load ()) {
-	   return get_db (RdsLevel, 128) - get_db (0, 128);
+	   return get_db (rdsLevel, 128) - get_db (0, 128);
 	}
 	return 0.0;
 }
 
 DSPFLOAT fmProcessor::get_noiseStrength () {
 	if (running. load ()) {
-	   return get_db (NoiseLevel, 128) - get_db (0, 128);
+	   return get_db (noiseLevel, 128) - get_db (0, 128);
 	}
 	return 0.0;
 }
@@ -285,6 +284,10 @@ DSPFLOAT fmProcessor::get_noiseStrength () {
 
 void	fmProcessor::set_squelchValue (int16_t n) {
 	squelchValue	= n;
+}
+
+bool	fmProcessor::getSquelchState	() {
+	return mySquelch ->  getSquelchActive  ();
 }
 
 DSPFLOAT fmProcessor::get_demodDcComponent () {
@@ -473,12 +476,19 @@ const float rfDcAlpha = 1.0f / inputRate;
 	   }
 
 //	First: update according to potentially changed settings
-	   if (newFilter && (fmBandwidth < 0.95 * fmRate)) {
+	   if (newFilter. load () && (fmBandwidth < 0.95 * fmRate)) {
 	      delete fmFilter;
 	      fmFilter = new LowPassFIR (fmFilterDegree,
 	                                 fmBandwidth / 2, fmRate);
 	   }
 	   newFilter = false;
+
+	   if (newAudioFilter. load ()) {
+	      fmAudioFilter. setLowPass (audioFrequency, fmRate);
+	      fmAudioFilterActive. store (true);
+	      fprintf (stderr, "audiofilter set to %d\n", audioFrequency);
+	      newAudioFilter. store (false);
+	   }
 
 	   if (squelchValue != oldSquelchValue) {
 	      mySquelch -> setSquelchLevel (squelchValue);
@@ -794,20 +804,16 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	}
 }
 //
-//	Since setLFcutoff is only called from within the "run"  function
-//	from where the filter is also called, it is safe to remove
-//	it here
-//
+//	
 void	fmProcessor::setlfcutoff (int32_t Hz) {
-
 	if (Hz > 0) {
-	   fmAudioFilterActive. store (false);
-	   fmAudioFilter. setLowPass (Hz, fmRate);
-	   fmAudioFilterActive. store (true);
+	   audioFrequency	= Hz;
+	   newAudioFilter. store (true);
 	}
 	else {
-	   fmAudioFilterActive. store (false);
-	}
+	   fmAudioFilterActive . store (false);
+	   fprintf (stderr, "audiofilter switched off\n");
+	};
 }
 
 void	fmProcessor::evaluatePeakLevel (const DSPCOMPLEX s) {
@@ -829,7 +835,7 @@ const DSPFLOAT absRight = std::abs (imag (s));
 	                   20.0f * std::log10 (absPeakRight) : -40.0f);
 
 //	correct audio sample buffer delay for peak display
-	   DSPCOMPLEX delayed = mDelayLine.
+	   DSPCOMPLEX delayed = delayLine.
 	                   get_set_value (DSPCOMPLEX (leftDb, rightDb));
 
 	   emit showPeakLevel (real (delayed), imag (delayed));
@@ -842,24 +848,24 @@ void	fmProcessor::insertTestTone (DSPCOMPLEX & ioS) {
 float toneFreqHz = 1000.0f;
 float level = 0.9f;
 
-	if (!mTestTone. Enabled)
+	if (!testTone. Enabled)
 	   return;
 
 	ioS *= (1.0f - level);
-	if (mTestTone. NoSamplRemain > 0) {
-	   mTestTone. NoSamplRemain --;
-	   mTestTone. CurPhase += mTestTone. PhaseIncr;
-	   mTestTone. CurPhase = PI_Constrain (mTestTone. CurPhase);
-	   const DSPFLOAT smpl = sin (mTestTone.CurPhase);
+	if (testTone. NoSamplRemain > 0) {
+	   testTone. NoSamplRemain --;
+	   testTone. CurPhase		+= testTone. PhaseIncr;
+	   testTone. CurPhase		= PI_Constrain (testTone. CurPhase);
+	   const DSPFLOAT smpl		= sin (testTone. CurPhase);
 	   ioS += level * DSPCOMPLEX (smpl, smpl);
 	}
 	else
-	if (++mTestTone.TimePeriodCounter >
-	                workingRate * mTestTone.TimePeriod) {
-	   mTestTone. TimePeriodCounter = 0;
-	   mTestTone. NoSamplRemain = workingRate * mTestTone. SignalDuration;
-	   mTestTone. CurPhase = 0.0f;
-	   mTestTone. PhaseIncr = 2 * M_PI / workingRate * toneFreqHz;
+	if (++testTone.TimePeriodCounter >
+	                workingRate * testTone.TimePeriod) {
+	   testTone. TimePeriodCounter = 0;
+	   testTone. NoSamplRemain = workingRate * testTone. SignalDuration;
+	   testTone. CurPhase = 0.0f;
+	   testTone. PhaseIncr = 2 * M_PI / workingRate * toneFreqHz;
 	}
 }
 
@@ -869,7 +875,7 @@ void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {
 	   theSink -> putSample (s);
 	}
 	else {
-	   DSPCOMPLEX out [theConverter->getOutputsize()];
+	   DSPCOMPLEX out [theConverter -> getOutputsize ()];
 	   int32_t    amount;
 	   if (theConverter -> convert (s, out, &amount)) {
 	      for (int32_t i = 0; i < amount; i++) {
@@ -896,10 +902,6 @@ void	fmProcessor::set_localOscillator (int32_t lo) {
 	loFrequency = lo;
 }
 
-//bool	fmProcessor::ok	() {
-//	return running. load ();
-//}
-
 bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
 
 	if (fmModus != FM_Mode::Mono && pilotRecover) {
@@ -916,10 +918,6 @@ bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
 void	fmProcessor::set_squelchMode	(ESqMode iSqMode) {
 	squelchMode = iSqMode;
 }
-
-//void	fmProcessor::setInputMode (uint8_t m) {
-//	inputMode = m;
-//}
 
 DSPFLOAT	fmProcessor::getSignal	(DSPCOMPLEX *v, int32_t size) {
 DSPFLOAT sum = 0;
@@ -1050,7 +1048,7 @@ const double beta = (averageCount - 1.0) / averageCount;
 #ifdef USE_EXTRACT_LEVELS
 void	fmProcessor::extractLevels (const double * const in,
 	                            const int32_t range) {
-const float binWidth = (float)range / ZoomFactor / mdisplaySize;
+const float binWidth = (float)range / zoomFactor / displaySize;
 const int32_t pilotOffset = displaySize / 2 - 19000 / binWidth;
 const int32_t rdsOffset   = displaySize / 2 - 57000 / binWidth;
 const int32_t noiseOffset = displaySize / 2 - 70000 / binWidth;
@@ -1074,14 +1072,14 @@ float noiseAvg = 0, pilotAvg = 0, rdsAvg = 0;
 	   pilotAvg += in [pilotOffset - 1 + i];
 	}
 
-	NoiseLevel = 0.95 * NoiseLevel + 0.05 * noiseAvg / 7;
-	PilotLevel = 0.95 * PilotLevel + 0.05 * pilotAvg / 3;
-	RdsLevel   = 0.95 * RdsLevel   + 0.05 * rdsAvg / 7;
+	noiseLevel = 0.95 * noiseLevel + 0.05 * noiseAvg / 7;
+	pilotLevel = 0.95 * pilotLevel + 0.05 * pilotAvg / 3;
+	rdsLevel   = 0.95 * rdsLevel   + 0.05 * rdsAvg / 7;
 }
 
 void	fmProcessor::extractLevelsHalfSpectrum (const double * const in,
 	                                        const int32_t range) {
-const float binWidth	= (float)range / ZoomFactor / displaySize / 2;
+const float binWidth	= (float)range / zoomFactor / displaySize / 2;
 const int32_t pilotOffset = 19000 / binWidth;
 const int32_t rdsOffset   = 57000 / binWidth;
 const int32_t noiseOffset = 70000 / binWidth;
@@ -1103,11 +1101,36 @@ float	rdsAvg	= 0;
 	}
 
 	constexpr float ALPHA = 0.2f;
-	NoiseLevel	= (1.0f - ALPHA) * NoiseLevel +
+	noiseLevel	= (1.0f - ALPHA) * noiseLevel +
 	                          ALPHA * noiseAvg / avgNoiseRdsSize;
-	PilotLevel	= (1.0f - ALPHA) * PilotLevel +
+	pilotLevel	= (1.0f - ALPHA) * pilotLevel +
 	                          ALPHA * pilotAvg / avgPilotSize;
-	mRdsLevel	= (1.0f - ALPHA) * mRdsLevel +
+	rdsLevel	= (1.0f - ALPHA) * rdsLevel +
 	                          ALPHA * rdsAvg / avgNoiseRdsSize;
 }
 #endif
+
+void	fmProcessor::setAutoMonoMode		(const bool iAutoMonoMode) {
+	autoMono = iAutoMonoMode;
+}
+
+void	fmProcessor::setDCRemove		(const bool iDCREnabled) {
+	DCREnabled = iDCREnabled;
+	RfDC = 0.0f;
+}
+
+void	fmProcessor::triggerDrawNewHfSpectrum	() {
+	fillAveragehfBuffer = true;
+}
+
+void	fmProcessor::triggerDrawNewLfSpectrum	() {
+	fillAveragelfBuffer = true;
+}
+
+void	fmProcessor::setTestTone		(const bool iTTEnabled) {
+	testTone. Enabled = iTTEnabled;
+}
+
+void	fmProcessor::setDispDelay		(const int iDelay) {
+	delayLine. set_delay_steps (iDelay);
+}

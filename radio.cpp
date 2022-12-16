@@ -35,8 +35,6 @@
 #include	"fm-processor.h"
 #include	"popup-keypad.h"
 #include	"rds-decoder.h"
-#include	"iqdisplay.h"
-#include	"scope.h"
 
 #include	"program-list.h"
 
@@ -104,7 +102,9 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	                                QString saveName,
                                         int32_t outputRate,
 	                                QWidget *parent):
-	                                        QDialog (parent) {
+	                                        QDialog (parent),
+	                                        iqBuffer (IQ_SCOPE_SIZE) {
+
 int16_t i;
 QString h;
 int     k;
@@ -115,10 +115,10 @@ int     k;
 	runMode. store (ERunStates::IDLE);
         squelchMode		= false;
 //
-//	Added:
-	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
-	setWindowFlag (Qt::WindowMinimizeButtonHint, true);
-	setWindowFlag (Qt::WindowMaximizeButtonHint, true);
+//	Added: cannot compile on Ubuntu 16
+//	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
+//	setWindowFlag (Qt::WindowMinimizeButtonHint, true);
+//	setWindowFlag (Qt::WindowMaximizeButtonHint, true);
 
 	thermoPeakLevelLeft	-> setFillBrush (Qt::darkBlue);
 	thermoPeakLevelRight	-> setFillBrush (Qt::darkBlue);
@@ -130,13 +130,13 @@ int     k;
 	reset_afc ();
 //
 //	added inits for various class variables
-	mAfcActive		= false;
-	mAfcAlpha		= 1;
-	mAfcCurrOffFreq		= 0;
+	afcActive		= false;
+	afcAlpha		= 1;
+	afcCurrOffFreq		= 0;
 
-	mSuppressTransient	= false;
-	mPeakLeftDamped		= -100;
-	mPeakRightDamped	= -100;
+	suppressTransient	= false;
+	peakLeftDamped		= -100;
+	peakRightDamped	= -100;
 //	end added
 //
 //	dummies, needed for a.o. LFScope
@@ -866,7 +866,7 @@ void	RadioInterface::make_newProcessor () {
 	                                 repeatRate,
 	                                 hfBuffer,
 	                                 lfBuffer,
-	                                 iqBuffer,
+	                                 &iqBuffer,
 	                                 filterDepth,
 	                                 thresHold);
 	lcd_fmRate		-> display ((int)this -> fmRate);
@@ -1585,16 +1585,16 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	   ioPeakAvr = (iPeak > ioPeakAvr ? iPeak : ioPeakAvr - 0.5f /*decay*/);
 	};
 
-	peak_avr (iPeakLeft,  mPeakLeftDamped);
-	peak_avr(iPeakRight, mPeakRightDamped);
+	peak_avr (iPeakLeft,  peakLeftDamped);
+	peak_avr(iPeakRight, peakRightDamped);
 
-	thermoPeakLevelLeft	-> setValue (mPeakLeftDamped);
-	thermoPeakLevelRight	-> setValue (mPeakRightDamped);
+	thermoPeakLevelLeft	-> setValue (peakLeftDamped);
+	thermoPeakLevelRight	-> setValue (peakRightDamped);
 
 //	simple overflow avoidance ->
 //	reduce volume slider about -0.5dB (one step)
 	if ((iPeakLeft > 0.0f || iPeakRight > 0.0f) &&
-	                         !mSuppressTransient)
+	                         !suppressTransient)
 	   volumeSlider -> setValue (volumeSlider -> value () - 1);
 }
 //
@@ -1633,32 +1633,32 @@ bool triggerLog = false;
 	thermoDcComponent -> setValue (dcVal);
 
 //	some kind of AFC
-	if (mAfcActive) {
+	if (afcActive) {
 	   int32_t afcOffFreq = ifDemodDcComponent * 10000;
 // the_dcComponent is positive with too little frequency
-	   mAfcCurrOffFreq = (1 - mAfcAlpha) * mAfcCurrOffFreq +
-	                                           mAfcAlpha * afcOffFreq;
+	   afcCurrOffFreq = (1 - afcAlpha) * afcCurrOffFreq +
+	                                           afcAlpha * afcOffFreq;
 
-	   float absAfcCurrOffFreq = abs (mAfcCurrOffFreq);
+	   float absAfcCurrOffFreq = abs (afcCurrOffFreq);
 
 	   if (absAfcCurrOffFreq <  10) {
-	      mAfcAlpha = 0.005f;
+	      afcAlpha = 0.005f;
 	   }
 	   else
 	   if (absAfcCurrOffFreq < 100) {
-	      mAfcAlpha = 0.050f;
+	      afcAlpha = 0.050f;
 	   }
 	   else {
-	      mAfcAlpha = 0.800f;
+	      afcAlpha = 0.800f;
 	   }
 
-	   uint32_t newFreq = currentFreq + mAfcCurrOffFreq;
+	   uint32_t newFreq = currentFreq + afcCurrOffFreq;
 
 	   if (triggerLog) {
 	      fprintf (stderr, "AFC:  DC %f, NewFreq %d = CurrFreq %d + AfcOffFreq %d (unfiltered %d), AFC_Alpha %f\n",
                                ifDemodDcComponent, newFreq,
-	                       currentFreq, mAfcCurrOffFreq,
-	                       afcOffFreq, mAfcAlpha);
+	                       currentFreq, afcCurrOffFreq,
+	                       afcOffFreq, afcAlpha);
 	   }
 
 // avoid re-tunings of HW when only a residual frequency offset remains
@@ -1860,7 +1860,7 @@ double  temp	= (double)sampleRate / 2 / displaySize;
 
 void	RadioInterface::iqBufferLoaded () {
 DSPCOMPLEX iq_values [IQ_SCOPE_SIZE];
-int32_t sizeRead = iqBuffer -> getDataFromBuffer (iq_values, IQ_SCOPE_SIZE);
+int32_t sizeRead = iqBuffer. getDataFromBuffer (iq_values, IQ_SCOPE_SIZE);
 	iqScope -> DisplayIQVec (iq_values, sizeRead, 1.0f);
 }
 
@@ -1873,7 +1873,7 @@ void	RadioInterface::setHFplotterView (int offset) {
 }
 
 void	RadioInterface::setup_HFScope () {
-	hfBuffer	= new RingBuffer<double>(2 * displaySize);
+	hfBuffer	= new RingBuffer<double> (2 * displaySize);
 	hfScope		= new Scope (hfscope,
 	                             this -> displaySize,
 	                             this -> rasterSize);
@@ -1899,7 +1899,6 @@ void	RadioInterface::setup_LFScope () {
 }
 
 void	RadioInterface::setup_IQPlot () {
-	iqBuffer	= new RingBuffer<DSPCOMPLEX>(IQ_SCOPE_SIZE);
 	iqScope		= new IQDisplay (iqscope, IQ_SCOPE_SIZE);
 }
 
@@ -1924,7 +1923,9 @@ void	RadioInterface::set_squelchMode (const QString& s) {
 	squelchMode = (sqMode != fmProcessor::ESqMode::OFF);
 	squelchSlider	-> setEnabled (squelchMode);
 	myFMprocessor	-> set_squelchMode (sqMode);
-	setSquelchIsActive (myFMprocessor->getSquelchObj()->getSquelchActive()); // gray out squelch notification or read current state
+	
+//	setSquelchIsActive (myFMprocessor->getSquelchObj()->getSquelchActive());
+	setSquelchIsActive (myFMprocessor -> getSquelchState ());
 }
 
 void	RadioInterface::setSquelchIsActive (bool active) {
@@ -1949,10 +1950,10 @@ void	RadioInterface::restoreGUIsettings (QSettings *s) {
 QString h;
 int     k;
 
-	k	= s -> value ("afc", mAfcActive).toInt ();
-	cbAfc -> setCheckState (k ? Qt::CheckState::Checked :
+	k	= s -> value ("afc", afcActive).toInt ();
+	cbAfc	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                 Qt::CheckState::Unchecked);
-	mAfcActive = (k != 0);
+	afcActive = (k != 0);
 
 	k	= s -> value ("spectrumAmplitudeSlider_hf",
 	                      spectrumAmplitudeSlider_hf -> value ()).toInt ();
@@ -2092,27 +2093,27 @@ QString programName	= myLine -> text ();
 //	fprintf (stderr, "added %s %d gelukt\n",
 //	                     programName. toLatin1 (). data (), freq);
 	delete myLine;
-	fprintf (stderr, "delete line afgerond\n");
+//	fprintf (stderr, "delete line afgerond\n");
 	myLine = nullptr;
 }
 
 void	RadioInterface::reset_afc () {
-	mAfcAlpha = 1.0f;
-	mAfcCurrOffFreq = 0;
+	afcAlpha = 1.0f;
+	afcCurrOffFreq = 0;
 }
 
 #include <QCloseEvent>
-void RadioInterface::closeEvent(QCloseEvent *event) {
-  QMessageBox::StandardButton resultButton =
-           QMessageBox::question (this, "fmRadio",
-                                  tr("Are you sure?\n"),
-                                  QMessageBox::No | QMessageBox::Yes,
-                                                    QMessageBox::Yes);
+void	RadioInterface::closeEvent (QCloseEvent *event) {
+	QMessageBox::StandardButton resultButton =
+                QMessageBox::question (this, "fmRadio",
+                                       tr("Are you sure?\n"),
+                                       QMessageBox::No | QMessageBox::Yes,
+                                                       QMessageBox::Yes);
 
-  if (resultButton != QMessageBox::Yes) {
-     event -> ignore ();
-  }
-  else {
+	if (resultButton != QMessageBox::Yes) {
+	   event -> ignore ();
+	}
+	else {
 	   TerminateProcess ();
 	   event -> accept();
 	}
@@ -2121,6 +2122,6 @@ void RadioInterface::closeEvent(QCloseEvent *event) {
 void	RadioInterface::check_afc	(int b) {
 	(void)b;
 	if (cbAfc	-> isChecked ()) 
-	   mAfcActive	= true;
+	   afcActive	= true;
 	reset_afc ();
 }

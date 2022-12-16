@@ -34,13 +34,13 @@
 //FIR LowPass
 
 	LowPassFIR::LowPassFIR (int16_t firsize,
-	                        int32_t Fc, int32_t fs) : Basic_FIR(firsize) {
+	                        int32_t Fc, int32_t fs) : Basic_FIR (firsize) {
 	sampleRate	= fs;
 	newKernel (Fc);
 }
 
 void	LowPassFIR::newKernel (int32_t Fc) {
-DSPFLOAT	*tmp = (DSPFLOAT *)alloca (filterSize * sizeof(DSPFLOAT));
+DSPFLOAT	tmp [filterSize];
 DSPFLOAT	f    = (DSPFLOAT)Fc / sampleRate;
 DSPFLOAT	sum  = 0.0;
 

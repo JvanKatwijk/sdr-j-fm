@@ -40,17 +40,17 @@ public:
 	                                 const int32_t n, const float);
 
 private:
-	int32_t		mAmount;
-	double		*mpPlotData1;
-	double		*mpPlotData2;
-//	DSPCOMPLEX	*mpPoints;
-	QwtPlot		*mpQwtPlot;
-	int32_t		mNoPointsPerRadius;
-	int32_t		mNoPointsColOrRow;
-	int32_t		mNoMaxPointsOnField;
-	int32_t		mInpInx;
+	int32_t		amount;
+	double		*plotData1;
+	double		*plotData2;
+	QwtPlot		*thePlot;
+	int32_t		pointsPerRadius;
+	int32_t		pointsColorRow;
+	int32_t		maxPointsOnField;
+	int32_t		inPointer;
 
-private slots:
+signals:
+	void		replot		();
 
 };
 #endif

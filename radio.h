@@ -39,6 +39,7 @@
 #include	"fm-constants.h"
 #include	"iqdisplay.h"
 #include	"ringbuffer.h"
+#include	"iqdisplay.h"
 #include	"scope.h"
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
@@ -69,6 +70,8 @@ public:
 		~RadioInterface ();
 
 private:
+	RingBuffer<DSPCOMPLEX>	iqBuffer;
+	IQDisplay	*iqScope;
 	enum Keyboard {
 	   NORMAL	= 0,
 	   CONTROL	= 1,
@@ -172,15 +175,13 @@ private:
 
 //
 //	added or modified
-	RingBuffer<DSPCOMPLEX>	*iqBuffer;
-	IQDisplay	*iqScope;
-	bool		mAfcActive;
-	float		mAfcAlpha;
-	int32_t		mAfcCurrOffFreq;
+	bool		afcActive;
+	float		afcAlpha;
+	int32_t		afcCurrOffFreq;
 
-	bool		mSuppressTransient;
-	float		mPeakLeftDamped;
-	float		mPeakRightDamped;
+	bool		suppressTransient;
+	float		peakLeftDamped;
+	float		peakRightDamped;
 //
 //	end added
 	void		reset_afc		();

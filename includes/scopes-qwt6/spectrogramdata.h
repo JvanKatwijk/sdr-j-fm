@@ -61,9 +61,9 @@ public:
 	this	-> dataheight	= height;
 	this	-> max		= max;
 
-    setInterval(Qt::XAxis, QwtInterval (left, left + width));
-    setInterval(Qt::YAxis, QwtInterval (0, height));
-    setInterval(Qt::ZAxis, QwtInterval (0, max));
+	setInterval(Qt::XAxis, QwtInterval (left, left + width));
+	setInterval(Qt::YAxis, QwtInterval (0, height));
+	setInterval(Qt::ZAxis, QwtInterval (0, max));
 }
 
 void	initRaster (const QRectF & x, const QSize & raster) {
@@ -94,15 +94,15 @@ class IqScopeData : public QwtRasterData {
 class IqScopeData : public QwtMatrixRasterData {
 #endif
 public:
-  double * data;    // pointer to actual data
-  int datawidth;    // width of matrix
-  double max;
+double * data;    // pointer to actual data
+int datawidth;    // width of matrix
+double max;
 
-  IqScopeData (double * data, int datawidth, double max) :
+	IqScopeData (double * data, int datawidth, double max) :
 #if defined QWT_VERSION && ((QWT_VERSION >> 8) < 0x0602)
-	QwtRasterData () {
+		                       QwtRasterData () {
 #else
-	QwtMatrixRasterData () {
+		                       QwtMatrixRasterData () {
 #endif
 	this	-> data		= data;
 	this	-> datawidth	= datawidth;

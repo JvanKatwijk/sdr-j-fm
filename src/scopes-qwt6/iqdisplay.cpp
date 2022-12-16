@@ -33,122 +33,122 @@ static IqScopeData * sIQData = nullptr;
 	QwtLinearColorMap * colorMap =
 	                 new QwtLinearColorMap(Qt::darkBlue, Qt::yellow);
 
-	setRenderThreadCount (1);
-	mNoPointsPerRadius = 50;
+//	setRenderThreadCount (1);
+	pointsPerRadius = 50;
+
+	connect	(this, SIGNAL (replot ()), plot, SLOT (replot ()));
 
 // zero position is a extra row and column
-	mNoPointsColOrRow = 2 * mNoPointsPerRadius + 1;
-	mNoMaxPointsOnField = mNoPointsColOrRow * mNoPointsColOrRow;
-	mpQwtPlot = plot;
-	mAmount = x;
-	mInpInx = 0;
-	this	-> setColorMap(colorMap);
+	pointsColorRow		= 2 * pointsPerRadius + 1;
+	maxPointsOnField	= pointsColorRow * pointsColorRow;
+	thePlot			= plot;
+	amount			= x;
+	inPointer		= 0;
+	this	-> setColorMap (colorMap);
 //
 //	The original setting turned out to give problems with
 //	data being accessed outside of the boundaries
-	mpPlotData1 = new double [2 * mNoMaxPointsOnField + mNoPointsPerRadius + 10];
-	mpPlotData2 = new double [2 * mNoMaxPointsOnField + mNoPointsPerRadius + 10];
+	plotData1 = new double [2 * maxPointsOnField + pointsPerRadius + 10];
+	plotData2 = new double [2 * maxPointsOnField + pointsPerRadius + 10];
 
-	memset (mpPlotData1, 0, mNoMaxPointsOnField * sizeof(double));
-	memset (mpPlotData2, 0, mNoMaxPointsOnField * sizeof(double));
+	memset (plotData1, 0, maxPointsOnField * sizeof (double));
+	memset (plotData2, 0, maxPointsOnField * sizeof (double));
 
-	sIQData = new IqScopeData (mpPlotData2, mNoPointsColOrRow, 50.0);
+	sIQData		= new IqScopeData (plotData2, pointsColorRow, 50.0);
 	this		-> setData (sIQData);
-	plot		-> enableAxis (QwtPlot::xBottom, false);
-	plot		-> enableAxis (QwtPlot::yLeft, false);
-	plot		-> enableAxis (QwtPlot::xTop, false);
-	plot		-> enableAxis (QwtPlot::yRight, false);
+	thePlot		-> enableAxis (QwtPlot::xBottom, false);
+	thePlot		-> enableAxis (QwtPlot::yLeft, false);
+	thePlot		-> enableAxis (QwtPlot::xTop, false);
+	thePlot		-> enableAxis (QwtPlot::yRight, false);
 	this		-> setDisplayMode (QwtPlotSpectrogram::ImageMode, true);
-	this		-> attach (mpQwtPlot);
-	mpQwtPlot	-> setFixedHeight (2 * mNoPointsColOrRow);
-	mpQwtPlot	-> setFixedWidth(2*mNoPointsColOrRow);
-	mpQwtPlot	-> replot ();
+	this		-> attach (thePlot);
+	thePlot		-> setFixedHeight (2 * pointsColorRow);
+	thePlot		-> setFixedWidth (2 * pointsColorRow);
+	replot ();
 }
 
 		IQDisplay::~IQDisplay () {
 	this	-> detach ();
 	delete	sIQData;
-	delete [] mpPlotData2;
-	delete [] mpPlotData1;
-  //delete[] mpPoints;
+	delete [] plotData2;
+	delete [] plotData1;
 }
 
-template<class T> inline void symmetric_limit(T & ioVal, const T iLimit)
-{
-    if      (ioVal >  iLimit) ioVal =  iLimit;
-    else if (ioVal < -iLimit) ioVal = -iLimit;
-  //if ((x) > (l)) x = (l); else if (x < -(l)) x = -(l);
+template<class T> inline
+void symmetric_limit(T & ioVal, const T iLimit) {
+	if (ioVal >  iLimit)
+	   ioVal =  iLimit;
+	else
+	if (ioVal < -iLimit)
+	   ioVal = -iLimit;
+//	if ((x) > (l)) x = (l); else if (x < -(l)) x = -(l);
 }
 
 void	IQDisplay::DisplayIQ (const DSPCOMPLEX z, const float scale) {
-int32_t h = (int32_t)(mNoPointsPerRadius * scale * real(z));
-int32_t v = (int32_t)(mNoPointsPerRadius * scale * imag(z));
-// int32_t v = (int32_t)(scale * -0.5);
+int32_t h = (int32_t)(pointsPerRadius * scale * real(z));
+int32_t v = (int32_t)(pointsPerRadius * scale * imag(z));
 
 //	the field has width of 201 and height of 201, the middle has index 100
 
-	symmetric_limit (v, mNoPointsPerRadius);
-	symmetric_limit (h, mNoPointsPerRadius);
+	symmetric_limit (v, pointsPerRadius);
+	symmetric_limit (h, pointsPerRadius);
 
-//	mpPoints[mInpInx] = DSPCOMPLEX (x, y);
-	const int32_t idx = (v + mNoPointsPerRadius) *
-	                     mNoPointsColOrRow + h + mNoPointsPerRadius;
-	assert (idx >= 0);
-	assert (idx < mNoMaxPointsOnField);
-//	if (mpPlotData1[idx] < 40) mpPlotData1[idx] += 10;
-	mpPlotData1 [idx] = 50;
+	const int32_t index = (v + pointsPerRadius) *
+	                       pointsColorRow + h + pointsPerRadius;
+	assert (index >= 0);
+	assert (index < maxPointsOnField);
+	plotData1 [index] = 50;
 
-	if (++mInpInx < mAmount)
+	if (++inPointer < amount)
 	   return;
 
 //	we need an extra data buffer as
-//	mpQwtPlot -> replot() seems to take a while in the background
-	memcpy (mpPlotData2, mpPlotData1,
-	                   mNoMaxPointsOnField * sizeof(double));
+//	the  replot() seems to take a while in the background
+	memcpy (plotData2, plotData1,
+	                   maxPointsOnField * sizeof (double));
 
-	mpQwtPlot -> replot ();
-	mInpInx = 0;
+	replot ();
+	inPointer = 0;
 
 //	clear next write buffer and draw cross and circle
-	memset (mpPlotData1, 0, mNoMaxPointsOnField * sizeof(double));
+	memset (plotData1, 0, maxPointsOnField * sizeof (double));
 
-	{
     // draw cross
-	   for (int32_t i = -mNoPointsPerRadius;
-	                      i <= mNoPointsPerRadius; ++i) {
-	      const int32_t ih = mNoPointsPerRadius * mNoPointsColOrRow
-	                                          + i + mNoPointsPerRadius;
-	      const int32_t iv = (i + mNoPointsPerRadius) * mNoPointsColOrRow +
-	                                               mNoPointsPerRadius;
-	      mpPlotData1[ih] = mpPlotData1[iv] = 10;
-	   }
+	for (int32_t i = -pointsPerRadius;
+	                      i <= pointsPerRadius; i ++) {
+	   int32_t ih = pointsPerRadius * pointsColorRow
+	                                          + i + pointsPerRadius;
+	   int32_t iv = (i + pointsPerRadius) * pointsColorRow +
+	                                               pointsPerRadius;
+	   plotData1 [ih] = plotData1 [iv] = 10;
+	}
 
 //	draw unit circle
-	    constexpr int32_t MAX_CIRCLE_POINTS = 45;
-	    constexpr float SCALE = 0.5f;
-	    for (int32_t i = 0; i < MAX_CIRCLE_POINTS; ++i) {
-	       const float phase = 0.5f * M_PI * i / MAX_CIRCLE_POINTS;
-	       const int32_t h =
-	               (int32_t)(mNoPointsPerRadius * SCALE * cosf (phase));
-	       const int32_t v =
-	               (int32_t)(mNoPointsPerRadius * SCALE * sinf (phase));
+	int32_t MAX_CIRCLE_POINTS = 45;
+	float SCALE = 0.5f;
 
-	       const int32_t ior =
-	               (v + mNoPointsPerRadius) * mNoPointsColOrRow + h +
-	                                                   mNoPointsPerRadius;
-	       const int32_t iol =
-	              (v + mNoPointsPerRadius) * mNoPointsColOrRow - h +
-	                                                   mNoPointsPerRadius;
-	       const int32_t ibr =
-	              (-v + mNoPointsPerRadius) * mNoPointsColOrRow + h +
-	                                                  mNoPointsPerRadius;
-	       const int32_t ibl =
-	              (-v + mNoPointsPerRadius) * mNoPointsColOrRow - h +
-	                                                  mNoPointsPerRadius;
-	       mpPlotData1 [ior] =
-	       mpPlotData1 [iol] =
-	       mpPlotData1 [ibr] = mpPlotData1 [ibl] = 10;
-	    }
+	for (int32_t i = 0; i < MAX_CIRCLE_POINTS; ++i) {
+	   float phase = 0.5f * M_PI * i / MAX_CIRCLE_POINTS;
+	   int32_t h =
+	               (int32_t)(pointsPerRadius * SCALE * cosf (phase));
+	   const int32_t v =
+	               (int32_t)(pointsPerRadius * SCALE * sinf (phase));
+
+	   const int32_t ior =
+	               (v + pointsPerRadius) * pointsColorRow + h +
+	                                                   pointsPerRadius;
+	   const int32_t iol =
+	              (v + pointsPerRadius) * pointsColorRow - h +
+	                                                   pointsPerRadius;
+	   const int32_t ibr =
+	              (-v + pointsPerRadius) * pointsColorRow + h +
+	                                                  pointsPerRadius;
+	   const int32_t ibl =
+	              (-v + pointsPerRadius) * pointsColorRow - h +
+	                                                  pointsPerRadius;
+	   plotData1 [ior] =
+	   plotData1 [iol] =
+	   plotData1 [ibr] = plotData1 [ibl] = 10;
 	}
 }
 

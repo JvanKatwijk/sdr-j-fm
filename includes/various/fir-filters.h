@@ -117,7 +117,7 @@ public:
 	                   );
 		~LowPassFIR ();
 	DSPCOMPLEX  *getKernel (void);
-	void	newKernel(int32_t);        // cutoff
+	void	newKernel (int32_t);        // cutoff
 };
 
 //	Both for lowpass band bandpass, we provide:
