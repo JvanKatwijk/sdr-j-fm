@@ -29,9 +29,11 @@
 #include	"fm-constants.h"
 #include	"radio.h"
 
-static const QString styleSheet =
+static const QString styleSheet_1 =
 	        #include "./stylesheets/Adaptic.qss"
-//	        #include "./stylesheets/Combinear.qss"
+;
+static const QString styleSheet_2 =
+	        #include "./stylesheets/Combinear.qss"
 ;
 
 #define	DEFAULT_INI	".jsdr-fm.ini"
@@ -56,10 +58,18 @@ QString stationList     = QDir::homePath ();
         stationList. append (STATION_LIST);
         stationList = QDir::toNativeSeparators (stationList);
 
-	while ((opt = getopt (argc, argv, "A:B:m:i:o:C:T:dIFEMSG")) != -1) {
+	int styleSheet	= 0;
+
+	while ((opt = getopt (argc, argv, "ABm")) != -1) {
 	   switch (opt) {
 	      case 'm': outputRate = 192000;
-	                break;
+	         break;
+
+	      case 'A':	styleSheet	= 1;
+	         break;
+
+	      case 'B':	styleSheet	= 2;
+	         break;
 
 	      default:
 	                break;
@@ -78,8 +88,13 @@ QString stationList     = QDir::homePath ();
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
 
+	if (styleSheet == 0)
+	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
+	else 
+	   ISettings -> setValue ("styleSheet", styleSheet);
+
 	QApplication a (argc, argv);
-	a. setStyleSheet(styleSheet);
+	a. setStyleSheet (styleSheet == 1 ? styleSheet_1 : styleSheet_2);
 
         MyRadioInterface = new RadioInterface (ISettings,
 	                                       stationList, outputRate);
