@@ -853,6 +853,8 @@ bool    success;
 //
 //	Just for convenience packed as a function
 void	RadioInterface::make_newProcessor () {
+	int ptyLocale	= fmSettings -> value ("ptyLocale", 0). toInt ();
+	ptyLocale &= 01;		// just 0 or 1
 	myFMprocessor = new fmProcessor (myRig,
 	                                 this,
 	                                 our_audioSink,
@@ -864,6 +866,7 @@ void	RadioInterface::make_newProcessor () {
                                          spectrumSize,
 	                                 averageCount,
 	                                 repeatRate,
+	                                 ptyLocale,
 	                                 hfBuffer,
 	                                 lfBuffer,
 	                                 &iqBuffer,

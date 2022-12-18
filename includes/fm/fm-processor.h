@@ -132,12 +132,13 @@ public:
 	              int32_t,                  // spectrumSize
 	              int32_t,                  // averageCount
 	              int32_t,                  // repeatRate
+	              int,			// locale, Europe or US
 	              RingBuffer<double> *,     // HFScope
 	              RingBuffer<double> *,     // LFScope
 	              RingBuffer<DSPCOMPLEX> *, // IQScope
 	              int16_t,                  // filterDepth
 	              int16_t);                 // threshold scanning
-		~fmProcessor () override;
+		~fmProcessor ();
 
 	void		stop			();   // stop the processor
 	void		setfmMode		(FM_Mode);

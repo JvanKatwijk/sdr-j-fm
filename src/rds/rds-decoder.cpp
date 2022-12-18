@@ -44,7 +44,7 @@ constexpr DSPFLOAT RDS_BITCLK_HZ = 1187.5;
  *	Notice that complex mixing to zero IF has been done
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
-	                        int32_t		rate):
+	                        int32_t		rate, int ptyLocale):
 	               	            my_AGC (2e-3f, 0.4f, 10.0f)
 	                            ,my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f)
 
@@ -76,7 +76,8 @@ DSPFLOAT	synchronizerSamples;
 	my_rdsGroup		-> clear ();
 	my_rdsBlockSync		= new rdsBlockSynchronizer (myRadioInterface);
 	my_rdsBlockSync		-> setFecEnabled (true);
-	my_rdsGroupDecoder	= new rdsGroupDecoder (myRadioInterface);
+	my_rdsGroupDecoder	= new rdsGroupDecoder (myRadioInterface,
+	                                              ptyLocale);
 
 	this    -> mySinCos     = new SinCos (rate); 
 	omegaRDS                = (2 * M_PI * RDS_BITCLK_HZ) / (DSPFLOAT)rate;

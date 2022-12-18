@@ -1,8 +1,7 @@
 #include <cstdint>
 
 // PTY id to text mapping (is maybe not the best place in this file...)
-const char * const pty_table[][2] =
-{
+const char * const pty_table[][2] = {
   {"--",                    "--"},
   {"News",                  "News"},
   {"Current Affairs",       "Information"},
@@ -37,13 +36,13 @@ const char * const pty_table[][2] =
   {"Alarm",                 "Emergency"}
 };
 
-constexpr uint16_t pty_locale = 0; // set to 0 for Europe (1 for USA) which will use first column instead
+uint16_t pty_locale = 0;
+// set to 0 for Europe (1 for USA) which will use first column instead
 
 
 //	mapping from EBU code tables to 16 bit codes for QChar
 
-const uint16_t EBU_E1[16][14] =
-{
+const uint16_t EBU_E1[16][14] = {
   /* 0*/ { ' ', '0', '@', 'P', ' ', 'p', 0xE1, 0xE2, 'X', 'X', 0xC1, 0xC2, 0xC3, 0xE3 },
   /* 1*/ { '!', '1', 'A', 'Q', 'a', 'q', 0xE0, 0xE4, 0x3B1, 0xB9, 0xC0, 0xC4, 0xC5, 0xE5 },
   /* 2*/ { '\"', '2', 'B', 'R', 'b', 'r', 0xE9, 0xEA, 0xA9, 0xB2, 0xC9, 0xCA, 0xC6, 0xE6 },
@@ -62,11 +61,9 @@ const uint16_t EBU_E1[16][14] =
   /* F*/ { '/', '?', 'O', 'X', 'o', ' ', 0x132, 0x133, 0x2193, 'X', 'X', 'X', 'X', 'X' }
 };
 
-uint16_t mapEBUtoUnicode(uint8_t alfabet, uint8_t character)
-{
-  uint8_t columnnibble = (character & 0xF0) >> 4;
-  uint8_t rownibble = character & 0x0F;
-
-  (void)alfabet;
-  return EBU_E1[rownibble][columnnibble - 2];
+uint16_t mapEBUtoUnicode(uint8_t alfabet, uint8_t character) {
+uint8_t columnnibble = (character & 0xF0) >> 4;
+uint8_t rownibble = character & 0x0F;
+	(void)alfabet;
+	return EBU_E1 [rownibble][columnnibble - 2];
 }

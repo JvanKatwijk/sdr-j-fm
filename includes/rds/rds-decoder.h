@@ -56,7 +56,7 @@ class RadioInterface;
 class rdsDecoder : public QObject {
 Q_OBJECT
 public:
-		rdsDecoder	(RadioInterface *, int32_t);
+		rdsDecoder	(RadioInterface *, int32_t, int);
 		~rdsDecoder	();
 
 	enum class ERdsMode {
