@@ -56,7 +56,7 @@ class RadioInterface;
 class rdsDecoder : public QObject {
 Q_OBJECT
 public:
-		rdsDecoder	(RadioInterface *, int32_t, int);
+		rdsDecoder	(RadioInterface *, int32_t);
 		~rdsDecoder	();
 
 	enum class ERdsMode {
@@ -66,12 +66,14 @@ public:
 	};
 
 	bool	doDecode	(const DSPCOMPLEX,
-	                         DSPCOMPLEX * const, ERdsMode mode);
+	                         DSPCOMPLEX * const,
+	                         ERdsMode mode, int ptyLocale);
 	void	reset		();
 
 private:
-	void			doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag);
-	void			processBit	(bool);
+	void			doDecode2	(DSPCOMPLEX v,
+	                                         DSPCOMPLEX *mag, int);
+	void			processBit	(bool, int);
 
 	ERdsMode		mode;
 	AGC			my_AGC;

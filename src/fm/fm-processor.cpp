@@ -55,7 +55,7 @@
                                   RingBuffer<DSPCOMPLEX> *iqBuffer,
                                   int16_t filterDepth,
                                   int16_t thresHold):
-	                             myRdsDecoder (RI, RDS_RATE, ptyLocale),
+	                             myRdsDecoder (RI, RDS_RATE),
 	                             localOscillator (inputRate),
 	                             rdsOscillator (fmRate),
 	                             mySinCos (fmRate),
@@ -79,6 +79,7 @@
 	this	-> displaySize	= displaySize;
 	this	-> averageCount	= averageCount;
 	this	-> repeatRate	= repeatRate;
+	this	-> ptyLocale	= ptyLocale;
 	this	-> hfBuffer	= hfBuffer;
 	this	-> lfBuffer	= lfBuffer;
 	this	-> filterDepth	= filterDepth;
@@ -670,7 +671,8 @@ const float rfDcAlpha = 1.0f / inputRate;
 	               static DSPCOMPLEX magCplx;
 //	   input SR 19000S/s, output SR 19000/16S/s
 	               if (myRdsDecoder. doDecode (pcmSample,
-	                                           &magCplx, rdsModus)) {
+	                                           &magCplx,
+	                                           rdsModus, ptyLocale)) {
 	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
 	                  emit iqBufferLoaded ();
 	               }
@@ -1135,3 +1137,8 @@ void	fmProcessor::setTestTone		(const bool iTTEnabled) {
 void	fmProcessor::setDispDelay		(const int iDelay) {
 	delayLine. set_delay_steps (iDelay);
 }
+
+void	fmProcessor::set_ptyLocale		(int ptyLocale) {
+	this	-> ptyLocale	= ptyLocale;
+}
+

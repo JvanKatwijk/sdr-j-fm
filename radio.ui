@@ -996,11 +996,18 @@
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_17">
-                 <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
-                 </property>
-                </layout>
+                <widget class="QComboBox" name="countrySelector">
+                 <item>
+                  <property name="text">
+                   <string>Europe</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>USA</string>
+                  </property>
+                 </item>
+                </widget>
                </item>
               </layout>
              </item>

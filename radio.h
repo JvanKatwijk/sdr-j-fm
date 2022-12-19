@@ -255,6 +255,7 @@ private slots:
 	void	check_afc		(int);
 public slots:
 	void	quickStart		();
+	void	handle_countrySelector	(const QString &);
 	void	setHFplotterView	(int);
 	void	handle_freqButton	();
 	void	newFrequency		(int);

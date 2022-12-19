@@ -335,6 +335,16 @@ int     k;
 //	connect (cbAfc, &QAbstractButton::clicked,
 //	         this, [this](bool checked){ mAfcActive = checked; reset_afc(); } );
 
+	QString country	= 
+	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
+	if ((country == "Europe") || (country == "USA")) {
+	   k = countrySelector -> findText (country);
+	   if (k != -1)
+	      countrySelector	-> setCurrentIndex (k);
+	}
+	connect (countrySelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_countrySelector (const QString &)));
+
 	QString device =
 	             fmSettings -> value ("device", "no device").toString ();
 	
@@ -853,8 +863,9 @@ bool    success;
 //
 //	Just for convenience packed as a function
 void	RadioInterface::make_newProcessor () {
-	int ptyLocale	= fmSettings -> value ("ptyLocale", 0). toInt ();
-	ptyLocale &= 01;		// just 0 or 1
+	QString area
+	         = fmSettings -> value ("ptyLocale", "Europe"). toString ();
+	int ptyLocale	= area == "Europe" ? 0 : 1;
 	myFMprocessor = new fmProcessor (myRig,
 	                                 this,
 	                                 our_audioSink,
@@ -2128,3 +2139,11 @@ void	RadioInterface::check_afc	(int b) {
 	   afcActive	= true;
 	reset_afc ();
 }
+
+void	RadioInterface::handle_countrySelector	(const QString &country) {
+int ptyLocale	= country == "Europe" ? 0 : 1;
+	fmSettings -> setValue ("ptyLocale", country);
+	if (myFMprocessor != nullptr)
+	   myFMprocessor -> set_ptyLocale (ptyLocale);
+}
+

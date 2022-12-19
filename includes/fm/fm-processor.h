@@ -182,6 +182,7 @@ public:
 	void		stopScanning		();
 	fm_Demodulator::TDecoderListNames & listNameofDecoder();
 	void		set_squelchValue	(int16_t);
+	void		set_ptyLocale		(int);
 //
 //	some private functions:
 private:
@@ -206,6 +207,7 @@ private:
 	DSPFLOAT 	getSignal		(DSPCOMPLEX *, int32_t);
 	DSPFLOAT 	getNoise		(DSPCOMPLEX *, int32_t);
 
+
 //	the privates
 private:
 	rdsDecoder	myRdsDecoder;
@@ -229,6 +231,7 @@ private:
 	int32_t		displaySize;
 	int32_t		averageCount;
 	int32_t		repeatRate;
+	int		ptyLocale;
 	bool		fillAveragehfBuffer;
 	bool		fillAveragelfBuffer;
 	RingBuffer<double> *hfBuffer;

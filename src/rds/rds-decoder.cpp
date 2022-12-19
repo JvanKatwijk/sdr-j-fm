@@ -44,11 +44,11 @@ constexpr DSPFLOAT RDS_BITCLK_HZ = 1187.5;
  *	Notice that complex mixing to zero IF has been done
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
-	                        int32_t		rate, int ptyLocale):
+	                        int32_t		rate):
 	               	            my_AGC (2e-3f, 0.4f, 10.0f)
 	                            ,my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f)
-
 	                            ,my_Costas (rate, 1.0f, 0.02f, 20.0f) {
+
 DSPFLOAT	synchronizerSamples;
 
 	this	-> myRadioInterface	= myRadio;
@@ -76,8 +76,7 @@ DSPFLOAT	synchronizerSamples;
 	my_rdsGroup		-> clear ();
 	my_rdsBlockSync		= new rdsBlockSynchronizer (myRadioInterface);
 	my_rdsBlockSync		-> setFecEnabled (true);
-	my_rdsGroupDecoder	= new rdsGroupDecoder (myRadioInterface,
-	                                              ptyLocale);
+	my_rdsGroupDecoder	= new rdsGroupDecoder (myRadioInterface);
 
 	this    -> mySinCos     = new SinCos (rate); 
 	omegaRDS                = (2 * M_PI * RDS_BITCLK_HZ) / (DSPFLOAT)rate;
@@ -133,13 +132,14 @@ DSPCOMPLEX tmp = 0;
 }
 
 bool	rdsDecoder::doDecode (DSPCOMPLEX v,
-	                      DSPCOMPLEX * const m, ERdsMode  mode) {
+	                      DSPCOMPLEX * const m,
+	                      ERdsMode  mode, int ptyLocale) {
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
 DSPFLOAT	res;
 
 	if (mode	==  rdsDecoder::ERdsMode::RDS_ON_2) {
-	   doDecode2 (v, m);
+	   doDecode2 (v, m, ptyLocale);
 	   return true;
 	}
 
@@ -151,7 +151,7 @@ DSPFLOAT	res;
 //	this runs 19000/16 = 1187.5 1/s times
 	   r = my_Costas. process_sample (r);
 	   bool bit	= (real (r) >= 0);
-	   processBit	(bit ^ previousBit);
+	   processBit	(bit ^ previousBit, ptyLocale);
 	   previousBit	= bit;
 	   *m		= r;
 
@@ -161,7 +161,7 @@ DSPFLOAT	res;
 	return false;
 }
 
-void	rdsDecoder::processBit (bool bit) {
+void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 
 	switch (my_rdsBlockSync -> pushBit (bit, my_rdsGroup)) {
 	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
@@ -182,7 +182,7 @@ void	rdsDecoder::processBit (bool bit) {
 	      break;
 
 	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup)) {
+	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup, ptyLocale)) {
 	         ;   // error decoding the rds group
 	      }
 //	      my_rdsGroup -> clear ();
@@ -190,7 +190,7 @@ void	rdsDecoder::processBit (bool bit) {
 	}
 }
 
-void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag) {
+void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag, int ptyLocale) {
 DSPFLOAT clkState;
 
 	syncBuffer [p]	= v;
@@ -213,7 +213,7 @@ DSPFLOAT clkState;
 //	rising edge -> look at integrator
 	if (prev_clkState <= 0 && clkState > 0) {
 	   bool currentBit = bitIntegrator >= 0;
-	   processBit (currentBit ^ previousBit);
+	   processBit (currentBit ^ previousBit, ptyLocale);
 	   bitIntegrator = 0;		// we start all over
 	   previousBit   = currentBit;
 	}

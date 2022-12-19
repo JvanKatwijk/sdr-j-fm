@@ -41,9 +41,9 @@ class RadioInterface;
 class rdsGroupDecoder : public QObject {
 Q_OBJECT
 public:
-	rdsGroupDecoder		(RadioInterface *,  int);
+	rdsGroupDecoder		(RadioInterface *);
 	~rdsGroupDecoder	();
-bool	decode			(RDSGroup *);
+bool	decode			(RDSGroup *, int);
 void	reset			();
 
 //	group 1 constants
@@ -63,7 +63,6 @@ static const char END_OF_RADIO_TEXT = 0x0D;
 
 private:
 	RadioInterface	*MyRadioInterface;
-	int		ptyLocale;
 	void		Handle_Basic_Tuning_and_Switching (RDSGroup *);
 	void		Handle_RadioText		  (RDSGroup *);
 	void		Handle_Time_and_Date		  (RDSGroup *);

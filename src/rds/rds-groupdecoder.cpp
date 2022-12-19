@@ -42,10 +42,8 @@
 
 #include "ebu-codetables.c"
 
-	rdsGroupDecoder::rdsGroupDecoder (RadioInterface * RI, 
-	                                  int ptyLocale) {
+	rdsGroupDecoder::rdsGroupDecoder (RadioInterface * RI) { 
 	MyRadioInterface	= RI;
-	this	-> ptyLocale	=  ptyLocale;
 	connect (this, SIGNAL (setGroup(int)),
 	         MyRadioInterface, SLOT (setGroup (int)));
 	connect (this, SIGNAL (setPTYCode (int, const QString &)),
@@ -100,7 +98,7 @@ void	rdsGroupDecoder::reset () {
 	setAFDisplay		(0, 0);
 }
 
-bool	rdsGroupDecoder::decode (RDSGroup * grp) {
+bool	rdsGroupDecoder::decode (RDSGroup * grp, int ptyLocale) {
 //	fprintf (stderr, "Got group %d\n", grp -> getGroupType ());
 	setGroup	(grp -> getGroupType ());
 
@@ -114,7 +112,7 @@ bool	rdsGroupDecoder::decode (RDSGroup * grp) {
 
 	int32_t PtyCode = grp -> getProgrammeType ();
 //	emit only changed message due to time consuming string handling
-	if (ptyCode != PtyCode) {
+	if (PtyCode != ptyCode) {
  	   setPTYCode (PtyCode, pty_table [PtyCode][ptyLocale]);
 	   ptyCode = PtyCode;
 	}
