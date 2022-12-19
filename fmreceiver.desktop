@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=dabMini
-Exec=dabMini
-Icon=dab-mini
+Name=fmreceiver
+Exec=fmreceiver
+Icon=fmreceiver
 Type=Application
 Categories=AudioVideo;
-Comment=A DAB/DAB+ decoder using Qt and C++
+Comment=A simple FM decoder

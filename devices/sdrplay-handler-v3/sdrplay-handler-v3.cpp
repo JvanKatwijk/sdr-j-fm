@@ -182,6 +182,8 @@ int32_t	sdrplayHandler_v3::getSamples (std::complex<float> *V,
 std::complex<int16_t> temp [size];
 int	i;
 
+	if  (!receiverRuns. load ())
+	   return 0;
 	(void)Mode;
 	int amount      = _I_Buffer. getDataFromBuffer (temp, size);
         for (i = 0; i < amount; i ++)
@@ -191,7 +193,9 @@ int	i;
 }
 
 int32_t	sdrplayHandler_v3::Samples	() {
-	return _I_Buffer. GetRingBufferReadAvailable();
+	if (!receiverRuns. load ())
+	   return 0;
+	return _I_Buffer. GetRingBufferReadAvailable ();
 }
 
 uint8_t	sdrplayHandler_v3::myIdentity	() {

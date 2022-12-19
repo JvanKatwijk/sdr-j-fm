@@ -20,8 +20,9 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include "iqdisplay.h"
-#include "spectrogramdata.h"
+#include	"iqdisplay.h"
+#include	"spectrogramdata.h"
+#include	<assert.h>
 #include	<stdio.h>
 /*
  *	iq circle plotter

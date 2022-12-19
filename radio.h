@@ -108,7 +108,6 @@ private:
 	int16_t		spectrumSize;
 	int32_t		averageCount;
 	int16_t		repeatRate;
-	double		*displayBuffer;
 	int16_t		filterDepth;
 	audioSink	*our_audioSink;
 	int8_t		channelSelector;

@@ -153,8 +153,6 @@ int     k;
 
 	if (displaySize < 128) 
 	   displaySize = 128;
-	displayBuffer		= new double [this -> displaySize];
-	memset (displayBuffer, 0, displaySize * sizeof(double));
 	spectrumSize	= 4 * displaySize;
 
 	this		-> rasterSize	=
@@ -375,15 +373,16 @@ void	RadioInterface::quickStart () {
 //
 //	The end of all
 	RadioInterface::~RadioInterface () {
-	delete		iqScope;
-	delete		hfScope;
-	delete		lfScope;
-
-	delete		autoIncrementTimer;
-	delete		displayTimer;
-	delete		our_audioSink;
-	delete[]	outTable;
-	delete		myProgramList;
+	fprintf (stderr, "dit is het laatste\n");
+//	delete		iqScope;
+//	delete		hfScope;
+//	delete		lfScope;
+	
+//	delete		autoIncrementTimer;
+//	delete		displayTimer;
+//	delete		our_audioSink;
+//	delete[]	outTable;
+//	delete		myProgramList;
 }
 //
 //	Function used to "dump" settings into the ini file
@@ -448,6 +447,8 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	s	-> setValue ("peakLevelDelaySteps",
 	                             sbDispDelay	-> value ());
+
+	s	-> sync ();
 //	Note that settings for the device used will be restored
 //	on termination of the device handling class
 }
@@ -522,9 +523,11 @@ bool r = false;
 
 	runMode. store (ERunStates::RUNNING);
 }
+
 //
 //	always tricky to kill tasks
-void RadioInterface::TerminateProcess () {
+void	RadioInterface::TerminateProcess () {
+	fprintf (stderr, "termination starts\n");
 	runMode. store (ERunStates::STOPPING);
 
 	if (sourceDumping && (myFMprocessor != nullptr)) {
@@ -547,17 +550,28 @@ void RadioInterface::TerminateProcess () {
   //	It is pretty important that no one is attempting to
   //	set things within the FMprocessor when it is
   //	being deleted
-	myRig	-> stopReader ();
+	myRig		-> stopReader ();
+  	myFMprocessor	-> stop ();
+//
+//	fmProcessor and device are stopped
 	if (myFMprocessor != nullptr) 
 	   delete myFMprocessor;
 
-  //	setDevice (QString ("dummy"));	// will select a virtualinput
+	fprintf (stderr, "Termination: myFMprocessor deleted\n");
+//	setDevice (QString ("dummy"));	// will select a virtualinput
 	accept();
 
 	qDebug () << "Termination started";
 	delete myRig;
 	delete mykeyPad;
-//	myProgramList ();
+	delete		autoIncrementTimer;
+	delete		displayTimer;
+	delete		our_audioSink;
+	delete[]	outTable;
+	delete		myProgramList;
+	delete		hfScope;
+	delete		lfScope;
+	fprintf (stderr, "End of Terminate function\n");
 }
 
 void	RadioInterface::abortSystem (int d) {
@@ -1369,17 +1383,16 @@ void	RadioInterface::setAudioGainSlider (int n) {
 //	Deemphasis	= 50 usec (3183 Hz, Europe)
 //	Deemphasis	= 75 usec (2122 Hz US)
 void	RadioInterface::setfmDeemphasis (const QString &s) {
-
-  if (myFMprocessor == nullptr)
+	if (myFMprocessor == nullptr)
 	   return;
-
-
-  if (s == "Off (AM)") {
-    myFMprocessor -> setDeemphasis(1);
-  }
-  else {
-    myFMprocessor -> setDeemphasis(std::stol(s.toStdString())); // toInt will not work with text after the number
-  }
+	if (s == "Off (AM)") {
+	   myFMprocessor -> setDeemphasis (1);
+	}
+	else {
+	   myFMprocessor -> setDeemphasis (std::stol(s.toStdString()));
+// toInt will not work with text after the number
+	}
+	fmSettings	-> setValue ("deemphasis", s);
 }
 
 void	RadioInterface::setCRCErrors (int n) {
@@ -1964,6 +1977,12 @@ void	RadioInterface::restoreGUIsettings (QSettings *s) {
 QString h;
 int     k;
 
+	h	= s -> value ("deemphasis", "Off"). toString ();
+	k	= fmDeemphasisSelector -> findText (h);
+	if (k != -1)
+	   fmDeemphasisSelector -> setCurrentIndex (k);
+
+
 	k	= s -> value ("afc", afcActive).toInt ();
 	cbAfc	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                 Qt::CheckState::Unchecked);
@@ -2071,7 +2090,7 @@ void	RadioInterface::resetSelector () {
 	            this, SLOT (setDevice (const QString&)));
 	int k = deviceSelector -> findText (QString ("no device"));
 	if (k != -1) { // should not happen
-	   deviceSelector->setCurrentIndex(k);
+	   deviceSelector -> setCurrentIndex(k);
 	}
 	connect (deviceSelector, SIGNAL (activated (const QString&)),
 	         this, SLOT (setDevice (const QString&)));

@@ -101,6 +101,7 @@ QString stationList     = QDir::homePath ();
         MyRadioInterface -> show ();
         a. exec ();
 
+	fprintf (stderr, "Terug van de exec\n");
 /*
  *	done:
  */
@@ -108,7 +109,9 @@ QString stationList     = QDir::homePath ();
 	fflush (stderr);
 	qDebug ("It is done\n");
 	ISettings	-> sync ();
-//	delete MyRadioInterface;
+#ifdef	__MINGW32__
+	delete MyRadioInterface;
+#endif
 //	ISettings	-> ~QSettings ();
 }
 

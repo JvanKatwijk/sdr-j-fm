@@ -1,0 +1,24 @@
+     mkdir -p appdir/usr/bin
+     cp ./linux-bin/fmreceiver-3.0 appdir/usr/bin/fmreceiver
+     mkdir -p appdir/usr/lib
+     mkdir -p appdir/usr/share/applications
+     cp fmreceiver.desktop appdir/usr/share/applications
+     cp fmreceiver.png appdir/fmreceiver.png
+     touch appdir/fmreceiver.png
+     mkdir -p ./appdir/usr/share/icons/hicolor/256x256/apps
+     cp fmreceiver.png appdir/usr/share/icons/hicolor/256x256/apps
+     ls -l appdir/usr/lib
+     ls -l
+     ls -l appdir
+     ls -l appdir/usr
+     ls -l appimage
+     wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+     chmod a+x linuxdeployqt*.AppImage
+     unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+     ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
+     ./linuxdeployqt*.AppImage --appimage-extract
+     find appdir/usr/plugins/ -type f -exec squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/../../lib' {} \;
+     ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/* -bundle-non-qt-libs
+     chmod a+x appimage/* ; rm appdir/AppRun; cp appimage/* appdir/
+     export PATH=squashfs-root/usr/bin/:$PATH  # Make it pick up our private patched mksquashfs; https://github.com/plougher/squashfs-tools/pull/13/files
+     squashfs-root/usr/bin/appimagetool $(readlink -f ./appdir/)

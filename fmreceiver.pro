@@ -7,6 +7,7 @@
 TEMPLATE	= app
 TARGET		= fmreceiver-3.0
 QT		+= widgets
+CONFIG		+= console
 QMAKE_CXXFLAGS  += -std=c++14
 QMAKE_CFLAGS	+= -lfto -ffast-math
 QMAKE_CXXFLAGS	+= -lfto -ffast-math
