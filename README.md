@@ -4,13 +4,27 @@ A simple FM receiver V3.0
 
 ========================================================================
 
-Some significant modifications were makde by Thomas Neder, apart from the
+Some significant modifications were made by Thomas Neder, apart from the
 "skin", most mods were "under the hood". 
-The version number of now 3.0
-
+The version number is now 3.0
 
 ![fm receiver](/fmreceiver.png?raw=true)
 
+The most recent version has an additional button to set the program type
+labels correct for the area, one might select "Europe"  or "USA".
+
+As usual, next to the sources, an AppImage (for Linux x64) and a Windows
+installer are available in the releases section.
+
+Supported devices are sdrplay, hackrf, adalm pluto, line and the good 
+old dabstick. Note that on Windows, if you ahve installed a library 3.11
+for SDRplay devices, the "old" 2.13 library will not be accessible.
+
+You can choose  one of two "skin"s using a command line parameter
+Choose -A for the one, and -B for the other skin. Of course the setting
+is maintained between program invocations.
+Since the setting is kept in the "ini" file, you can edit
+the "ini" file (file ".jsdr-fm.ini"  in the user's home directory (folder)).
 
 -------------------------------------------------------------------------
 Nww: appImage (july 2021)
