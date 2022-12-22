@@ -53,13 +53,13 @@ int32_t		compute_ntaps (const double iSamplFreq,
 	                       const double iBetaKaiser = 6.76);
 
 public:
-	int16_t		filterSize;
+	int		filterSize;
 	DSPCOMPLEX	*filterKernel;
 	DSPCOMPLEX	*Buffer;
-	int16_t		ip;
+	int		ip;
 	int32_t		sampleRate;
 
-	Basic_FIR (int16_t size) {
+	Basic_FIR (int size) {
 	   filterSize	= size;
 	   filterKernel = new DSPCOMPLEX [filterSize];
 	   Buffer	= new DSPCOMPLEX [filterSize];
@@ -83,7 +83,7 @@ public:
 	   Buffer [ip] = z;
 
 	   for (int i = 0; i < filterSize; i++) {
-	      int16_t index = ip - i;
+	      int index = ip - i;
 	      if (index < 0)
 	         index += filterSize;
 	      tmp += Buffer [index] * filterKernel [i];
@@ -98,7 +98,7 @@ public:
 	   Buffer [ip] = DSPCOMPLEX (v, 0);
 
 	   for (int i = 0; i < filterSize; i++) {
-	      int16_t index = ip - i;
+	      int index = ip - i;
 	      if (index < 0)
 	         index += filterSize;
 	      tmp += real(Buffer [index]) * real(filterKernel [i]);
@@ -111,7 +111,7 @@ public:
 
 class	LowPassFIR : public Basic_FIR {
 public:
-		LowPassFIR (int16_t,  // order
+		LowPassFIR (int,  // order
 	                    int32_t,  // cutoff frequency
 	                    int32_t   // samplerate
 	                   );
@@ -123,8 +123,8 @@ public:
 //	Both for lowpass band bandpass, we provide:
 class	DecimatingFIR: public Basic_FIR {
 public:
-		DecimatingFIR (int16_t, int32_t, int32_t, int16_t);
-		DecimatingFIR (int16_t, int32_t, int32_t, int32_t, int16_t);
+		DecimatingFIR (int, int32_t, int32_t, int);
+		DecimatingFIR (int, int32_t, int32_t, int32_t, int);
 		~DecimatingFIR  (void);
 
 	void	newKernel	(int32_t);
@@ -134,20 +134,20 @@ public:
 	DSPCOMPLEX *getKernel	(void);
 
 private:
-	int16_t	decimationFactor;
-	int16_t decimationCounter;
+	int	decimationFactor;
+	int decimationCounter;
 };
 
 class	HighPassFIR: public Basic_FIR {
 public:
-		HighPassFIR	(int16_t, int32_t, int32_t);
+		HighPassFIR	(int, int32_t, int32_t);
 		~HighPassFIR	(void);
 	void	newKernel	(int32_t);
 };
 
 class	BandPassFIR: public Basic_FIR {
 public:
-		BandPassFIR	(int16_t, int32_t, int32_t, int32_t);
+		BandPassFIR	(int, int32_t, int32_t, int32_t);
 		~BandPassFIR	(void);
 
 	DSPCOMPLEX *getKernel	(void);
@@ -157,7 +157,7 @@ private:
 
 class	BasicBandPass: public Basic_FIR {
 public:
-		BasicBandPass	(int16_t, int32_t, int32_t, int32_t);
+		BasicBandPass	(int, int32_t, int32_t, int32_t);
 		~BasicBandPass	(void);
 
 	DSPCOMPLEX *getKernel	(void);
@@ -172,24 +172,24 @@ public:
 	DSPCOMPLEX Pass		(DSPCOMPLEX);
 
 private:
-	int16_t		ip;
+	int		ip;
 	DSPFLOAT	err;
 	DSPFLOAT	mu;
-	int16_t		firsize;
+	int		firsize;
 	DSPFLOAT	*Kernel;
 	DSPCOMPLEX	*Buffer;
 };
 
 class	HilbertFilter {
 public:
-		HilbertFilter	(int16_t, DSPFLOAT, int32_t);
+		HilbertFilter	(int, DSPFLOAT, int32_t);
 		~HilbertFilter	();
 	DSPCOMPLEX Pass		(DSPCOMPLEX);
 	DSPCOMPLEX Pass		(DSPFLOAT, DSPFLOAT);
 
 private:
-	int16_t		ip;
-	int16_t		firsize;
+	int		ip;
+	int		firsize;
 	int32_t		rate;
 	DSPFLOAT	*cosKernel;
 	DSPFLOAT	*sinKernel;

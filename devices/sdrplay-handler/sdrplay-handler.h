@@ -106,6 +106,12 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_rspDuo_TunerSel) (mir_sdr_rspDuo_TunerSelT);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_SetDeviceIdx) (unsigned int);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_ReleaseDeviceIdx) (unsigned int);
 
+typedef mir_sdr_ErrT (*pfn_mir_sdr_RSPII_BiasTControl)(unsigned int enable);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_rsp1a_BiasT)(int enable);
+typedef mir_sdr_ErrT (*pfn_mir_sdr_rspDuo_BiasT)(int enable);
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -160,6 +166,12 @@ private:
         pfn_mir_sdr_rspDuo_TunerSel my_mir_sdr_rspDuo_TunerSel;
 	pfn_mir_sdr_SetDeviceIdx my_mir_sdr_SetDeviceIdx;
 	pfn_mir_sdr_ReleaseDeviceIdx my_mir_sdr_ReleaseDeviceIdx;
+        pfn_mir_sdr_RSPII_BiasTControl
+                                my_mir_sdr_RSPII_BiasTControl;
+        pfn_mir_sdr_rsp1a_BiasT
+                                my_mir_sdr_rsp1a_BiasT;
+        pfn_mir_sdr_rspDuo_BiasT
+                                my_mir_sdr_rspDuo_BiasT;
 
 	QString		errorCodes	(mir_sdr_ErrT);
 	int16_t         hwVersion;
@@ -183,6 +195,7 @@ private slots:
 	void		set_ppmControl		(int);
 	void		set_antennaSelect	(const QString &);
 	void		set_tunerSelect		(const QString &);
+	void		biasT_selectorHandler	(int);
 };
 #endif
 

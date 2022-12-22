@@ -24,7 +24,7 @@
 #include "fir-filters.h"
 #include <cstring>
 
-	fftFilter::fftFilter (int32_t size, int16_t degree) {
+	fftFilter::fftFilter (int32_t size, int degree) {
 
 	fftSize		= size;
 	filterDegree	= degree;
@@ -59,7 +59,7 @@
 }
 
 void	fftFilter::setSimple (int32_t low, int32_t high, int32_t rate) {
-BasicBandPass *BandPass		= new BasicBandPass ((int16_t)filterDegree,
+BasicBandPass *BandPass		= new BasicBandPass (filterDegree,
 	                                             low, high, rate);
 
 	for (int i = 0; i < filterDegree; i++)
@@ -73,7 +73,7 @@ BasicBandPass *BandPass		= new BasicBandPass ((int16_t)filterDegree,
 }
 
 void	fftFilter::setBand (int32_t low, int32_t high, int32_t rate) {
-BandPassFIR	*BandPass	= new BandPassFIR ((int16_t)filterDegree,
+BandPassFIR	*BandPass	= new BandPassFIR ((int)filterDegree,
 	                                           low, high,
 	                                           rate);
 
@@ -89,7 +89,7 @@ BandPassFIR	*BandPass	= new BandPassFIR ((int16_t)filterDegree,
 
 void	fftFilter::setLowPass (int32_t low, int32_t rate) {
 int32_t	i;
-LowPassFIR	*LowPass	= new LowPassFIR ((int16_t)filterDegree,
+LowPassFIR	*LowPass	= new LowPassFIR (filterDegree,
 	                                          low,
 	                                          rate);
 
@@ -132,7 +132,7 @@ DSPFLOAT	sample;
 
 DSPCOMPLEX	fftFilter::Pass (DSPCOMPLEX z) {
 DSPCOMPLEX	sample;
-int16_t		j;
+int		j;
 
 	sample	= FFT_C [inp];
 	FFT_A [inp] = DSPCOMPLEX (real (z), imag (z));
@@ -157,7 +157,7 @@ int16_t		j;
 }
 
 
-	fftFilterHilbert::fftFilterHilbert (int32_t size, int16_t degree):
+	fftFilterHilbert::fftFilterHilbert (int32_t size, int degree):
 	                                              fftFilter (size, degree) {
 	setHilbert ();
 }

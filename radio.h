@@ -160,7 +160,6 @@ private:
 
 	QString		RadioText;
 	QString		StationLabel;
-	int16_t		thresHold;
 	int32_t		currentPIcode;
 	int32_t		frequencyforPICode;
 	int16_t		logTime;

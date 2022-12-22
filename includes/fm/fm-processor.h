@@ -151,7 +151,7 @@ public:
 	void		setlfcutoff		(int32_t);
 	void		startDumping		(SNDFILE *);
 	void		stopDumping		();
-	void		setBandwidth		(int32_t);
+	void		setBandwidth		(const QString &);
 	void		setBandfilterDegree	(int32_t);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
 	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
@@ -159,7 +159,6 @@ public:
 	void		set_localOscillator	(int32_t);
 	void		set_squelchMode		(ESqMode iSqMode);
 	bool		getSquelchState		();
-//	void		setInputMode		(uint8_t);
 	void		setlfPlotType		(ELfPlot);
 	void		setlfPlotZoomFactor	(int32_t);
 
@@ -215,12 +214,14 @@ private:
 	Oscillator	rdsOscillator;
 	SinCos		mySinCos;
 	newConverter	audioDecimator;
-	DecimatingFIR	fmBandfilter;
+	DecimatingFIR	fmBand_1;
+	DecimatingFIR	fmBand_2;
+	fftFilter	fmFilter;
+	bool		fmFilterOn;
 	fftFilter	fmAudioFilter;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
 
-	LowPassFIR	*fmFilter;
 	deviceHandler	*myRig;
 	RadioInterface	*myRadioInterface;
 	audioSink	*theSink;

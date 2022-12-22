@@ -33,7 +33,7 @@
 //=====================================================================
 //FIR LowPass
 
-	LowPassFIR::LowPassFIR (int16_t firsize,
+	LowPassFIR::LowPassFIR (int firsize,
 	                        int32_t Fc, int32_t fs) : Basic_FIR (firsize) {
 	sampleRate	= fs;
 	newKernel (Fc);
@@ -72,7 +72,7 @@ DSPCOMPLEX	*LowPassFIR::getKernel () {
 //=====================================================================
 //FIR HighPass
 
-	HighPassFIR::HighPassFIR (int16_t firsize,
+	HighPassFIR::HighPassFIR (int firsize,
 	                          int32_t Fc, int32_t fs) : Basic_FIR(firsize) {
 	sampleRate = fs;
 	newKernel (Fc);
@@ -137,7 +137,7 @@ DSPFLOAT	sum = 0;
 }
 
 static
-DSPFLOAT	*BandPassKernel(DSPFLOAT *v, int16_t fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
+DSPFLOAT	*BandPassKernel(DSPFLOAT *v, int fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
 DSPFLOAT	sumA	= 0.0;
 DSPFLOAT	sumB	= 0.0;
 DSPFLOAT	*tmp1	= (DSPFLOAT *)alloca (fsize * sizeof (DSPFLOAT));
@@ -162,7 +162,7 @@ DSPFLOAT	*tmp2	= (DSPFLOAT *)alloca (fsize * sizeof (DSPFLOAT));
 	return v;
 }
 
-	BasicBandPass::BasicBandPass (int16_t firsize,
+	BasicBandPass::BasicBandPass (int firsize,
 		                      int32_t low, int32_t high,
 	                              int32_t rate):Basic_FIR(firsize) {
 DSPFLOAT	*t1 = (DSPFLOAT *)alloca (firsize * sizeof (DSPFLOAT));
@@ -187,7 +187,7 @@ DSPCOMPLEX	*BasicBandPass::getKernel () {
  *	to the right position to form a nice bandfilter.
  *	For the real domain, we use the Simple BandPass version.
  */
-	BandPassFIR::BandPassFIR (int16_t firSize,
+	BandPassFIR::BandPassFIR (int firSize,
 	                          int32_t low, int32_t high,
 	                          int32_t fs):Basic_FIR (firSize) {
 	sampleRate	= fs;
@@ -313,10 +313,10 @@ DSPFLOAT	sum	= 0.0;
 //
 //	decimating filter
 
-DecimatingFIR::DecimatingFIR (int16_t firSize,
+DecimatingFIR::DecimatingFIR (int firSize,
                               int32_t low,
                               int32_t fs,
-                              int16_t Dm):Basic_FIR (firSize) {
+                              int Dm):Basic_FIR (firSize) {
 
 	sampleRate		= fs;
 	decimationFactor	= Dm;
@@ -350,11 +350,11 @@ DSPCOMPLEX *DecimatingFIR::getKernel (void) {
 	return filterKernel;
 }
 
-	DecimatingFIR::DecimatingFIR (int16_t firSize,
+	DecimatingFIR::DecimatingFIR (int firSize,
 	                              int32_t low,
 	                              int32_t high,
 	                              int32_t fs,
-	                              int16_t Dm):Basic_FIR (firSize) {
+	                              int Dm):Basic_FIR (firSize) {
 	sampleRate		= fs;
 	decimationFactor	= Dm;
 	decimationCounter	= 0;
@@ -396,7 +396,7 @@ DSPFLOAT	sum	= 0.0;
 //	optimized.
 bool	DecimatingFIR::Pass (DSPCOMPLEX z, DSPCOMPLEX *z_out) {
 DSPCOMPLEX	tmp	= 0;
-int16_t		index;
+int		index;
 
 	Buffer [ip] = z;
 	if (++decimationCounter < decimationFactor) {
@@ -442,7 +442,7 @@ bool	DecimatingFIR::Pass (DSPFLOAT z, DSPFLOAT *z_out) {
  *	to perform a 90 degree phase shift needed for (a.o)
  *	USB and LSB detection.
  */
-	HilbertFilter::HilbertFilter (int16_t fsize, DSPFLOAT f, int32_t rate) {
+	HilbertFilter::HilbertFilter (int fsize, DSPFLOAT f, int32_t rate) {
 	firsize    	= fsize;
 	this	-> rate = rate;
 	cosKernel	= new DSPFLOAT [fsize];
@@ -493,7 +493,7 @@ DSPFLOAT	re, im;
 	ip = (ip + 1) % firsize;
 
 	for (int i = 0; i < firsize; i++) {
-	   int16_t index = ip - i;
+	   int index = ip - i;
 	   if (index < 0)
 	      index += firsize;
 	   re = real (Buffer [index]);

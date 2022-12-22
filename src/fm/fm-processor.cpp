@@ -35,6 +35,7 @@
 //#define OMEGA_RDS	((DSPFLOAT)RDS_FREQUENCY / fmRate) * (2 * M_PI)
 //#define RDS_DECIMATOR                8
 
+#define	IRate	(inputRate / 6)
 //
 //	Note that no decimation done as yet: the samplestream is still
 //	full speed
@@ -62,11 +63,16 @@
 	                             audioDecimator (fmRate,
 	                                             workingRate,
 	                                             fmRate / 1000),
-	                             fmBandfilter (4 * inputRate / fmRate + 1,
+	                             fmBand_1    ( 4 * inputRate / IRate + 1,
 	                                           fmRate / 2,
 	                                           inputRate,
-	                                           inputRate / fmRate),
-	                             fmAudioFilter (4096, 756) {
+	                                           inputRate / IRate),
+	                             fmBand_2    ( IRate / fmRate + 1,
+	                                           fmRate / 2,
+	                                           IRate,
+	                                           IRate / fmRate),
+	                             fmAudioFilter (4096, 756),
+	                             fmFilter	   (2 * 32768, 2551) {
 	this	-> running. store (false);
 	this	-> myRig	= vi;
 	this	-> myRadioInterface = RI;
@@ -133,10 +139,8 @@
 	this	-> loFrequency      = 0;
 	this	-> omegaDemod       = 2 * M_PI / fmRate;
 	this	-> fmBandwidth      = 0.95 * fmRate;
-	this	-> fmFilterDegree   = 21;
-	this	-> fmFilter		= new LowPassFIR (21,
-	                                          0.95 * fmRate / 2,
-	                                          fmRate);
+	this	-> fmFilterOn		= true;
+	fmFilter. setLowPass (0.95 * fmRate / 2, 2 * fmRate);
 	this	-> newFilter. store (false);
   /*
    *	default values, will be set through the user interface
@@ -306,14 +310,19 @@ fm_Demodulator::TDecoderListNames & fmProcessor::listNameofDecoder() {
 //	changing a filter is in two steps: here we set a marker,
 //	but the actual filter is created in the mainloop of
 //	the processor
-void	fmProcessor::setBandwidth(int32_t b) {
-	fmBandwidth = b;
-	newFilter. store (false);
+void	fmProcessor::setBandwidth (const QString &f) {
+	if (f == "Off")
+	   fmFilterOn = false;
+	else {
+	   fmBandwidth = Khz (std::stol (f.toStdString ()));
+	   fprintf (stderr, "fmBandwidth %d\n", fmBandwidth);
+	   newFilter. store (true);
+	}
 }
 
 void	fmProcessor::setBandfilterDegree (int32_t d) {
 	fmFilterDegree = d;
-	newFilter      = true;
+	newFilter. store (false);
 }
 
 void	fmProcessor::setfmMode (FM_Mode m) {
@@ -478,12 +487,11 @@ const float rfDcAlpha = 1.0f / inputRate;
 	   }
 
 //	First: update according to potentially changed settings
-	   if (newFilter. load () && (fmBandwidth < 0.95 * fmRate)) {
-	      delete fmFilter;
-	      fmFilter = new LowPassFIR (fmFilterDegree,
-	                                 fmBandwidth / 2, fmRate);
+	   if (newFilter. load ()) {
+	      fmFilter. setLowPass (fmBandwidth / 2, 2 * fmRate);
+	      fmFilterOn = true;
 	   }
-	   newFilter = false;
+	   newFilter. store (false);
 
 	   if (newAudioFilter. load ()) {
 	      fmAudioFilter. setLowPass (audioFrequency, fmRate);
@@ -579,8 +587,13 @@ const float rfDcAlpha = 1.0f / inputRate;
 	      v = v * localOscillator. nextValue (loFrequency);
 
 //	   first step: decimating (and filtering)
-	      if ((decimatingScale > 1) && !fmBandfilter. Pass (v, &v)) {
-	         continue;
+	      if (decimatingScale > 1) {
+	         if (!fmBand_1. Pass (v, &v)) 
+	            continue;
+	         if (fmFilterOn)
+	            v = fmFilter. Pass (v);
+	         if (!fmBand_2. Pass (v, &v))
+	            continue;
 	      }
 
 //	   second step: if we are scanning, do the scan
@@ -600,11 +613,6 @@ const float rfDcAlpha = 1.0f / inputRate;
 	            }
 	         }
 	         continue; // no signal processing!!!!
-	      }
-
-//	   third step: if requested, apply filtering
-	      if (fmBandwidth < 0.95 * fmRate) {
-	         v = fmFilter -> Pass (v);
 	      }
 
 	      DSPFLOAT demod = theDemodulator -> demodulate (v);

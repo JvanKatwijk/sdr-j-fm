@@ -7,13 +7,15 @@
 TEMPLATE	= app
 TARGET		= fmreceiver-3.0
 QT		+= widgets
-CONFIG		+= console
+#CONFIG		+= console
+CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -lfto -ffast-math
-QMAKE_CXXFLAGS	+= -lfto -ffast-math
-#QMAKE_CXXFLAGS	+= -pg
-#QMAKE_CFLAGS	+= -pg
-#QMAKE_LFLAGS	+= -pg
+#QMAKE_CFLAGS	+= -lfto -ffast-math
+#QMAKE_CXXFLAGS	+= -lfto -ffast-math
+#QMAKE_LFLAGS	+= -lfto -ffast-math
+QMAKE_CXXFLAGS	+= -g
+QMAKE_CFLAGS	+= -g
+QMAKE_LFLAGS	+= -g
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -144,8 +146,8 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
-CONFIG	-= console
-CONFIG	+= extio
+#CONFIG	-= console
+#CONFIG	+= extio
 CONFIG	+= dabstick
 CONFIG	+= sdrplay
 CONFIG	+= sdrplay-v3
@@ -153,7 +155,7 @@ CONFIG	+= airspy
 CONFIG	+= hackrf
 CONFIG	+= lime
 CONFIG	+= pluto
-CONFIG	+= colibri
+#CONFIG	+= colibri
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
@@ -228,14 +230,35 @@ sdrplay {
 }
 #	the SDRplay
 #
+sdrplay-v3-old {
+	DEFINES		+= HAVE_SDRPLAY_V3
+	DEPENDPATH	+= ./devices/sdrplay-handler-v3
+	INCLUDEPATH	+= ./devices/sdrplay-handler-v3 \
+	                   ./devices/sdrplay-handler-v3/include
+        HEADERS         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
+                           ./devices/sdrplay-handler-v3/sdrplay-commands.h 
+        SOURCES         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp 
+	FORMS		+= ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
+}
+#
 sdrplay-v3 {
 	DEFINES		+= HAVE_SDRPLAY_V3
 	DEPENDPATH	+= ./devices/sdrplay-handler-v3
 	INCLUDEPATH	+= ./devices/sdrplay-handler-v3 \
 	                   ./devices/sdrplay-handler-v3/include
-	HEADERS		+= ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
-	                   ./devices/sdrplay-handler-v3/sdrplay-commands.h 
-	SOURCES		+= ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp 
+        HEADERS         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
+                           ./devices/sdrplay-handler-v3/sdrplay-commands.h \
+	                   ./devices/sdrplay-handler-v3/Rsp-device.h \
+	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspII-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspDuo-handler.h \
+	                   ./devices/sdrplay-handler-v3/RspDx-handler.h
+        SOURCES         += ./devices/sdrplay-handler-v3/Rsp-device.cpp \
+	                   ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp \
+	                   ./devices/sdrplay-handler-v3/Rsp1A-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspII-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspDuo-handler.cpp \
+	                   ./devices/sdrplay-handler-v3/RspDx-handler.cpp 
 	FORMS		+= ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
 }
 #

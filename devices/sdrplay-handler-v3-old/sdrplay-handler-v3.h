@@ -4,27 +4,27 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the Qt-DAB program
+ *    This file is part of the FM program
  *
- *    Qt-DAB is free software; you can redistribute it and/or modify
+ *    sdr-j-fm is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    Qt-DAB is distributed in the hope that it will be useful,
+ *    sdr-j-fm is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-DAB; if not, write to the Free Software
+ *    along with sdr-j-fm; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 #ifndef __SDRPLAY_HANDLER_V3__
 #define	__SDRPLAY_HANDLER_V3__
 
-#include	<QThread>
+#include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
 #include	<QSemaphore>
@@ -37,7 +37,6 @@
 #include	"ui_sdrplay-widget-v3.h"
 #include	<sdrplay_api.h>
 
-class	Rsp_device;
 class	generalCommand;
 
 #ifdef __MINGW32__
@@ -53,52 +52,49 @@ public:
 			~sdrplayHandler_v3	();
 	void		setVFOFrequency		(int32_t);
 	int32_t		getVFOFrequency		();
+	bool		legalFrequency		(int32_t);
 	int32_t		defaultFrequency	();
 
 	bool		restartReader		();
 	void		stopReader		();
 	int32_t		getSamples		(std::complex<float> *,
-	                                                   int32_t, uint8_t);
+	                                                     int32_t, uint8_t);
 	int32_t		Samples			();
+	int32_t		getRate			();
+	uint8_t		myIdentity		();
 	void		resetBuffer		();
 	int16_t		bitDepth		();
 
-	int		getRate			();
-	void            update_PowerOverload (
-	                                 sdrplay_api_EventParamsT *params);
+        void            update_PowerOverload (
+                                         sdrplay_api_EventParamsT *params);
 	RingBuffer<std::complex<int16_t>>	_I_Buffer;
-	std::atomic<bool>	receiverRuns;
+        std::atomic<bool>	receiverRuns;
 	int		theGain;
-	sdrplay_api_CallbackFnsT	cbFns;
-
 private:
 	QFrame				myFrame;
-public:
 	sdrplay_api_Open_t              sdrplay_api_Open;
-	sdrplay_api_Close_t             sdrplay_api_Close;
-	sdrplay_api_ApiVersion_t        sdrplay_api_ApiVersion;
-	sdrplay_api_LockDeviceApi_t     sdrplay_api_LockDeviceApi;
-	sdrplay_api_UnlockDeviceApi_t   sdrplay_api_UnlockDeviceApi;
-	sdrplay_api_GetDevices_t        sdrplay_api_GetDevices;
-	sdrplay_api_SelectDevice_t      sdrplay_api_SelectDevice;
-	sdrplay_api_ReleaseDevice_t     sdrplay_api_ReleaseDevice;
-	sdrplay_api_GetErrorString_t    sdrplay_api_GetErrorString;
+        sdrplay_api_Close_t             sdrplay_api_Close;
+        sdrplay_api_ApiVersion_t        sdrplay_api_ApiVersion;
+        sdrplay_api_LockDeviceApi_t     sdrplay_api_LockDeviceApi;
+        sdrplay_api_UnlockDeviceApi_t   sdrplay_api_UnlockDeviceApi;
+        sdrplay_api_GetDevices_t        sdrplay_api_GetDevices;
+        sdrplay_api_SelectDevice_t      sdrplay_api_SelectDevice;
+        sdrplay_api_ReleaseDevice_t     sdrplay_api_ReleaseDevice;
+        sdrplay_api_GetErrorString_t    sdrplay_api_GetErrorString;
 	sdrplay_api_GetLastError_t      sdrplay_api_GetLastError;
-	sdrplay_api_DebugEnable_t       sdrplay_api_DebugEnable;
-	sdrplay_api_GetDeviceParams_t   sdrplay_api_GetDeviceParams;
-	sdrplay_api_Init_t              sdrplay_api_Init;
-	sdrplay_api_Uninit_t            sdrplay_api_Uninit;
-	sdrplay_api_Update_t            sdrplay_api_Update;
+        sdrplay_api_DebugEnable_t       sdrplay_api_DebugEnable;
+        sdrplay_api_GetDeviceParams_t   sdrplay_api_GetDeviceParams;
+        sdrplay_api_Init_t              sdrplay_api_Init;
+        sdrplay_api_Uninit_t            sdrplay_api_Uninit;
+        sdrplay_api_Update_t            sdrplay_api_Update;
 
 	sdrplay_api_DeviceT             *chosenDevice;
-	Rsp_device		*theRsp;
-	QString			deviceName   ();
+	sdrplay_api_DeviceParamsT       *deviceParams;
+	sdrplay_api_CallbackFnsT        cbFns;
+	sdrplay_api_RxChannelParamsT    *chParams;
 
-	int			inputRate;
-	std::atomic<bool>	failFlag;
-	std::atomic<bool>	successFlag;
 	int			denominator;
-	std::atomic<bool>       threadRuns;
+        std::atomic<bool>       threadRuns;
 	void			run			();
 	bool			messageHandler		(generalCommand *);
 
@@ -114,38 +110,28 @@ public:
 	QString			serial;
 	bool			has_antennaSelect;
 	QString			deviceModel;
-	int			GRdBValue;
 	int			lnaState;
 	int			ppmValue;
 	HINSTANCE		Handle;
-	bool			biasT;
-	std::queue<generalCommand *> server_queue;
+	std::queue<generalCommand *>	server_queue;
 	QSemaphore		serverjobs;
 	HINSTANCE		fetchLibrary		();
-	void			releaseLibrary		();
-	bool			loadFunctions		();
-	int			errorCode;
+        void			releaseLibrary		();
+        bool			loadFunctions		();
 
-signals:
-	void			new_GRdBValue		(int);
-	void			new_lnaValue		(int);
-	void			new_agcSetting		(bool);
 private slots:
 	void			set_ifgainReduction	(int);
 	void			set_lnagainReduction	(int);
 	void			set_agcControl		(int);
 	void			set_ppmControl		(int);
-	void			set_selectAntenna	(const QString &);
-	void			set_biasT		(int);
+	void			set_antennaSelect	(const QString &);
 public slots:
 	void			set_lnabounds		(int, int);
-	void			set_nrBits		(int);
 	void			set_deviceName		(const QString &);
 	void			set_serial		(const QString &);
 	void			set_apiVersion		(float);
-	void			set_antennaSelect	(int);
+	void			set_antennaSelect	(bool);
 	void			show_tunerSelector	(bool);
-	void			show_lnaGain		(int);
 signals:
 	void			set_lnabounds_signal	(int, int);
 	void			set_deviceName_signal	(const QString &);

@@ -2,7 +2,7 @@
 /*
  *    Copyright (C) 2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the fm software
  *
@@ -59,21 +59,19 @@
 class	deviceHandler: public QThread {
 Q_OBJECT
 public:
-			deviceHandler 	(void);
-virtual			~deviceHandler 	(void);
-virtual		int32_t	getRate		(void);
+			deviceHandler 	();
+virtual			~deviceHandler 	();
+virtual		int32_t	getRate		();
 virtual		void	setVFOFrequency	(int32_t);
-virtual		int32_t	getVFOFrequency	(void);
-virtual		uint8_t	myIdentity	(void);
-virtual		bool	legalFrequency	(int32_t);
-virtual		int32_t	defaultFrequency (void);
-virtual		bool	restartReader	(void);
-virtual		void	stopReader	(void);
+virtual		int32_t	getVFOFrequency	();
+virtual		int32_t	defaultFrequency ();
+virtual		bool	restartReader	();
+virtual		void	stopReader	();
 virtual		int32_t	getSamples	(DSPCOMPLEX *, int32_t);
 virtual		int32_t	getSamples	(DSPCOMPLEX *, int32_t, uint8_t);
-virtual		int32_t	Samples		(void);
-virtual		void	resetBuffer	(void);
-virtual		int16_t	bitDepth	(void);
+virtual		int32_t	Samples		();
+virtual		void	resetBuffer	();
+virtual		int16_t	bitDepth	();
 	        int32_t	vfoOffset;
 //
 protected:

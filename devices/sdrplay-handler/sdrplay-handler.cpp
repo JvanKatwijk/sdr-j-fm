@@ -70,7 +70,7 @@ sdrplaySelect	*sdrplaySelector;
 	this	-> myFrame	-> show ();
 	antennaSelector	-> hide ();
 	tunerSelector	-> hide ();
-	this	-> inputRate	= Khz (2112);
+	this	-> inputRate	= Khz (12 * 192);
 
 	_I_Buffer	= NULL;
 	libraryLoaded	= false;
@@ -272,6 +272,12 @@ ULONG APIkeyValue_length = 255;
            denominator  = 2048;
         }
 
+	int val     = sdrplaySettings -> value ("biasT_selector", 0). toInt ();
+        if (val != 0) {
+           biasT_selector -> setChecked (true);
+           biasT_selectorHandler (1);
+        } 
+
         if (hwVersion == 2) {
            mir_sdr_ErrT err;
            antennaSelector -> show ();
@@ -302,6 +308,8 @@ ULONG APIkeyValue_length = 255;
                  this, SLOT (debugControl_toggled (int)));
         connect (ppmControl, SIGNAL (valueChanged (int)),
                  this, SLOT (set_ppmControl (int)));
+	connect (biasT_selector, SIGNAL (stateChanged (int)),
+	         this, SLOT (biasT_selectorHandler (int)));
 
         lnaGRdBDisplay	-> display (get_lnaGRdB (hwVersion,
                                            lnaGainSetting -> value ()));
@@ -756,6 +764,29 @@ bool	sdrplayHandler::loadFunctions	(void) {
 	   return false;
 	}
 
+	my_mir_sdr_RSPII_BiasTControl =
+	          (pfn_mir_sdr_RSPII_BiasTControl)
+	                GETPROCADDRESS (Handle,  "mir_sdr_RSPII_BiasTControl");
+	if (my_mir_sdr_RSPII_BiasTControl == nullptr) {
+	   fprintf (stderr, "Could not find mir_sdr_RSPII_BiasTControl\n");
+	   return false;
+	}
+
+	my_mir_sdr_rsp1a_BiasT =
+	          (pfn_mir_sdr_rsp1a_BiasT)
+	               GETPROCADDRESS (Handle, "mir_sdr_rsp1a_BiasT");
+	if (my_mir_sdr_rsp1a_BiasT == nullptr) {
+	   fprintf (stderr, "Could not find mir_sdr_rsp1a_BiasT\n");
+	   return false;
+	}
+
+	my_mir_sdr_rspDuo_BiasT =
+	          (pfn_mir_sdr_rspDuo_BiasT)
+	               GETPROCADDRESS (Handle, "mir_sdr_rspDuo_BiasT");
+	if (my_mir_sdr_rspDuo_BiasT == nullptr) {
+	   fprintf (stderr, "Could not find mir_sdr_rspDuo_BiasT\n");
+	   return false;
+	}
 	return true;
 }
 
@@ -815,6 +846,24 @@ mir_sdr_ErrT err;
 
 	if (err != mir_sdr_Success) 
 	   fprintf (stderr, "error %d in selecting  rspDuo\n", err);
+}
+
+void	sdrplayHandler::biasT_selectorHandler (int k) {
+bool setting = biasT_selector -> isChecked ();
+	sdrplaySettings -> setValue ("biasT_selector", setting ? 1 : 0);
+	switch (hwVersion) {
+	   case 1:		// old RSP
+	      return;		// no support for biasT
+	   case 2:		// RSP 2
+	      my_mir_sdr_RSPII_BiasTControl (setting? 1 : 0);
+	      return;
+	   case 3:		// RSP duo
+	      my_mir_sdr_rspDuo_BiasT (setting ? 1 : 0);
+	      return;
+	   default:		// RSP1a
+	      my_mir_sdr_rsp1a_BiasT (setting ? 1 : 0);
+	      return;
+	}
 }
 
 QString	sdrplayHandler::errorCodes (mir_sdr_ErrT err) {

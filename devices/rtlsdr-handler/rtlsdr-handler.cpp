@@ -49,10 +49,10 @@ void	RTLSDRCallBack (uint8_t *buf, uint32_t len, void *ctx) {
 rtlsdrHandler	*theStick	= (rtlsdrHandler *)ctx;
 int32_t	tmp;
 
-	if ((theStick == NULL) || (len != READLEN_DEFAULT))
+	if ((theStick == nullptr) || (len != READLEN_DEFAULT))
 	   return;
 
-	tmp = theStick -> _I_Buffer -> putDataIntoBuffer (buf, len);
+	tmp = theStick -> _I_Buffer. putDataIntoBuffer (buf, len);
 	if ((len - tmp) > 0)
 	   theStick	-> sampleCounter += len - tmp;
 }
@@ -84,7 +84,9 @@ virtual void	run (void) {
 };
 //
 //	Our wrapper is a simple classs
-	rtlsdrHandler::rtlsdrHandler (QSettings *s, bool full) {
+	rtlsdrHandler::rtlsdrHandler (QSettings *s):
+	                                 _I_Buffer (32 * 32768),
+	                                 myFrame (nullptr) {
 int16_t	deviceCount;
 int32_t	r;
 int16_t	deviceIndex;
@@ -93,56 +95,48 @@ QString	h;
 int	k;
 
 	dabSettings		= s;
-	this	-> myFrame	= new QFrame (NULL);
-	setupUi (this -> myFrame);
-	this	-> myFrame	-> show ();
+	setupUi (& myFrame);
+	this	-> myFrame. show ();
 
-	dabSettings	-> beginGroup ("dabstick");
-	h	= dabSettings	-> value ("dabRate", 1536). toString ();
-	k	= rateSelector -> findText (h);
-	if (k != -1)
-	   rateSelector -> setCurrentIndex (k);
-	inputRate	=  Khz (rateSelector -> currentText (). toInt ());
-	dabSettings	-> endGroup ();
+	inputRate	=  Khz (2304);
 //
-//	for the mini we only allow selection of this value,
-//	i.e. kill all others
-	if (!full) {
-	   while (rateSelector -> count () > 0)
-	      rateSelector -> removeItem (rateSelector -> currentIndex ());
-	   rateSelector	-> addItem (QString::number (inputRate / Khz (1)));
-	}
-	  
-	libraryLoaded			= false;
-	open				= false;
-	_I_Buffer			= NULL;
 	this	-> sampleCounter	= 0;
 	this	-> vfoOffset		= 0;
-	gains				= NULL;
 
 #ifdef	__MINGW32__
 	const char *libraryString = "rtlsdr.dll";
-	Handle		= LoadLibrary ((wchar_t *)L"rtlsdr.dll");
+	Handle		= LoadLibrary ((wchar_t *)L"librtlsdr.dll");
+	if (Handle == nullptr)
+	   Handle = LoadLibrary ((wchar_t *)L"rtlsdr.dll");
 #else
 	const char *libraryString = "librtlsdr.so";
 	Handle		= dlopen ("librtlsdr.so", RTLD_NOW);
 #endif
 
-	if (Handle == NULL) {
+	if (Handle == nullptr) {
 	   fprintf (stderr, "failed to open %s\n", libraryString);
-	   return;
+	   throw (21);
 	}
 
-	libraryLoaded	= true;
-	if (!load_rtlFunctions ())
-	   goto err;
-
+	if (!load_rtlFunctions ()) {
+#ifdef __MINGW32__
+	   FreeLibrary (Handle);
+#else
+	   dlclose (Handle);
+#endif
+	   throw (22);
+	}
 //
 //	Ok, from here we have the library functions accessible
 	deviceCount 		= this -> rtlsdr_get_device_count ();
 	if (deviceCount == 0) {
-	   fprintf (stderr, "No devices found\n");
-	   return;
+	   fprintf (stderr, "No supported RTLSDR devices found\n");
+#ifdef __MINGW32__
+	   FreeLibrary (Handle);
+#else
+	   dlclose (Handle);
+#endif
+	   throw (24);
 	}
 
 	deviceIndex = 0;	// default
@@ -160,83 +154,68 @@ int	k;
 	r			= this -> rtlsdr_open (&device, deviceIndex);
 	if (r < 0) {
 	   fprintf (stderr, "Opening dabstick failed\n");
-	   throw (21);
+	   this -> rtlsdr_close (device);
+#ifdef __MINGW32__
+	   FreeLibrary (Handle);
+#else
+	   dlclose (Handle);
+#endif
+	   throw (25);
 	}
-	open			= true;
 	r			= this -> rtlsdr_set_sample_rate (device,
 	                                                          inputRate);
 	if (r < 0) {
 	   fprintf (stderr, "Setting samplerate failed\n");
-	   throw (22);
+	   throw (26);
 	}
 
 	r			= this -> rtlsdr_get_sample_rate (device);
 	fprintf (stderr, "samplerate set to %d\n", r);
 
-	gainsCount = rtlsdr_get_tuner_gains (device, NULL);
-	fprintf(stderr, "Supported gain values (%d): ", gainsCount);
-	gains		= new int [gainsCount];
-	gainsCount = rtlsdr_get_tuner_gains (device, gains);
-	gainSlider	-> setMaximum (gainsCount);
-	for (i = gainsCount; i > 0; i--)
-		fprintf(stderr, "%.1f ", gains [i - 1] / 10.0);
+	gainsCount = rtlsdr_get_tuner_gains (device, nullptr);
+	{  int ll [gainsCount];
+	   gains. resize (gainsCount);
+	   (void)rtlsdr_get_tuner_gains (device, ll);
+	   gainSlider	-> setMaximum (gainsCount);
+	   for (i = gainsCount; i > 0; i--) {
+	      fprintf (stderr, "%.1f ", ll [i - 1] / 10.0);
+	      gains [i - 1] = ll [i - 1];
+	   }
+	}
 	rtlsdr_set_tuner_gain_mode (device, 1);
 	rtlsdr_set_tuner_gain (device, gains [gainsCount / 2]);
 
-	_I_Buffer		= new RingBuffer<uint8_t>(1024 * 1024);
-	workerHandle		= NULL;
+	workerHandle		= nullptr;
 	connect (gainSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_gainSlider (int)));
 	connect (agcChecker, SIGNAL (stateChanged (int)),
 	         this, SLOT (set_Agc (int)));
 	connect (f_correction, SIGNAL (valueChanged (int)),
 	         this, SLOT (freqCorrection  (int)));
-	connect (rateSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_rateSelector (const QString &)));
 	connect (KhzOffset, SIGNAL (valueChanged (int)),
 	         this, SLOT (setKhzOffset (int)));
 	connect (HzOffset, SIGNAL (valueChanged (int)),
 	         this, SLOT (setHzOffset (int)));
+	connect (biasT_Control, SIGNAL (stateChanged (int)),
+	         this, SLOT (set_biasControl (int)));
+
 	dabSettings	-> beginGroup ("dabstick");
 	gainSlider -> setValue (dabSettings -> value ("gainSlider", 10). toInt ());
 	f_correction -> setValue (dabSettings -> value ("f_correction", 0). toInt ());
 	KhzOffset	-> setValue (dabSettings -> value ("KhzOffset", 0). toInt ());
 	HzOffset	-> setValue (dabSettings -> value ("HzOffset", 0). toInt ());
 	dabSettings	-> endGroup ();
-	return;
-
-err:
-	if (open)
-	   this -> rtlsdr_close (device);
-#ifdef __MINGW32__
-	FreeLibrary (Handle);
-#else
-	dlclose (Handle);
-#endif
-	libraryLoaded	= false;
-	open		= false;
-	throw (23);
-	return;
 }
 
-	rtlsdrHandler::~rtlsdrHandler	(void) {
-	if (open)
-	   this -> rtlsdr_close (device);
-	if (_I_Buffer != NULL)
-	   delete _I_Buffer;
-	if (gains != NULL)
-	   delete[] gains;
-
+	rtlsdrHandler::~rtlsdrHandler	() {
+	this -> rtlsdr_close (device);
 	dabSettings	-> beginGroup ("dabstick");
 	dabSettings	-> setValue ("gainSlider", gainSlider -> value ());
 	dabSettings	-> setValue ("f_correction", f_correction -> value ());
 	dabSettings	-> setValue ("KhzOffset", KhzOffset -> value ());
 	dabSettings	-> setValue ("HzOffset", HzOffset -> value ());
-	dabSettings	-> setValue ("dabRate",
-	                              rateSelector -> currentText (). toLatin1 (). data ());
 	dabSettings	-> endGroup ();
-	delete myFrame;
-	open = false;
+	myFrame. hide ();
 }
 
 void	rtlsdrHandler::setVFOFrequency	(int32_t f) {
@@ -258,10 +237,10 @@ int32_t	rtlsdrHandler::defaultFrequency	(void) {
 bool	rtlsdrHandler::restartReader	(void) {
 int32_t	r;
 
-	if (workerHandle != NULL)
+	if (workerHandle != nullptr)
 	   return true;
 
-	_I_Buffer	-> FlushRingBuffer ();
+	_I_Buffer. FlushRingBuffer ();
 	r = this -> rtlsdr_reset_buffer (device);
 	if (r < 0)
 	   return false;
@@ -274,53 +253,20 @@ int32_t	r;
 }
 
 void	rtlsdrHandler::stopReader	(void) {
-	if (workerHandle == NULL)
+	if (workerHandle == nullptr)
 	   return;
 
 	this -> rtlsdr_cancel_async (device);
-	if (workerHandle != NULL) {
+	if (workerHandle != nullptr) {
 	   while (!workerHandle -> isFinished ()) 
 	      usleep (100);
 
 	   delete	workerHandle;
 	}
 
-	workerHandle	= NULL;
+	workerHandle	= nullptr;
 }
 //
-//	Note that this function is neither used for the
-//	dabreceiver nor for the fmreceiver
-//
-int32_t	rtlsdrHandler::setExternalRate	(int32_t newRate) {
-int32_t	r;
-
-	if (newRate < 900000) return inputRate;
-	if (newRate > 3200000) return inputRate;
-
-	if (workerHandle == NULL) {
-	   r	= this -> rtlsdr_set_sample_rate (device, newRate);
-	   if (r < 0) {
-	      this -> rtlsdr_set_sample_rate (device, inputRate);
-	   }
-
-	   r	= this -> rtlsdr_get_sample_rate (device);
-	}
-	else {	
-//	we stop the transmission first
-	   stopReader ();
-	   r	= this -> rtlsdr_set_sample_rate (device, newRate);
-	   if (r < 0) {
-	      this -> rtlsdr_set_sample_rate (device, inputRate);
-	   }
-	   r	= this -> rtlsdr_get_sample_rate (device);
-	fprintf (stderr, "samplerate = %d\n", r);
-//	ok all set, continue
-//	   restartReader (); we need a proper restart from the user
-	}
-
-	inputRate	= newRate;
-	return r;
-}
 
 void	rtlsdrHandler::set_gainSlider	(int gain) {
 static int	oldGain	= 0;
@@ -348,7 +294,7 @@ int32_t	rtlsdrHandler::getSamples (DSPCOMPLEX *V, int32_t size) {
 int32_t	amount, i;
 uint8_t	*tempBuffer = (uint8_t *)alloca (2 * size * sizeof (uint8_t));
 //
-	amount = _I_Buffer	-> getDataFromBuffer (tempBuffer, 2 * size);
+	amount = _I_Buffer. getDataFromBuffer (tempBuffer, 2 * size);
 	for (i = 0; i < amount / 2; i ++)
 	    V [i] = DSPCOMPLEX ((float (tempBuffer [2 * i] - 127)) / 128.0,
 	                        (float (tempBuffer [2 * i + 1] - 127)) / 128.0);
@@ -361,7 +307,7 @@ int32_t rtlsdrHandler::getSamples (std::complex<float> *V, int32_t size, uint8_t
 }
 
 int32_t	rtlsdrHandler::Samples	(void) {
-	return _I_Buffer	-> GetRingBufferReadAvailable () / 2;
+	return _I_Buffer. GetRingBufferReadAvailable () / 2;
 }
 //
 uint8_t	rtlsdrHandler::myIdentity	(void) {
@@ -383,151 +329,150 @@ bool	rtlsdrHandler::load_rtlFunctions (void) {
 //	link the required procedures
 	rtlsdr_open	= (pfnrtlsdr_open)
 	                       GETPROCADDRESS (Handle, "rtlsdr_open");
-	if (rtlsdr_open == NULL) {
+	if (rtlsdr_open == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_open\n");
 	   return false;
 	}
 	rtlsdr_close	= (pfnrtlsdr_close)
 	                     GETPROCADDRESS (Handle, "rtlsdr_close");
-	if (rtlsdr_close == NULL) {
+	if (rtlsdr_close == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_close\n");
 	   return false;
 	}
 
 	rtlsdr_set_sample_rate =
 	    (pfnrtlsdr_set_sample_rate)GETPROCADDRESS (Handle, "rtlsdr_set_sample_rate");
-	if (rtlsdr_set_sample_rate == NULL) {
+	if (rtlsdr_set_sample_rate == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_sample_rate\n");
 	   return false;
 	}
 
 	rtlsdr_get_sample_rate	=
 	    (pfnrtlsdr_get_sample_rate)GETPROCADDRESS (Handle, "rtlsdr_get_sample_rate");
-	if (rtlsdr_get_sample_rate == NULL) {
+	if (rtlsdr_get_sample_rate == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_sample_rate\n");
 	   return false;
 	}
 
 	rtlsdr_set_agc_mode =
 	    (pfnrtlsdr_set_agc_mode)GETPROCADDRESS (Handle, "rtlsdr_set_agc_mode");
-	if (rtlsdr_set_agc_mode == NULL) {
+	if (rtlsdr_set_agc_mode == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_agc_mode\n");
 	   return false;
 	}
 
 	rtlsdr_get_tuner_gains		= (pfnrtlsdr_get_tuner_gains)
 	                     GETPROCADDRESS (Handle, "rtlsdr_get_tuner_gains");
-	if (rtlsdr_get_tuner_gains == NULL) {
+	if (rtlsdr_get_tuner_gains == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_tuner_gains\n");
 	   return false;
 	}
 
 	rtlsdr_set_tuner_gain_mode	= (pfnrtlsdr_set_tuner_gain_mode)
 	                     GETPROCADDRESS (Handle, "rtlsdr_set_tuner_gain_mode");
-	if (rtlsdr_set_tuner_gain_mode == NULL) {
+	if (rtlsdr_set_tuner_gain_mode == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_tuner_gain_mode\n");
 	   return false;
 	}
 
 	rtlsdr_set_tuner_gain	= (pfnrtlsdr_set_tuner_gain)
 	                     GETPROCADDRESS (Handle, "rtlsdr_set_tuner_gain");
-	if (rtlsdr_set_tuner_gain == NULL) {
+	if (rtlsdr_set_tuner_gain == nullptr) {
 	   fprintf (stderr, "Cound not find rtlsdr_set_tuner_gain\n");
 	   return false;
 	}
 
 	rtlsdr_get_tuner_gain	= (pfnrtlsdr_get_tuner_gain)
 	                     GETPROCADDRESS (Handle, "rtlsdr_get_tuner_gain");
-	if (rtlsdr_get_tuner_gain == NULL) {
+	if (rtlsdr_get_tuner_gain == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_tuner_gain\n");
 	   return false;
 	}
 	rtlsdr_set_center_freq	= (pfnrtlsdr_set_center_freq)
 	                     GETPROCADDRESS (Handle, "rtlsdr_set_center_freq");
-	if (rtlsdr_set_center_freq == NULL) {
+	if (rtlsdr_set_center_freq == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_center_freq\n");
 	   return false;
 	}
 
 	rtlsdr_get_center_freq	= (pfnrtlsdr_get_center_freq)
 	                     GETPROCADDRESS (Handle, "rtlsdr_get_center_freq");
-	if (rtlsdr_get_center_freq == NULL) {
+	if (rtlsdr_get_center_freq == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_center_freq\n");
 	   return false;
 	}
 
 	rtlsdr_reset_buffer	= (pfnrtlsdr_reset_buffer)
 	                     GETPROCADDRESS (Handle, "rtlsdr_reset_buffer");
-	if (rtlsdr_reset_buffer == NULL) {
+	if (rtlsdr_reset_buffer == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_reset_buffer\n");
 	   return false;
 	}
 
 	rtlsdr_read_async	= (pfnrtlsdr_read_async)
 	                     GETPROCADDRESS (Handle, "rtlsdr_read_async");
-	if (rtlsdr_read_async == NULL) {
+	if (rtlsdr_read_async == nullptr) {
 	   fprintf (stderr, "Cound not find rtlsdr_read_async\n");
 	   return false;
 	}
 
 	rtlsdr_get_device_count	= (pfnrtlsdr_get_device_count)
 	                     GETPROCADDRESS (Handle, "rtlsdr_get_device_count");
-	if (rtlsdr_get_device_count == NULL) {
+	if (rtlsdr_get_device_count == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_device_count\n");
 	   return false;
 	}
 
 	rtlsdr_cancel_async	= (pfnrtlsdr_cancel_async)
 	                     GETPROCADDRESS (Handle, "rtlsdr_cancel_async");
-	if (rtlsdr_cancel_async == NULL) {
+	if (rtlsdr_cancel_async == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_cancel_async\n");
 	   return false;
 	}
 
 	rtlsdr_set_direct_sampling = (pfnrtlsdr_set_direct_sampling)
 	                  GETPROCADDRESS (Handle, "rtlsdr_set_direct_sampling");
-	if (rtlsdr_set_direct_sampling == NULL) {
+	if (rtlsdr_set_direct_sampling == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_direct_sampling\n");
 	   return false;
 	}
 
 	rtlsdr_set_freq_correction = (pfnrtlsdr_set_freq_correction)
 	                  GETPROCADDRESS (Handle, "rtlsdr_set_freq_correction");
-	if (rtlsdr_set_freq_correction == NULL) {
+	if (rtlsdr_set_freq_correction == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_freq_correction\n");
 	   return false;
 	}
 	
 	rtlsdr_get_device_name = (pfnrtlsdr_get_device_name)
 	                  GETPROCADDRESS (Handle, "rtlsdr_get_device_name");
-	if (rtlsdr_get_device_name == NULL) {
+	if (rtlsdr_get_device_name == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_device_name\n");
 	   return false;
+	}
+
+	rtlsdr_set_bias_tee =
+                   (pfnrtlsdr_set_bias_tee)
+	                   GETPROCADDRESS (Handle, "rtlsdr_set_bias_tee");
+        if (rtlsdr_set_bias_tee == nullptr) {
+	   fprintf (stderr, "Could not resolve rtlsdr_set_bias_tee\n");
 	}
 
 	fprintf (stderr, "OK, functions seem to be loaded\n");
 	return true;
 }
 
-void	rtlsdrHandler::resetBuffer (void) {
-	_I_Buffer -> FlushRingBuffer ();
+void	rtlsdrHandler::resetBuffer () {
+	_I_Buffer. FlushRingBuffer ();
 }
 
-int16_t	rtlsdrHandler::bitDepth	(void) {
+int16_t	rtlsdrHandler::bitDepth	() {
 	return 8;
 }
 
-int32_t	rtlsdrHandler::getRate	(void) {
+int32_t	rtlsdrHandler::getRate	() {
 	return inputRate;
 }
-
-void	rtlsdrHandler::set_rateSelector (const QString &s) {
-int32_t v	= s. toInt ();
-
-	setExternalRate (Khz (v));
-	set_changeRate (Khz (v));
-}
-
 
 void	rtlsdrHandler::set_Agc	(int state) {
 	if (agcChecker -> isChecked ())
@@ -535,4 +480,10 @@ void	rtlsdrHandler::set_Agc	(int state) {
 	else
 	   (void)rtlsdr_set_agc_mode (device, 0);
 }
+
+void    rtlsdrHandler::set_biasControl  (int dummy) {
+        (void)dummy;
+        if (rtlsdr_set_bias_tee != nullptr)
+           rtlsdr_set_bias_tee (device, biasT_Control -> isChecked () ? 1 : 0);
+}       
 

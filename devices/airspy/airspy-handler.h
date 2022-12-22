@@ -76,39 +76,41 @@ typedef int (*pfn_airspy_set_sensitivity_gain)(struct airspy_device* device, uin
 class airspyHandler: public deviceHandler, public Ui_airspyWidget {
 Q_OBJECT
 public:
-			airspyHandler (QSettings *, bool, bool *);
-			~airspyHandler (void);
-	void		setVFOFrequency (int32_t nf);
-	int32_t		getVFOFrequency (void);
-	uint8_t		myIdentity (void);
-	bool		legalFrequency (int32_t f);
-	int32_t		defaultFrequency (void);
-	bool		restartReader	(void);
-	void		stopReader (void);
-	int32_t		getSamples (DSPCOMPLEX *v, int32_t size);
-	int32_t		Samples	(void);
-	void		resetBuffer (void);
-	int16_t		bitDepth (void);
+			airspyHandler		(QSettings *);
+			~airspyHandler		();
+	void		setVFOFrequency		(int32_t nf);
+	int32_t		getVFOFrequency		();
+	uint8_t		myIdentity 		();
+	bool		legalFrequency 		(int32_t f);
+	int32_t		defaultFrequency	();
+	bool		restartReader		();
+	void		stopReader 		();
+	int32_t		getSamples 		(DSPCOMPLEX *v, int32_t size);
+	int32_t		getSamples 		(DSPCOMPLEX  *V,
+	                                         int32_t size, uint8_t M);
+	int32_t		Samples			();
+	void		resetBuffer 		();
+	int16_t		bitDepth 		();
 //
-	bool		status (void);
-	int		setExternalRate (int nsr);
-	int32_t		getRate (void);
-	int32_t		getSamples (DSPCOMPLEX  *V,
-	                         int32_t size, uint8_t M);
+	bool		status			();
+	int		setExternalRate 	(int nsr);
+	int32_t		getRate 		();
 
 	int16_t		currentTab;
 private slots:
-	void            set_linearity   (int value);
-        void            set_sensitivity (int value);
-        void            set_lna_gain    (int value);
-        void            set_mixer_gain  (int value);
-        void            set_vga_gain    (int value);
-        void            set_lna_agc     (void);
-        void            set_mixer_agc   (void);
-        void            set_rf_bias     (void);
-        void            show_tab        (int);
+	void            set_linearity		(int value);
+        void            set_sensitivity		(int value);
+        void            set_lna_gain		(int value);
+        void            set_mixer_gain		(int value);
+        void            set_vga_gain		(int value);
+        void            set_lna_agc		();
+        void            set_mixer_agc		();
+        void            set_rf_bias		();
+        void            show_tab		(int);
 
 private:
+	QFrame		myFrame;
+	RingBuffer<DSPCOMPLEX> _I_Buffer;
 	bool		load_airspyFunctions	(void);
 //	The functions to be extracted from the dll/.so file
 	pfn_airspy_init		   my_airspy_init;
@@ -137,8 +139,6 @@ private:
 //
 	HINSTANCE	Handle;
 	bool		libraryLoaded;
-	QFrame		*myFrame;
-	bool		success;
 	bool		running;
 	bool		lna_agc;
 	bool		mixer_agc;
@@ -149,12 +149,12 @@ const	char*		board_id_name (void);
         int16_t         mixerGain;
         int16_t         lnaGain;
 
-	DSPCOMPLEX	convBuffer [625 + 1];
+	std::vector<std::complex<float>>	convBuffer;
+	int		convBufferSize;
 	int16_t		convIndex;
-	int16_t		mapTable_int   [512];
-	float		mapTable_float   [512];
+	int16_t		mapTable_int	[2304];
+	float		mapTable_float	[2304];
 	QSettings	*airspySettings;
-	RingBuffer<DSPCOMPLEX> *theBuffer;
 	int32_t		inputRate;
 	struct airspy_device* device;
 	uint64_t 	serialNumber;
@@ -164,12 +164,10 @@ const	char*		board_id_name (void);
 	uint8_t 	*buffer;
 	int		bl_;
 static
-	int		callback(airspy_transfer_t *);
-	int		data_available (void *buf, int buf_size);
-const	char *		getSerial (void);
-	int	open (void);
-private slots:
-	void		set_rateSelector	(const QString &);
+	int		callback	(airspy_transfer_t *);
+	int		data_available	(void *buf, int buf_size);
+const	char *		getSerial	();
+	int	open			();
 };
 
 #endif

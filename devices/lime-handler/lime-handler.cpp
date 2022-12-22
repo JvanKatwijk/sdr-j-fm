@@ -97,7 +97,7 @@ lms_info_str_t limedevices [10];
 	   throw (24);
 	}
 
-	res	= LMS_SetSampleRate (theDevice, 2112000.0, 0);
+	res	= LMS_SetSampleRate (theDevice, 2304000.0, 0);
 	if (res < 0) {
 	   LMS_Close (theDevice);
 	   throw (25);
@@ -173,7 +173,7 @@ lms_info_str_t limedevices [10];
 }
 
 int32_t	limeHandler::getRate		() {
-	return KHz (2112);
+	return KHz (2304);
 }
 
 void	limeHandler::setVFOFrequency	(int32_t f) {

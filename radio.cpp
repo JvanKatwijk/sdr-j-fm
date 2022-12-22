@@ -306,14 +306,14 @@ int     k;
 	myRig			= new deviceHandler ();
 	currentFreq		= setTuner (Khz (94700));
 	inputRate		= myRig -> getRate ();
-	fmRate			= mapRates (inputRate);
+//	fmRate			= mapRates (inputRate);
+//	fmRate			= mapRates (inputRate);
+	fprintf (stderr, "fmrate = %d\n", fmRate);
 
 	filterDepth	= fmSettings -> value ("filterDepth", 5). toInt ();
 	hfScope		-> setBitDepth (myRig -> bitDepth ());
 	lfScope		-> setBitDepth (myRig -> bitDepth ());
 //
-	thresHold	= fmSettings -> value ("threshold", 20). toInt ();
-
 	connect (fm_increment, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_fm_increment (int)));
 	connect (minimumSelect, SIGNAL (valueChanged (int)),
@@ -365,8 +365,10 @@ int     k;
 void	RadioInterface::quickStart () {
 	disconnect (starter, SIGNAL (timeout ()),
 	            this, SLOT (quickStart ()));
+	fprintf (stderr, "going for quickStart\n");
 	delete starter;
 	deviceSelector	-> setCurrentIndex (startknop);
+	fprintf (stderr, "Going for setDevive \n");
 	setDevice (deviceSelector -> currentText ());
 }
 
@@ -527,7 +529,6 @@ bool r = false;
 //
 //	always tricky to kill tasks
 void	RadioInterface::TerminateProcess () {
-	fprintf (stderr, "termination starts\n");
 	runMode. store (ERunStates::STOPPING);
 
 	if (sourceDumping && (myFMprocessor != nullptr)) {
@@ -557,7 +558,6 @@ void	RadioInterface::TerminateProcess () {
 	if (myFMprocessor != nullptr) 
 	   delete myFMprocessor;
 
-	fprintf (stderr, "Termination: myFMprocessor deleted\n");
 //	setDevice (QString ("dummy"));	// will select a virtualinput
 	accept();
 
@@ -571,7 +571,6 @@ void	RadioInterface::TerminateProcess () {
 	delete		myProgramList;
 	delete		hfScope;
 	delete		lfScope;
-	fprintf (stderr, "End of Terminate function\n");
 }
 
 void	RadioInterface::abortSystem (int d) {
@@ -667,7 +666,7 @@ void	RadioInterface::set_changeRate	(int r) {
 	}
 //
 //	compute the new fmRate
-	fmRate			= mapRates (inputRate);
+//	fmRate			= mapRates (inputRate);
 //	ask the new for the frequency
 	currentFreq		= myRig -> getVFOFrequency () + fmRate / 4;
 //	and show everything
@@ -726,8 +725,8 @@ bool    success;
 #ifdef HAVE_AIRSPY
 	if (s == "airspy") {
 	   try {
-	      success = true;
-	      myRig = new airspyHandler (fmSettings, true, &success);
+	      success	= true;
+	      myRig = new airspyHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -793,7 +792,7 @@ bool    success;
 	if (s == "dabstick") {
 	   success = true;
 	   try {
-	      myRig = new rtlsdrHandler (fmSettings, true);
+	      myRig = new rtlsdrHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -822,6 +821,7 @@ bool    success;
 	}
 	else 
 	   myRig	= new deviceHandler ();
+
 	if (!success) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("loading device failed"));
@@ -841,7 +841,7 @@ bool    success;
 	}
 //
 //	ask the new rig for the frequency
-	fmRate		= mapRates (inputRate);
+//	fmRate		= mapRates (inputRate);
 	currentFreq	= myRig -> defaultFrequency () + fmRate / 4;
 	currentFreq	= fmSettings -> value ("currentFreq",
 	                                        currentFreq). toInt ();
@@ -880,6 +880,9 @@ void	RadioInterface::make_newProcessor () {
 	QString area
 	         = fmSettings -> value ("ptyLocale", "Europe"). toString ();
 	int ptyLocale	= area == "Europe" ? 0 : 1;
+	int thresHold	
+	         =  fmSettings -> value ("threshold", 20). toInt ();
+	 
 	myFMprocessor = new fmProcessor (myRig,
 	                                 this,
 	                                 our_audioSink,
@@ -1591,14 +1594,10 @@ void	RadioInterface::Display	(int32_t freq) {
 }
 
 void	RadioInterface::setfmBandwidth (const QString &s) {
+	if (myFMprocessor == nullptr)
+	   return;
 
-	if (s == "Off")
-	   fmBandwidth = 0.95 * fmRate;
-	else
-	   fmBandwidth = Khz (std::stol (s.toStdString ()));
-
-	if (myFMprocessor != nullptr)
-	   myFMprocessor	-> setBandwidth (fmBandwidth);
+	myFMprocessor -> setBandwidth (s);
 }
 
 void	RadioInterface::setfmBandwidth	(int32_t b) {

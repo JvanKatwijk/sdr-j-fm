@@ -569,7 +569,7 @@ void	plutoHandler::run	() {
 char	*p_end, *p_dat;
 int	p_inc;
 int	nbytes_rx;
-std::complex<float> localBuf [4 * 2048];
+std::complex<float> localBuf [4 * 2304];
 int	index	= 0;
 
 	state -> setText ("running");
@@ -586,8 +586,8 @@ int	index	= 0;
 	      std::complex<float>sample = std::complex<float> (i_p / 2048.0,
 	                                                       q_p / 2048.0);
 	      localBuf [index ++] = sample;
-	      if (index >= 4 * 2048) {
-	         _I_Buffer. putDataIntoBuffer (localBuf, 4 * 2048);
+	      if (index >= 4 * 2304) {
+	         _I_Buffer. putDataIntoBuffer (localBuf, 4 * 2304);
 	         index = 0;
 	      }
 	   }
@@ -611,7 +611,7 @@ int32_t	plutoHandler::Samples () {
 }
 
 int32_t	plutoHandler::getRate	() {
-	return 2112000;
+	return 2304000;
 }
 
 void	plutoHandler::resetBuffer() {

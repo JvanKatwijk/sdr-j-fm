@@ -29,15 +29,15 @@
 
 #define	DEFAULT_GAIN	30
 
-	hackrfHandler::hackrfHandler  (QSettings *s) {
+	hackrfHandler::hackrfHandler  (QSettings *s):
+	                               _I_Buffer (1024 * 1024) {
 int	err;
 int	res;
 	hackrfSettings			= s;
 	this	-> myFrame		= new QFrame (NULL);
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
-	this	-> inputRate		= Khz (2112);
-	_I_Buffer			= NULL;
+	this	-> inputRate		= Khz (12 * 192);
 
 #ifdef  __MINGW32__
 	const char *libraryString = "libhackrf.dll";
@@ -66,7 +66,6 @@ int	res;
 //
 //	From here we have a library available
 
-	_I_Buffer	= new RingBuffer<std::complex<float>>(1024 * 1024);
 	vfoFrequency	= Khz (220000);
 //
 //	See if there are settings from previous incarnations
@@ -109,7 +108,7 @@ int	res;
 	   throw (22);
 	}
 
-	res	= this -> hackrf_set_sample_rate (theDevice, 2048000.0);
+	res	= this -> hackrf_set_sample_rate (theDevice, 2304000.0);
 	if (res != HACKRF_SUCCESS) {
 	   fprintf (stderr, "Problem with hackrf_set_samplerate:");
 	   fprintf (stderr, "%s \n",
@@ -118,7 +117,7 @@ int	res;
 	   throw (23);
 	}
 
-	int bandWidth = this -> hackrf_compute_baseband_filter_bw (192000);
+	int bandWidth = this -> hackrf_compute_baseband_filter_bw (256000);
 	fprintf (stderr, "computed value %d\n", bandWidth);
 	res	= this -> hackrf_set_baseband_filter_bandwidth (theDevice,
 	                                                        bandWidth);
@@ -216,11 +215,9 @@ int	res;
 	running. store (false);
 }
 
-	hackrfHandler::~hackrfHandler	(void) {
+	hackrfHandler::~hackrfHandler	() {
 	stopReader ();
 	delete myFrame;
-	if (_I_Buffer != NULL)
-	   delete _I_Buffer;
 	hackrfSettings	-> beginGroup ("hackrfSettings");
 	hackrfSettings	-> setValue ("hack_lnaGain",
 	                                 lnagainSlider -> value ());
@@ -242,7 +239,7 @@ bool    hackrfHandler::legalFrequency (int32_t f) {
 	return true;
 }
 
-int32_t hackrfHandler::defaultFrequency       (void) {
+int32_t hackrfHandler::defaultFrequency	() {
 	return Khz (105600);
 }
 
@@ -263,7 +260,7 @@ int	res;
 	vfoFrequency = newFrequency;
 }
 
-int32_t	hackrfHandler::getVFOFrequency	(void) {
+int32_t	hackrfHandler::getVFOFrequency	() {
 	return vfoFrequency;
 }
 
@@ -353,14 +350,14 @@ int	callback (hackrf_transfer *transfer) {
 hackrfHandler *ctx = static_cast <hackrfHandler *>(transfer -> rx_ctx);
 int	i;
 uint8_t *p	= transfer -> buffer;
-RingBuffer<std::complex<float> > * q = ctx -> _I_Buffer;
+RingBuffer<std::complex<float> > * q = & (ctx -> _I_Buffer);
 
 	for (i = 0; i < transfer -> valid_length / 2; i ++) {
 	   float re	= (((int8_t *)p) [2 * i]) / 128.0;
 	   float im	= (((int8_t *)p) [2 * i + 1]) / 128.0;
 	   buffer [i]	= std::complex<float> (re, im);
 	}
-	q	-> putDataIntoBuffer (buffer, transfer -> valid_length / 2);
+	q -> putDataIntoBuffer (buffer, transfer -> valid_length / 2);
 	return 0;
 }
 
@@ -402,30 +399,30 @@ int	res;
 //	size still in I/Q pairs
 int32_t	hackrfHandler::getSamples (std::complex<float> *V,
 	                                 int32_t size, uint8_t Mode) { 
-	return _I_Buffer	-> getDataFromBuffer (V, size);
+	return _I_Buffer. getDataFromBuffer (V, size);
 }
 
-int32_t	hackrfHandler::Samples	(void) {
-	return _I_Buffer	-> GetRingBufferReadAvailable ();
+int32_t	hackrfHandler::Samples	() {
+	return _I_Buffer. GetRingBufferReadAvailable ();
 }
 
-uint8_t	hackrfHandler::myIdentity	(void) {
+uint8_t	hackrfHandler::myIdentity	() {
 	return HACKRF;
 }
 
-void	hackrfHandler::resetBuffer	(void) {
-	_I_Buffer	-> FlushRingBuffer ();
+void	hackrfHandler::resetBuffer	() {
+	_I_Buffer. FlushRingBuffer ();
 }
 
-int16_t	hackrfHandler::bitDepth	(void) {
+int16_t	hackrfHandler::bitDepth	() {
 	return 8;
 }
 
-int32_t	hackrfHandler::getRate	(void) {
+int32_t	hackrfHandler::getRate	() {
 	return inputRate;
 }
 
-bool	hackrfHandler::load_hackrfFunctions (void) {
+bool	hackrfHandler::load_hackrfFunctions () {
 //
 //	link the required procedures
 	this -> hackrf_init	= (pfn_hackrf_init)

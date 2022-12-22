@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>408</width>
-    <height>266</height>
+    <width>411</width>
+    <height>272</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -136,13 +136,6 @@
        </property>
        <property name="text">
         <string>ppm control</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="biasT_selector">
-       <property name="text">
-        <string>biasT</string>
        </property>
       </widget>
      </item>
@@ -305,13 +298,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="dumpButton">
-       <property name="text">
-        <string>dump </string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -346,6 +332,11 @@
        <item>
         <property name="text">
          <string>Antenna A</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Antenna B</string>
         </property>
        </item>
       </widget>

@@ -168,6 +168,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="biasT_selector">
+         <property name="text">
+          <string>biasT</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="debugControl">
          <property name="text">
           <string>debug</string>

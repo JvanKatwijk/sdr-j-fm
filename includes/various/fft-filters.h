@@ -28,7 +28,7 @@
 
 class fftFilter {
 public:
-			fftFilter	(int32_t, int16_t);
+			fftFilter	(int32_t, int);
 			~fftFilter	(void);
 
 	void		setBand		(int32_t, int32_t, int32_t);
@@ -39,9 +39,9 @@ public:
 
 protected:
 	int32_t		fftSize;
-	int16_t		filterDegree;
-	int16_t		OverlapSize;
-	int16_t		NumofSamples;
+	int		filterDegree;
+	int		OverlapSize;
+	int		NumofSamples;
 	common_fft	*MyFFT;
 	DSPCOMPLEX	*FFT_A;
 	common_ifft	*MyIFFT;
@@ -56,7 +56,7 @@ protected:
 class fftFilterHilbert : public fftFilter {
 public:
 			fftFilterHilbert	() = delete;
-			fftFilterHilbert	(int32_t, int16_t);
+			fftFilterHilbert	(int32_t, int);
 			~fftFilterHilbert	() = default;
 // hilbert has real input but complex output
 	DSPCOMPLEX	Pass			(DSPFLOAT);

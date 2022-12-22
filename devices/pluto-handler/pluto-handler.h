@@ -46,7 +46,7 @@
 #endif
 
 #ifndef	PLUTO_RATE
-#define	PLUTO_RATE	2112000
+#define	PLUTO_RATE	2304000
 #endif
 
 enum iodev { RX, TX };

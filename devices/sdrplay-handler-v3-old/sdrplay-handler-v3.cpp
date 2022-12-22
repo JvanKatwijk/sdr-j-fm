@@ -4,19 +4,19 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of Qt-DAB
+ *    This file is part of sdr-j-fm
  *
- *    Qt-DAB is free software; you can redistribute it and/or modify
+ *    sdr-j-fm is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation version 2 of the License.
  *
- *    Qt-DAB is distributed in the hope that it will be useful,
+ *    sdr-j-fm is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-DAB if not, write to the Free Software
+ *    along with sdr-j-fm if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -29,24 +29,48 @@
 #include	"sdrplay-handler-v3.h"
 #include	"sdrplay-commands.h"
 
-//	The Rsp's
-#include	"Rsp-device.h"
-#include	"Rsp1A-handler.h"
-#include	"RspII-handler.h"
-#include	"RspDuo-handler.h"
-#include	"RspDx-handler.h"
+static
+int     RSP1_Table []	= {0, 24, 19, 43};
 
-#define SDRPLAY_RSP1_   1
-#define SDRPLAY_RSP1A_  255
-#define SDRPLAY_RSP2_   2
-#define SDRPLAY_RSPduo_ 3
-#define SDRPLAY_RSPdx_  4
+static
+int     RSP1A_Table []	= {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
+
+static
+int     RSP2_Table []	= {0, 10, 15, 21, 24, 34, 39, 45, 64};
+
+static
+int	RSPduo_Table []	= {0, 6, 12, 18, 20, 26, 32, 38, 57, 62};
+
+static
+int     RSPDx_Table []  = {0, 3, 6, 9, 12, 15, 24,27, 30, 33, 36, 39, 42, 45,
+                           48, 51, 54, 57, 60, 53, 66, 69, 72, 75, 78, 81, 84};
+
+static
+int	get_lnaGRdB (int hwVersion, int lnaState) {
+	switch (hwVersion) {
+	   case 1:
+	   default:
+	      return RSP1_Table [lnaState];
+
+	   case 2:
+	      return RSP2_Table [lnaState];
+
+	   case 255: 
+	      return RSP1A_Table [lnaState];
+
+	   case 3:
+	      return RSPduo_Table [lnaState];
+
+           case 4:
+              return RSPDx_Table [lnaState];
+	}
+}
+
 
 	sdrplayHandler_v3::sdrplayHandler_v3  (QSettings *s):
-	                                          _I_Buffer (4 * 1024 * 1024),
-	                                          myFrame (nullptr) {
+	                                          myFrame (nullptr),
+	                                          _I_Buffer (4 * 1024 * 1024) {
 	sdrplaySettings			= s;
-	inputRate			= Khz (12 * 192);
 	setupUi (&myFrame);
 	myFrame. show	();
 	antennaSelector		-> hide	();
@@ -57,35 +81,25 @@
 //	See if there are settings from previous incarnations
 //	and config stuff
 
-	sdrplaySettings		-> beginGroup ("sdrplaySettings_v3");
-	
+	sdrplaySettings		-> beginGroup ("sdrplaySettings");
 	GRdBSelector 		-> setValue (
 	            sdrplaySettings -> value ("sdrplay-ifgrdb", 20). toInt());
-	GRdBValue		= GRdBSelector -> value ();
 
 	lnaGainSetting		-> setValue (
 	            sdrplaySettings -> value ("sdrplay-lnastate", 4). toInt());
-
-	lnaState		= lnaGainSetting -> value ();
 
 	ppmControl		-> setValue (
 	            sdrplaySettings -> value ("sdrplay-ppm", 0). toInt());
 
 	agcMode		=
 	       sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt() != 0;
-	sdrplaySettings	-> endGroup	();
-
 	if (agcMode) {
 	   agcControl -> setChecked (true);
 	   GRdBSelector         -> hide ();
 	   gainsliderLabel      -> hide ();
 	}
+	sdrplaySettings	-> endGroup	();
 
-	biasT           =
-               sdrplaySettings -> value ("biasT", 0). toInt () != 0;
-        if (biasT)
-           biasT_selector -> setChecked (true);
-	
 //	and be prepared for future changes in the settings
 	connect (GRdBSelector, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ifgainReduction (int)));
@@ -96,26 +110,13 @@
 	connect (ppmControl, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_ppmControl (int)));
 	connect (antennaSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_selectAntenna (const QString &)));
-	connect (biasT_selector, SIGNAL (stateChanged (int)),
-	         this, SLOT (set_biasT (int)));
+	         this, SLOT (set_antennaSelect (const QString &)));
 
-	vfoFrequency	= MHz (220);
+	vfoFrequency	= KHz (94700);
 	theGain		= -1;
 	debugControl	-> hide ();
-	failFlag. store (false);
-	successFlag. store (false);
-	errorCode	= 0;
 	start ();
-	while (!failFlag. load () && !successFlag. load () && isRunning ())
-	   usleep (1000);
-	if (failFlag. load ()) {
-	   while (isRunning ())
-	      usleep (1000);
-	   throw (errorCode);
-	}
-	
-	fprintf (stderr, "setup sdrplay v3 seems successfull\n");
+	usleep (1000);
 }
 
 	sdrplayHandler_v3::~sdrplayHandler_v3 () {
@@ -123,8 +124,7 @@
 	while (isRunning ())
 	   usleep (1000);
 //	thread should be stopped by now
-	myFrame. hide ();
-	sdrplaySettings	-> beginGroup ("sdrplaySettings_v3");
+	sdrplaySettings	-> beginGroup ("sdrplaySettings");
 	sdrplaySettings -> setValue ("sdrplay-ppm",
 	                                           ppmControl -> value ());
 	sdrplaySettings -> setValue ("sdrplay-ifgrdb",
@@ -135,36 +135,39 @@
 	                                  agcControl -> isChecked() ? 1 : 0);
 	sdrplaySettings	-> endGroup ();
 	sdrplaySettings	-> sync();
-}
 
-int	sdrplayHandler_v3::getRate	() {
-	return inputRate;
+	myFrame. hide ();
+	fprintf (stderr, "end of sdrplay-handler-v3\n");
 }
 
 /////////////////////////////////////////////////////////////////////////
 //	Implementing the interface
 /////////////////////////////////////////////////////////////////////////
 
-int32_t	sdrplayHandler_v3::defaultFrequency	() {
-	return Mhz (220);
+
+void	sdrplayHandler_v3::setVFOFrequency	(int32_t f) {
+restartRequest r (f);
+        (void)messageHandler (&r);
+	vfoFrequency	= f;
 }
 
 int32_t	sdrplayHandler_v3::getVFOFrequency() {
 	return vfoFrequency;
 }
 
-void	sdrplayHandler_v3::setVFOFrequency	(int freq) {
-restartRequest r (freq);
-	vfoFrequency	= freq;
-        messageHandler (&r);
+bool	sdrplayHandler_v3::legalFrequency	(int32_t f) {
+	return MHz (60) <= f && f <= MHz (250);
 }
-	
+
+int32_t	sdrplayHandler_v3::defaultFrequency	() {
+	return KHz (94700);
+}
+
 bool	sdrplayHandler_v3::restartReader	() {
 restartRequest r (vfoFrequency);
-
         if (receiverRuns. load ())
            return true;
-	return messageHandler (&r);
+        return messageHandler (&r);
 }
 
 void	sdrplayHandler_v3::stopReader	() {
@@ -175,10 +178,13 @@ stopRequest r;
 }
 //
 int32_t	sdrplayHandler_v3::getSamples (std::complex<float> *V,
-	                               int32_t size, uint8_t Mode) { 
+	                                   int32_t size, uint8_t Mode) { 
 std::complex<int16_t> temp [size];
 int	i;
 
+	if  (!receiverRuns. load ())
+	   return 0;
+	(void)Mode;
 	int amount      = _I_Buffer. getDataFromBuffer (temp, size);
         for (i = 0; i < amount; i ++)
            V [i] = std::complex<float> (real (temp [i]) / (float) denominator,
@@ -187,7 +193,13 @@ int	i;
 }
 
 int32_t	sdrplayHandler_v3::Samples	() {
-	return _I_Buffer. GetRingBufferReadAvailable();
+	if (!receiverRuns. load ())
+	   return 0;
+	return _I_Buffer. GetRingBufferReadAvailable ();
+}
+
+uint8_t	sdrplayHandler_v3::myIdentity	() {
+	return SDRPLAY_V3;
 }
 
 void	sdrplayHandler_v3::resetBuffer	() {
@@ -198,26 +210,18 @@ int16_t	sdrplayHandler_v3::bitDepth	() {
 	return nrBits;
 }
 
-QString	sdrplayHandler_v3::deviceName	() {
-	return deviceModel;
+int32_t	sdrplayHandler_v3::getRate	() {
+	return KHz (2112);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 //	Handling the GUI
 //////////////////////////////////////////////////////////////////////
-//
-//	Since the daemon is not threadproof, we have to package the
-//	actual interface into its own thread.
-//	Communication with that thread is synchronous!
-//
-
-void    sdrplayHandler_v3::set_nrBits (int b) {
-        nrBits  = b;
-        denominator = nrBits == 12 ? 2048 : 4096;
-}
 
 void	sdrplayHandler_v3::set_lnabounds(int low, int high) {
 	lnaGainSetting	-> setRange (low, high);
+	lnaGRdBDisplay	->
+	         display (get_lnaGRdB (hwVersion, lnaGainSetting -> value ()));
 }
 
 void	sdrplayHandler_v3::set_deviceName (const QString& s) {
@@ -229,17 +233,11 @@ void	sdrplayHandler_v3::set_serial	(const QString& s) {
 }
 
 void	sdrplayHandler_v3::set_apiVersion (float version) {
-QString v = QString::number (version, 'r', 2);
-	api_version	-> display (v);
-}
-
-void    sdrplayHandler_v3::show_lnaGain (int g) {
-        lnaGRdBDisplay  -> display (g);
+	api_version	-> display (version);
 }
 
 void	sdrplayHandler_v3::set_ifgainReduction	(int GRdB) {
 GRdBRequest r (GRdB);
-
 	if (!receiverRuns. load ())
            return;
         messageHandler (&r);
@@ -247,10 +245,10 @@ GRdBRequest r (GRdB);
 
 void	sdrplayHandler_v3::set_lnagainReduction (int lnaState) {
 lnaRequest r (lnaState);
-
 	if (!receiverRuns. load ())
            return;
         messageHandler (&r);
+	lnaGRdBDisplay	-> display (get_lnaGRdB (hwVersion, lnaState));
 }
 
 void	sdrplayHandler_v3::set_agcControl (int dummy) {
@@ -263,10 +261,8 @@ agcRequest r (agcMode, 30);
            gainsliderLabel      -> hide ();
 	}
 	else {
-	   GRdBRequest r2 (GRdBSelector -> value ());
 	   GRdBSelector		-> show ();
 	   gainsliderLabel	-> show ();
-	   messageHandler  (&r2);
 	}
 }
 
@@ -275,32 +271,19 @@ ppmRequest r (ppm);
         messageHandler (&r);
 }
 
-void	sdrplayHandler_v3::set_biasT (int v) {
-biasT_Request r (biasT_selector -> isChecked () ? 1 : 0);
-
-	messageHandler (&r);
-	sdrplaySettings -> setValue ("biasT_selector",
-	                              biasT_selector -> isChecked () ? 1 : 0);
+void	sdrplayHandler_v3::set_antennaSelect	(const QString &s) {
+antennaRequest r (s == "Antenna A" ? 'A' : 'B');
+        messageHandler (&r);
 }
-
-void	sdrplayHandler_v3::set_selectAntenna	(const QString &s) {
-	messageHandler (new antennaRequest (s == "Antenna A" ? 'A' :
-	                                    s == "Antenna B" ? 'B' : 'C'));
-}
-
 //
 ////////////////////////////////////////////////////////////////////////
 //	showing data
 ////////////////////////////////////////////////////////////////////////
-void	sdrplayHandler_v3::set_antennaSelect (int n) {
-	if (n > 0) {
-	   antennaSelector      -> addItem ("Antenna B");
-	   if (n > 1)
-	      antennaSelector      -> addItem ("Antenna C");
-           antennaSelector              -> show ();
-        }
-        else 
-           antennaSelector              -> hide ();
+void	sdrplayHandler_v3::set_antennaSelect (bool b) {
+	if (b)
+	   antennaSelector		-> show	();
+	else
+	   antennaSelector		-> hide	();
 }
 
 void	sdrplayHandler_v3::show_tunerSelector	(bool b) {
@@ -317,11 +300,11 @@ void	sdrplayHandler_v3::show_tunerSelector	(bool b) {
 
 bool    sdrplayHandler_v3::messageHandler (generalCommand *r) {
         server_queue. push (r);
-	serverjobs. release (1);
-	while (!r -> waiter. tryAcquire (1, 1000))
-	   if (!threadRuns. load ())
-	      return false;
-	return true;
+        serverjobs. release (1);
+        while (!r -> waiter. tryAcquire (1, 1000))
+           if (!threadRuns. load ())
+              return false;
+        return true;
 }
 
 static
@@ -332,6 +315,7 @@ void    StreamACallback (short *xi, short *xq,
                          void *cbContext) {
 sdrplayHandler_v3 *p	= static_cast<sdrplayHandler_v3 *> (cbContext);
 std::complex<int16_t> localBuf [numSamples];
+static int teller	= 0;
 
 	(void)params;
 	if (reset)
@@ -402,28 +386,30 @@ uint32_t                ndev;
 	receiverRuns. store (false);
 
 	chosenDevice		= nullptr;
+	deviceParams		= nullptr;
 
+	connect (this, SIGNAL (set_lnabounds_signal (int, int)),
+	         this, SLOT (set_lnabounds (int, int)));
+	connect (this, SIGNAL (set_deviceName_signal (const QString &)),
+	         this, SLOT (set_deviceName (const QString &)));
 	connect (this, SIGNAL (set_serial_signal (const QString &)),
 	         this, SLOT (set_serial (const QString &)));
 	connect (this, SIGNAL (set_apiVersion_signal (float)),
 	         this, SLOT (set_apiVersion (float)));
+	connect (this, SIGNAL (set_antennaSelect_signal (bool)),
+	         this, SLOT (set_antennaSelect (bool)));
 
 	denominator		= 2048;		// default
 	nrBits			= 12;		// default
 
 	Handle			= fetchLibrary ();
-	if (Handle == nullptr) {
-	   failFlag. store (true);
-	   errorCode	= 1;
+	if (Handle == nullptr)
 	   return;
-	}
 
 //	load the functions
 	bool success	= loadFunctions ();
 	if (!success) {
-	   failFlag. store (true);
 	   releaseLibrary ();
-	   errorCode	= 2;
 	   return;
         }
 	fprintf (stderr, "functions loaded\n");
@@ -433,9 +419,7 @@ uint32_t                ndev;
 	if (err != sdrplay_api_Success) {
 	   fprintf (stderr, "sdrplay_api_Open failed %s\n",
 	                          sdrplay_api_GetErrorString (err));
-	   failFlag. store (true);
 	   releaseLibrary ();
-	   errorCode	= 3;
 	   return;
 	}
 
@@ -446,15 +430,12 @@ uint32_t                ndev;
         if (err  != sdrplay_api_Success) {
            fprintf (stderr, "sdrplay_api_ApiVersion failed %s\n",
                                      sdrplay_api_GetErrorString (err));
-	   errorCode	= 4;
 	   goto closeAPI;
         }
 
-	if (apiVersion < 3.05) {
-//	if (apiVersion < (SDRPLAY_API_VERSION - 0.01)) {
+        if (apiVersion < (SDRPLAY_API_VERSION - 0.01)) {
            fprintf (stderr, "API versions don't match (local=%.2f dll=%.2f)\n",
                                               SDRPLAY_API_VERSION, apiVersion);
-	   errorCode	= 5;
 	   goto closeAPI;
 	}
 	
@@ -467,14 +448,12 @@ uint32_t                ndev;
 	   if (err != sdrplay_api_Success) {
 	      fprintf (stderr, "sdrplay_api_GetDevices failed %s\n",
 	                      sdrplay_api_GetErrorString (err));
-	      errorCode		= 6;
 	      goto unlockDevice_closeAPI;
 	   }
 	}
 
 	if (ndev == 0) {
 	   fprintf (stderr, "no valid device found\n");
-	   errorCode	= 7;
 	   goto unlockDevice_closeAPI;
 	}
 
@@ -484,107 +463,139 @@ uint32_t                ndev;
 	if (err != sdrplay_api_Success) {
 	   fprintf (stderr, "sdrplay_api_SelectDevice failed %s\n",
 	                         sdrplay_api_GetErrorString (err));
-	   errorCode	= 8;
 	   goto unlockDevice_closeAPI;
 	}
+//
+//	we have a device, unlock
+	sdrplay_api_UnlockDeviceApi ();
+
+	err	= sdrplay_api_DebugEnable (chosenDevice -> dev, 
+	                                         (sdrplay_api_DbgLvl_t)1);
+//	retrieve device parameters, so they can be changed if needed
+	err	= sdrplay_api_GetDeviceParams (chosenDevice -> dev,
+	                                                     &deviceParams);
+	if (err != sdrplay_api_Success) {
+	   fprintf (stderr, "sdrplay_api_GetDeviceParams failed %s\n",
+	                         sdrplay_api_GetErrorString (err));
+	   goto closeAPI;
+	}
+
+	if (deviceParams == nullptr) {
+	   fprintf (stderr, "sdrplay_api_GetDeviceParams return null as par\n");
+	   goto closeAPI;
+	}
+//
+	vfoFrequency	= Khz (220000);		// default
+//	set the parameter values
+	chParams	= deviceParams -> rxChannelA;
+	deviceParams	-> devParams -> fsFreq. fsHz	= 2112000.0;
+	chParams	-> tunerParams. bwType = sdrplay_api_BW_1_536;
+	chParams	-> tunerParams. ifType = sdrplay_api_IF_Zero;
+//
+//	these will change:
+	chParams	-> tunerParams. rfFreq. rfHz    = 220000000.0;
+	chParams	-> tunerParams. gain.gRdB	= 30;
+	chParams	-> tunerParams. gain.LNAstate	= lnaState;
+	chParams	-> ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
+	if (agcMode) {
+	   chParams    -> ctrlParams. agc. setPoint_dBfs = -30;
+	   chParams    -> ctrlParams. agc. enable =
+                                             sdrplay_api_AGC_100HZ;
+	}
+	else
+	   chParams    -> ctrlParams. agc. enable =
+                                             sdrplay_api_AGC_DISABLE;
 //
 //	assign callback functions
 	cbFns. StreamACbFn	= StreamACallback;
 	cbFns. StreamBCbFn	= StreamBCallback;
 	cbFns. EventCbFn	= EventCallback;
 
-//	we have a device, unlock
-	sdrplay_api_UnlockDeviceApi ();
+	err	= sdrplay_api_Init (chosenDevice -> dev, &cbFns, this);
+	if (err != sdrplay_api_Success) {
+	   fprintf (stderr, "sdrplay_api_Init failed %s\n",
+                                       sdrplay_api_GetErrorString (err));
+	   goto unlockDevice_closeAPI;
+	}
 //
 	serial		= devs [0]. SerNo;
 	hwVersion	= devs [0]. hwVer;
-//
-	try {
-	   switch (hwVersion) {
-	      case SDRPLAY_RSPdx_ :
-	         theRsp	= new RspDx_handler (this,
-	                                     chosenDevice,
-	                                     inputRate,
-	                                     KHz (14070),
-	                                     agcMode,
-	                                     lnaState,
-	                                     GRdBValue,
-	                                     biasT);
-	         break;
-
-	      case SDRPLAY_RSP1A_ :
-	         theRsp	= new Rsp1A_handler (this,
-	                                     chosenDevice,
-	                                     inputRate,
-	                                     KHz (14070),
-	                                     agcMode,
-	                                     lnaState,
-	                                     GRdBValue,
-	                                     biasT);
-	         break;
-
-	      case SDRPLAY_RSP2_ :
-	         theRsp	= new RspII_handler (this,
-	                                     chosenDevice,
-	                                     inputRate,
-	                                     KHz (14070),
-	                                     agcMode,
-	                                     lnaState,
-	                                     GRdBValue,
-	                                     biasT);
-	         break;
-
-	      case SDRPLAY_RSPduo_ :
-	         theRsp	= new RspDuo_handler (this,
-	                                     chosenDevice,
-	                                     inputRate,
-	                                     KHz (14070),
-	                                     agcMode,
-	                                     lnaState,
-	                                     GRdBValue,
-	                                     biasT);
-	         break;
-
-	      default:
-	         theRsp	= new Rsp_device (this,
-	                                  chosenDevice,
-	                                  2112000,
-	                                  KHz (14070),
-	                                  agcMode,
-	                                  lnaState,
-	                                  GRdBValue,
-	                                  biasT);
-	         break;
-	   }
-	} catch (int e) {
-	   goto closeAPI;
+	switch (hwVersion) {
+	   case 1:		// old RSP
+	      lna_upperBound	= 3;
+	      deviceModel	= "RSP-I";
+	      denominator	= 2048;
+	      nrBits		= 12;
+	      has_antennaSelect	= false;
+	      break;
+	   case 2:		// RSP II
+	      lna_upperBound	= 8;
+	      deviceModel 	= "RSP-II";
+	      denominator	= 2048;
+	      nrBits		= 14;
+	      has_antennaSelect	= true;
+	      break;
+	   case 3:		// RSP-DUO
+	      lna_upperBound	= 9;
+	      deviceModel	= "RSP-DUO";
+	      denominator	= 2048;
+	      nrBits		= 12;
+	      has_antennaSelect	= false;
+	      break;
+	   case 4:		// RSP-Dx
+	      lna_upperBound	= 26;
+	      deviceModel	= "RSP-Dx";
+	      denominator	= 2048;
+	      nrBits		= 14;
+	      has_antennaSelect	= true;
+	      break;
+	   default:
+	   case 255:		// RSP-1A
+	      lna_upperBound	= 9;
+	      deviceModel	= "RSP-1A";
+	      denominator	= 8192;
+	      nrBits		= 14;
+	      has_antennaSelect	= false;
+	      break;
 	}
 
-	set_serial_signal       (serial);
-        set_apiVersion_signal   (apiVersion);
+	set_lnabounds_signal	(0, lna_upperBound);
+	set_deviceName_signal	(deviceModel);
+	set_serial_signal	(serial);
+	set_apiVersion_signal	(apiVersion);
+	set_antennaSelect_signal (has_antennaSelect);
+	threadRuns. store (true);	// it seems we can do some work
 
-	threadRuns. store (true);       // it seems we can do some work
-	successFlag. store (true);
 	while (threadRuns. load ()) {
 	   while (!serverjobs. tryAcquire (1, 1000))
 	   if (!threadRuns. load ())
 	      goto normal_exit;
-
+//
 //	here we could assert that the server_queue is not empty
-//	Note that we emulate synchronous calling, so
-//	we signal the caller when we are done
 	   switch (server_queue. front () -> cmd) {
 	      case RESTART_REQUEST: {
 	         restartRequest *p = (restartRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> restart (p -> freq);
+	         p -> result = true;
+	         chParams -> tunerParams. rfFreq. rfHz =
+	                                            (float)(p -> frequency);
+                 err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Tuner_Frf,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success) {
+                    fprintf (stderr, "restart: error %s\n",
+                                      sdrplay_api_GetErrorString (err));
+	            p -> result = false;
+                 }
 	         receiverRuns. store (true);
 	         p -> waiter. release (1);
 	         break;
 	      }
 	       
 	      case STOP_REQUEST: {
-	         stopRequest *p = (stopRequest *)(server_queue. front ());
+	         stopRequest *p =
+	                  (stopRequest *)(server_queue. front ());
 	         server_queue. pop ();
 	         receiverRuns. store (false);
 	         p -> waiter. release (1);
@@ -595,7 +606,26 @@ uint32_t                ndev;
 	         agcRequest *p = 
 	                    (agcRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> set_agc (-p -> setPoint, p -> agcMode);
+	         if (p -> agcMode) {
+	            chParams    -> ctrlParams. agc. setPoint_dBfs =
+	                                              - p -> setPoint;
+                    chParams    -> ctrlParams. agc. enable =
+                                             sdrplay_api_AGC_100HZ;
+	         }
+	         else
+	            chParams    -> ctrlParams. agc. enable =
+                                             sdrplay_api_AGC_DISABLE;
+
+	         p -> result = true;
+	         err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Ctrl_Agc,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success) {
+                    fprintf (stderr, "agc: error %s\n",
+	                                   sdrplay_api_GetErrorString (err));
+	            p -> result = false;
+	         }
 	         p -> waiter. release (1);
 	         break;
 	      }
@@ -603,15 +633,35 @@ uint32_t                ndev;
 	      case GRDB_REQUEST: {
 	         GRdBRequest *p =  (GRdBRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> set_GRdB (p -> GRdBValue);
-                 p -> waiter. release (1);
+	         p -> result = true;
+	         chParams -> tunerParams. gain. gRdB = p -> GRdBValue;
+                 err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Tuner_Gr,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success) {
+                    fprintf (stderr, "grdb: error %s\n",
+                                      sdrplay_api_GetErrorString (err));
+	            p -> result = false;
+	         }
+	         p -> waiter. release (1);
 	         break;
 	      }
 
 	      case PPM_REQUEST: {
 	         ppmRequest *p = (ppmRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> set_ppm (p -> ppmValue);
+	         p -> result	= false;
+	         deviceParams    -> devParams -> ppm = p -> ppmValue;
+                 err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Dev_Ppm,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success) {
+                    fprintf (stderr, "lna: error %s\n",
+                                      sdrplay_api_GetErrorString (err));
+	            p -> result = false;
+	         }
 	         p -> waiter. release (1);
 	         break;
 	      }
@@ -619,33 +669,55 @@ uint32_t                ndev;
 	      case LNA_REQUEST: {
 	         lnaRequest *p = (lnaRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> set_lna (p -> lnaState);
-                 p -> waiter. release (1);
+	         p -> result = true;
+	         chParams -> tunerParams. gain. LNAstate =
+	                                          p -> lnaState;
+                 err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Tuner_Gr,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success) {
+                    fprintf (stderr, "grdb: error %s\n",
+                                      sdrplay_api_GetErrorString (err));
+	            p -> result = false;
+	         }
+	         p -> waiter. release (1);
 	         break;
 	      }
 
 	      case ANTENNASELECT_REQUEST: {
 	         antennaRequest *p = (antennaRequest *)(server_queue. front ());
 	         server_queue. pop ();
-	         p -> result = theRsp -> set_antenna (p -> antenna);
-                 p -> waiter. release (1);
-	         break;
-	      }
+	         p -> result = true;
+	         deviceParams    -> rxChannelA -> rsp2TunerParams. antennaSel =
+                                    p -> antenna == 'A' ?
+                                             sdrplay_api_Rsp2_ANTENNA_A:
+                                             sdrplay_api_Rsp2_ANTENNA_B;
+                 err = sdrplay_api_Update (chosenDevice -> dev,
+                                           chosenDevice -> tuner,
+                                           sdrplay_api_Update_Rsp2_AntennaControl,
+                                           sdrplay_api_Update_Ext1_None);
+                 if (err != sdrplay_api_Success)
+	            p -> result = false;
 
-	      case BIAS_T_REQUEST: {
-	         biasT_Request *p = (biasT_Request *)(server_queue. front ());
-	         server_queue. pop ();
-	         p -> result = theRsp -> set_biasT (p -> checked);
-                 p -> waiter. release (1);
+	         p -> waiter. release (1);
 	         break;
 	      }
 	
+	      case GAINVALUE_REQUEST: {
+	         gainvalueRequest *p = 
+	                        (gainvalueRequest *)(server_queue. front ());
+	         server_queue. pop ();
+	         p -> result = true;
+	         p -> gainValue = theGain;
+	         p -> waiter. release (1);
+	         break;
+	      }
+
 	      default:		// cannot happen
-	         fprintf (stderr, "Helemaal fout\n");
 	         break;
 	   }
 	}
-
 
 normal_exit:
 	err = sdrplay_api_Uninit	(chosenDevice -> dev);
@@ -672,7 +744,6 @@ normal_exit:
 unlockDevice_closeAPI:
 	sdrplay_api_UnlockDeviceApi	();
 closeAPI:	
-	failFlag. store (true);
 	sdrplay_api_ReleaseDevice       (chosenDevice);
         sdrplay_api_Close               ();
 	releaseLibrary	();
@@ -710,19 +781,11 @@ ULONG APIkeyValue_length = 255;
 	                    (LPDWORD)&APIkeyValue_length);
 //	Ok, make explicit it is in the 32/64 bits section
 	   wchar_t *x =
-#ifndef __BITS64__
 	        wcscat (APIkeyValue, (wchar_t *)L"\\x86\\sdrplay_api.dll");
-#else
-	        wcscat (APIkeyValue, (wchar_t *)L"\\x64\\sdrplay_api.dll");
-#endif
+//	        wcscat (APIkeyValue, (wchar_t *)L"\\x64\\sdrplay_api.dll");
 	   RegCloseKey(APIkey);
 
 	   Handle	= LoadLibrary (x);
-	   if (Handle == nullptr) {
-	      const wchar_t *y =
-	              L"C:\\Program Files\\SDRplay\\API\\x86\\sdrplay_api.dll";
-	      Handle	= LoadLibrary (y);
-	   }
 	   if (Handle == nullptr) {
 	      fprintf (stderr, "Failed to open sdrplay_api.dll\n");
 	      return nullptr;
@@ -855,5 +918,4 @@ bool	sdrplayHandler_v3::loadFunctions () {
 
 	return true;
 }
-
 
