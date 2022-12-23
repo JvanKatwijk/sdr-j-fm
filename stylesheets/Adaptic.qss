@@ -267,6 +267,13 @@ QComboBox:on
 }
 
 
+QComboBox:off
+{
+	background-color: #979796;
+	color: #505050;
+}
+
+
 QComboBox QAbstractItemView
 {
 	background-color: #c4c5c3;
