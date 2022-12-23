@@ -1067,7 +1067,12 @@ int32_t	vfo;
 
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor -> set_localOscillator (LOFrequency);
-	   myFMprocessor -> resetRds ();
+
+	   // redraw LF frequency and reset RDS only with bigger frequency steps, AFC will trigger this too, else
+	   if (std::abs(vfo + LOFrequency - currentFreq) >= KHz(100)) {
+	      myFMprocessor->resetRds();
+	      myFMprocessor->triggerDrawNewLfSpectrum(); // any change in frequency, draw new LF spectrum immediately without averaging
+	   }
 	}
 	Display (vfo + LOFrequency);
 	return vfo + LOFrequency;
