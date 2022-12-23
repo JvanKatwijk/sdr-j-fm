@@ -553,7 +553,7 @@
                     </palette>
                    </property>
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The uncompensated absolute DC level of the input signal in dBFS.&lt;/p&gt;&lt;p&gt;This works only with DCR enabled (-99.9 dBFS is shown else)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The uncompensated absolute DC level of the input signal in dBFS.&lt;/p&gt;&lt;p&gt;This works only correctly with DCR enabled&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
