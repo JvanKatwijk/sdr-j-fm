@@ -272,11 +272,13 @@ ULONG APIkeyValue_length = 255;
            denominator  = 2048;
         }
 
+	sdrplaySettings	-> beginGroup ("sdrplaySettings");
 	int val     = sdrplaySettings -> value ("biasT_selector", 0). toInt ();
         if (val != 0) {
            biasT_selector -> setChecked (true);
            biasT_selectorHandler (1);
         } 
+	sdrplaySettings	-> endGroup ();
 
         if (hwVersion == 2) {
            mir_sdr_ErrT err;
