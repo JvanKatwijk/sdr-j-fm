@@ -330,8 +330,6 @@ int     k;
 	         this, SLOT (set_freqSave ()));
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
 	         this,  SLOT (check_afc (int)));
-//	connect (cbAfc, &QAbstractButton::clicked,
-//	         this, [this](bool checked){ mAfcActive = checked; reset_afc(); } );
 
 	QString country	= 
 	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
@@ -2153,9 +2151,7 @@ void	RadioInterface::closeEvent (QCloseEvent *event) {
 }
 
 void	RadioInterface::check_afc	(int b) {
-	(void)b;
-	if (cbAfc	-> isChecked ()) 
-	   afcActive	= true;
+	afcActive	= b;
 	reset_afc ();
 }
 
