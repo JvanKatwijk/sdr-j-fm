@@ -25,12 +25,12 @@
 #include  <assert.h>
 
 fm_Demodulator::TDecoderListNames fm_Demodulator::sIdx2DecoderName = {
- "AM",
- "FM PLL Decoder",
- "FM Mixed Demod",
- "FM Complex Baseband Delay",
- "FM Real Baseband Delay",
- "FM Difference Based"
+	"AM",
+	"FM PLL Decoder",
+	"FM Mixed Demod",
+	"FM Complex Baseband Delay",
+	"FM Real Baseband Delay",
+	"FM Difference Based"
 };
 
 //	Just to play around a little, I implemented 5 common
@@ -38,28 +38,27 @@ fm_Demodulator::TDecoderListNames fm_Demodulator::sIdx2DecoderName = {
 //	a Diploma Thesis "Implementation of FM demodulator Algorithms
 //	on a High Performance Digital Signal Processor", especially
 //	chapter 3.
-fm_Demodulator::fm_Demodulator (int32_t rateIn,
-                                SinCos  *mySinCos,
-                                DSPFLOAT K_FM) {
+		fm_Demodulator::fm_Demodulator (int32_t rateIn,
+	                                        SinCos  *mySinCos,
+	                                        DSPFLOAT K_FM) {
 int32_t i;
 
-	this	-> rateIn	= rateIn;
-	this	-> mySinCos	= mySinCos;
-	this	-> K_FM		= 2 * K_FM;
+	this	-> rateIn		= rateIn;
+	this	-> mySinCos		= mySinCos;
+	this	-> K_FM			= 2 * K_FM;
 
-	this	-> selectedDecoder = 3;
-	this	-> max_freq_deviation =
-	                          0.95 * (0.5 * rateIn);
+	this	-> selectedDecoder 	= 3;
+	this	-> max_freq_deviation	= 0.95 * (0.5 * rateIn);
 	myfm_pll	= new pllC (rateIn,
 	                            0,
 	                            -max_freq_deviation,
 	                            +max_freq_deviation,
 	                            0.85 * rateIn,
 	                            mySinCos);
-	ArcSineSize		= 4 * 8192;
-	Arcsine			= new DSPFLOAT [ArcSineSize + 1];
-	for (i = 0; i <= ArcSineSize; i ++)
-	   Arcsine [i] = asin (2.0 * i / ArcSineSize - 1.0) / 2.0;
+	arcSineSize			= 4 * 8192;
+	Arcsine. resize (arcSineSize + 1);
+	for (i = 0; i <= arcSineSize; i ++)
+	   Arcsine [i] = asin (2.0 * i / arcSineSize - 1.0) / 2.0;
 
 	Imin1			= 0.2;
 	Qmin1			= 0.2;
@@ -68,12 +67,10 @@ int32_t i;
 	fm_afc			= 0;
 	fm_cvt			= 1.0;
 //	fm_cvt		= 0.50 * (rateIn / (M_PI * 150000));
-
 	am_carr_ampl		= 0;
 }
 
 		fm_Demodulator::~fm_Demodulator() {
-	delete  Arcsine;
 	delete  myfm_pll;
 }
 
@@ -82,7 +79,7 @@ void	fm_Demodulator::setDecoder (const QString &decoder) {
 
 	for (const auto & dc : listNameofDecoder ()) {
 	   this -> selectedDecoder ++;
-           if (decoder == dc)
+	   if (decoder == dc)
 	      break;
 	}
 }
@@ -163,11 +160,11 @@ int32_t arcSineIdx;
 
 	   case 4: // RealBasebandDelay
 	      res = (Imin1 * Q - Qmin1 * I + 1) / 2.0;
-	      index	= (int)floor (res * ArcSineSize);
+	      index	= (int)floor (res * arcSineSize);
 	      if (index < 0)
 	         index = 0;
-	      if (index >= ArcSineSize)
-	         index = ArcSineSize;
+	      if (index >= arcSineSize)
+	         index = arcSineSize;
 	      res	= Arcsine [index];
 	      break;
 

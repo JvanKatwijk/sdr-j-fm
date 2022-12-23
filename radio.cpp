@@ -100,7 +100,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
  */
 	RadioInterface::RadioInterface (QSettings *Si,
 	                                QString saveName,
-                                        int32_t outputRate,
+	                                int32_t outputRate,
 	                                QWidget *parent):
 	                                        QDialog (parent),
 	                                        iqBuffer (IQ_SCOPE_SIZE) {
@@ -113,7 +113,7 @@ int     k;
 	fmSettings		= Si;
 
 	runMode. store (ERunStates::IDLE);
-        squelchMode		= false;
+	squelchMode		= false;
 //
 //	Added: cannot compile on Ubuntu 16
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
@@ -353,7 +353,7 @@ int     k;
 	   starter -> setSingleShot (true);
 	   starter -> setInterval (500);
 	   connect (starter, SIGNAL (timeout()), 
-                    this, SLOT (quickStart ()));
+	            this, SLOT (quickStart ()));
 	   starter -> start (500);
 	}
 	else {
@@ -891,7 +891,7 @@ void	RadioInterface::make_newProcessor () {
 	                                 workingRate,
 	                                 this -> audioRate,
 	                                 displaySize,
-                                         spectrumSize,
+	                                 spectrumSize,
 	                                 averageCount,
 	                                 repeatRate,
 	                                 ptyLocale,
@@ -907,7 +907,7 @@ void	RadioInterface::make_newProcessor () {
 
 	setAttenuation		(1);
 	setfmBandwidth		(fmFilterSelect		-> currentText ());
-	setfmBandwidth		(fmFilterDegree		-> value ());
+//	setfmBandwidth		(fmFilterDegree		-> value ());
 	setfmMode		(fmMode			-> currentText ());
 	setfmRdsSelector	(fmRdsSelector 		-> currentText ());
 //	setfmDecoder		(fmDecoder		-> currentText ());
@@ -1320,30 +1320,30 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (set_squelchValue (int)));
 
 	connect (IQbalanceSlider, SIGNAL (valueChanged (int) ),
-                      this, SLOT (setIQBalance (int) ));
+	              this, SLOT (setIQBalance (int) ));
 
 	connect (fc_plus, SIGNAL (clicked ()),
-                      this, SLOT (autoIncrementButton ()));
-        connect (fc_minus, SIGNAL (clicked ()),
-                      this, SLOT (autoDecrementButton ()));
-        connect (f_plus, SIGNAL (clicked ()),
-                      this, SLOT (IncrementButton ()));
-        connect (f_minus, SIGNAL (clicked ()),
-                      this, SLOT (DecrementButton ()));
+	              this, SLOT (autoIncrementButton ()));
+	connect (fc_minus, SIGNAL (clicked ()),
+	              this, SLOT (autoDecrementButton ()));
+	connect (f_plus, SIGNAL (clicked ()),
+	              this, SLOT (IncrementButton ()));
+	connect (f_minus, SIGNAL (clicked ()),
+	              this, SLOT (DecrementButton ()));
 //
 //	fm specific buttons and sliders
 	connect (fmChannelSelect, SIGNAL (activated (const QString &)),
-	               this, SLOT (setfmChannelSelector (const QString &)));
+	         this, SLOT (setfmChannelSelector (const QString &)));
 	connect (logging, SIGNAL (activated (const QString &)),
-	              this, SLOT (setLogging (const QString &)));
+	         this, SLOT (setLogging (const QString &)));
 	connect (logSaving, SIGNAL (clicked ()),
-	              this, SLOT (setLogsaving ()));
+	         this, SLOT (setLogsaving ()));
 	connect (fmFilterSelect, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmBandwidth (const QString &)));
-	connect (fmFilterDegree, SIGNAL (valueChanged (int)),
-	         this, SLOT (setfmBandwidth (int)));
+//	connect (fmFilterDegree, SIGNAL (valueChanged (int)),
+//	         this, SLOT (setfmBandwidth (int)));
 	connect (fmMode, SIGNAL (activated (const QString &)),
-	               this, SLOT (setfmMode (const QString &)));
+	         this, SLOT (setfmMode (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmRdsSelector (const QString &)));
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
@@ -1598,13 +1598,14 @@ void	RadioInterface::setfmBandwidth (const QString &s) {
 	   return;
 
 	myFMprocessor -> setBandwidth (s);
+	fmSettings	-> setValue ("fmFilterSelect", s);
 }
 
-void	RadioInterface::setfmBandwidth	(int32_t b) {
-	if (myFMprocessor != nullptr)
-	   myFMprocessor	-> setBandfilterDegree (b);
-}
-
+//void	RadioInterface::setfmBandwidth	(int32_t b) {
+//	if (myFMprocessor != nullptr)
+//	   myFMprocessor	-> setBandfilterDegree (b);
+//}
+//
 void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	                               const float iPeakRight) {
 	auto peak_avr = [](float iPeak, float & ioPeakAvr) -> void {
@@ -1682,7 +1683,7 @@ bool triggerLog = false;
 
 	   if (triggerLog) {
 	      fprintf (stderr, "AFC:  DC %f, NewFreq %d = CurrFreq %d + AfcOffFreq %d (unfiltered %d), AFC_Alpha %f\n",
-                               ifDemodDcComponent, newFreq,
+	                       ifDemodDcComponent, newFreq,
 	                       currentFreq, afcCurrOffFreq,
 	                       afcOffFreq, afcAlpha);
 	   }
@@ -2137,10 +2138,10 @@ void	RadioInterface::reset_afc () {
 #include <QCloseEvent>
 void	RadioInterface::closeEvent (QCloseEvent *event) {
 	QMessageBox::StandardButton resultButton =
-                QMessageBox::question (this, "fmRadio",
-                                       tr("Are you sure?\n"),
-                                       QMessageBox::No | QMessageBox::Yes,
-                                                       QMessageBox::Yes);
+	        QMessageBox::question (this, "fmRadio",
+	                               tr("Are you sure?\n"),
+	                               QMessageBox::No | QMessageBox::Yes,
+	                                               QMessageBox::Yes);
 
 	if (resultButton != QMessageBox::Yes) {
 	   event -> ignore ();

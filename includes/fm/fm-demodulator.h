@@ -48,8 +48,8 @@ private:
 	DSPFLOAT        K_FM;
 	pllC		*myfm_pll;
 	SinCos          *mySinCos;
-        int32_t         ArcSineSize;
-	DSPFLOAT	*Arcsine;
+	int32_t		arcSineSize;
+	std::vector<DSPFLOAT>	Arcsine;
 	compAtan	myAtan;
 	DSPFLOAT	Imin1;
 	DSPFLOAT	Qmin1;

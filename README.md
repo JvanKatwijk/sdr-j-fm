@@ -13,12 +13,24 @@ The version number is now 3.0
 The most recent version has an additional button to set the program type
 labels correct for the area, one might select "Europe"  or "USA".
 
+The filtering, i.e. separation between transmissions close to each other
+in frequency, or even with (slightly) overlapping frequencies,
+is improved.
+The filter is pretty strong, but that also means that the filter requires
+some serious cpu use.
+
+If the filter is switched "Off", it is excluded from the processing chain.
+
+
 As usual, next to the sources, an AppImage (for Linux x64) and a Windows
 installer are available in the releases section.
 
 Supported devices are sdrplay, hackrf, adalm pluto, line and the good 
 old dabstick. Note that on Windows, if you ahve installed a library 3.11
 for SDRplay devices, the "old" 2.13 library will not be accessible.
+
+Note that in the most  recent versions the biasT selectors seem to
+work.
 
 You can choose  one of two "skin"s using a command line parameter
 Choose -A for the one, and -B for the other skin. Of course the setting

@@ -41,21 +41,21 @@
 //	full speed
 	fmProcessor::fmProcessor (deviceHandler *vi,
 	                          RadioInterface *RI,
-                                  audioSink *mySink,
+	                          audioSink *mySink,
 	                          int32_t inputRate,
 	                          int32_t fmRate,
-                                  int32_t workingRate,
+	                          int32_t workingRate,
 	                          int32_t audioRate,
-                                  int32_t displaySize,
+	                          int32_t displaySize,
 	                          int32_t spectrumSize,
-                                  int32_t averageCount,
+	                          int32_t averageCount,
 	                          int32_t repeatRate,
 	                          int	ptyLocale,
-                                  RingBuffer<double> *hfBuffer,
-                                  RingBuffer<double> *lfBuffer,
-                                  RingBuffer<DSPCOMPLEX> *iqBuffer,
-                                  int16_t filterDepth,
-                                  int16_t thresHold):
+	                          RingBuffer<double> *hfBuffer,
+	                          RingBuffer<double> *lfBuffer,
+	                          RingBuffer<DSPCOMPLEX> *iqBuffer,
+	                          int16_t filterDepth,
+	                          int16_t thresHold):
 	                             myRdsDecoder (RI, RDS_RATE),
 	                             localOscillator (inputRate),
 	                             rdsOscillator (fmRate),
@@ -63,11 +63,11 @@
 	                             audioDecimator (fmRate,
 	                                             workingRate,
 	                                             fmRate / 1000),
-	                             fmBand_1    ( 4 * inputRate / IRate + 1,
+	                             fmBand_1     (4 * inputRate / IRate + 1,
 	                                           fmRate / 2,
 	                                           inputRate,
 	                                           inputRate / IRate),
-	                             fmBand_2    ( IRate / fmRate + 1,
+	                             fmBand_2     (IRate / fmRate + 1,
 	                                           fmRate / 2,
 	                                           IRate,
 	                                           IRate / fmRate),
@@ -136,11 +136,11 @@
 	this	-> spectrum_fft_lf	= new common_fft (spectrumSize);
 	this	-> spectrumBuffer_lf. set_data_ptr (this -> spectrum_fft_lf->getVector (), spectrumSize);
 
-	this	-> loFrequency      = 0;
-	this	-> omegaDemod       = 2 * M_PI / fmRate;
-	this	-> fmBandwidth      = 0.95 * fmRate;
-	this	-> fmFilterOn		= true;
+	this	-> loFrequency		= 0;
+	this	-> omegaDemod		= 2 * M_PI / fmRate;
+	this	-> fmBandwidth		= 0.95 * fmRate;
 	fmFilter. setLowPass (0.95 * fmRate / 2, 2 * fmRate);
+	this	-> fmFilterOn		= true;
 	this	-> newFilter. store (false);
   /*
    *	default values, will be set through the user interface
@@ -159,23 +159,14 @@
 	this	-> audioOut	=
 	              new DSPCOMPLEX [audioDecimator. getOutputsize ()];
 
-	this	-> maxFreqDeviation  = 0.95 * (0.5 * fmRate);
-	this	-> normFreqDeviation = 0.6 * maxFreqDeviation;
+	this	-> maxFreqDeviation	= 0.95 * (0.5 * fmRate);
+	this	-> normFreqDeviation	= 0.6 * maxFreqDeviation;
 
 #ifdef USE_EXTRACT_LEVELS
-	this	-> noiseLevel = 0;
-	this	-> pilotLevel = 0;
-	this	-> rdsLevel   = 0;
+	this	-> noiseLevel 		= 0;
+	this	-> pilotLevel 		= 0;
+	this	-> rdsLevel		= 0;
 #endif
-
-//	Since data is coming with a pretty high rate, we need to filter
-//	and decimate in an efficient way. We have an optimized
-//	decimating filter (optimized or not, it takes quite some
-//	cycles when entering with high rates)
-//	fmBandfilter = new DecimatingFIR (15 * decimatingScale,
-//	                                  fmRate / 2,
-//	                                  inputRate,
-//	                                  decimatingScale);
 
 //	to isolate the pilot signal, we need a reasonable
 //	filter. The filtered signal is beautified by a pll
@@ -310,20 +301,20 @@ fm_Demodulator::TDecoderListNames & fmProcessor::listNameofDecoder() {
 //	changing a filter is in two steps: here we set a marker,
 //	but the actual filter is created in the mainloop of
 //	the processor
+//
 void	fmProcessor::setBandwidth (const QString &f) {
 	if (f == "Off")
 	   fmFilterOn = false;
 	else {
 	   fmBandwidth = Khz (std::stol (f.toStdString ()));
-	   fprintf (stderr, "fmBandwidth %d\n", fmBandwidth);
 	   newFilter. store (true);
 	}
 }
 
-void	fmProcessor::setBandfilterDegree (int32_t d) {
-	fmFilterDegree = d;
-	newFilter. store (false);
-}
+//void	fmProcessor::setBandfilterDegree (int32_t d) {
+//	fmFilterDegree = d;
+//	newFilter. store (false);
+//}
 
 void	fmProcessor::setfmMode (FM_Mode m) {
 	fmModus = m;
@@ -600,7 +591,7 @@ const float rfDcAlpha = 1.0f / inputRate;
 	      if (scanning) {
 	         scanBuffer [scanPointer++] = v;
 
-                 if (scanPointer >= 1024) {
+	         if (scanPointer >= 1024) {
 	            scanPointer = 0;
 	            scan_fft -> do_FFT ();
 	            float signal	= getSignal (scanBuffer, 1024);

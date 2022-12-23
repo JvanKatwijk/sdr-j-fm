@@ -196,7 +196,7 @@ CONFIG		+= elad_s1
 CONFIG		+= hackrf
 CONFIG		+= lime
 CONFIG		+= pluto
-CONFIG		+= colibri
+#CONFIG		+= colibri
 INCLUDEPATH 	+= /usr/include/qt5/qwt
 #for ubuntu the first line
 #LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl

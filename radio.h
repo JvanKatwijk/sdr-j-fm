@@ -213,7 +213,7 @@ private slots:
 	void	set_audioDump		();
 
 	void	setfmBandwidth		(const QString &);
-	void	setfmBandwidth		(int);
+//	void	setfmBandwidth		(int);
 	void	setfmMode		(const QString &);
 	void	setfmRdsSelector	(const QString &);
 	void	setfmDecoder		(const QString &);

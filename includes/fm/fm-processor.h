@@ -152,7 +152,6 @@ public:
 	void		startDumping		(SNDFILE *);
 	void		stopDumping		();
 	void		setBandwidth		(const QString &);
-	void		setBandfilterDegree	(int32_t);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
 	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
 	void		resetRds		();
