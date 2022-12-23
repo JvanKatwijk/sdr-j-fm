@@ -178,7 +178,7 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE) * OMEGA_PILOT;
+	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE / 2 - 1) * OMEGA_PILOT;
 	fmAudioFilterActive . store (false);
 
 	rdsDecimator = new newConverter (fmRate, RDS_RATE, fmRate / 1000);
@@ -785,7 +785,7 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
 //	Due to filtering the real amplitude of the LRDiff might have
 //	to be adjusted, we guess
-	   DSPFLOAT LRDiff = 2.0 * mySinCos. getCos (PhaseforLRDiff) * demod;
+	   DSPFLOAT LRDiff = 2.0 * mySinCos. getSin (PhaseforLRDiff) * demod;
 	   DSPFLOAT LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
