@@ -178,7 +178,7 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE - 1) * OMEGA_PILOT;
+	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE / 2 - 1) * OMEGA_PILOT;
 	fmAudioFilterActive . store (false);
 
 	rdsDecimator = new newConverter (fmRate, RDS_RATE, fmRate / 1000);
@@ -788,7 +788,7 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	if (fmModus != FM_Mode::Mono &&
 	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT PhaseforLRDiff = currentPilotPhase + pilotDelay;
+	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
 //	Due to filtering the real amplitude of the LRDiff might have
 //	to be adjusted, we guess
 	   DSPFLOAT LRDiff = 2.0 * mySinCos. getSin (PhaseforLRDiff) * demod;
