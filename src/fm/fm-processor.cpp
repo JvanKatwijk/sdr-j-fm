@@ -178,7 +178,7 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE / 2 - 1) * OMEGA_PILOT;
+	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE - 1) * OMEGA_PILOT;
 	fmAudioFilterActive . store (false);
 
 	rdsDecimator = new newConverter (fmRate, RDS_RATE, fmRate / 1000);
@@ -505,7 +505,7 @@ const float rfDcAlpha = 1.0f / inputRate;
 	         RfDC = (dataBuffer[i] - RfDC) * rfDcAlpha + RfDC;
 
 //	limit the maximum DC correction because an AM
-//	carrier at exactly 0Hz could has been suppressed, too
+//	carrier at exactly 0 Hz could have been suppressed, too
 	         constexpr DSPFLOAT DCRlimit = 0.01f;
 	         DSPFLOAT rfDcReal = real (RfDC);
 	         DSPFLOAT rfDcImag = imag (RfDC);
@@ -561,8 +561,8 @@ const float rfDcAlpha = 1.0f / inputRate;
 	      float dumpBuffer [2 * amount];
 
 	      for (int32_t i = 0; i < amount; i++) {
-	         dumpBuffer [2 * i]	= real(dataBuffer[i]);
-	         dumpBuffer [2 * i + 1] = imag(dataBuffer[i]);
+	         dumpBuffer [2 * i]	= real (dataBuffer [i]);
+	         dumpBuffer [2 * i + 1] = imag (dataBuffer [i]);
 	      }
 	      sf_writef_float (dumpFile, dumpBuffer, amount);
 	   }
@@ -588,6 +588,8 @@ const float rfDcAlpha = 1.0f / inputRate;
 	      }
 
 //	   second step: if we are scanning, do the scan
+//	   Samplerate here is fmRate
+//
 	      if (scanning) {
 	         scanBuffer [scanPointer++] = v;
 
@@ -596,7 +598,6 @@ const float rfDcAlpha = 1.0f / inputRate;
 	            scan_fft -> do_FFT ();
 	            float signal	= getSignal (scanBuffer, 1024);
 	            float Noise		= getNoise (scanBuffer, 1024);
-
 	            if (get_db (signal, 256) - get_db (Noise, 256) > thresHold) {
 	               fprintf (stderr, "signal found %f %f\n",
 	                              get_db (signal, 256), get_db (Noise, 256));
@@ -612,10 +613,12 @@ const float rfDcAlpha = 1.0f / inputRate;
 	         case ESqMode::NSQ:
 	            demod = mySquelch -> do_noise_squelch (demod);
 	            break;
+
 	         case ESqMode::LSQ:
 	            demod = mySquelch -> do_level_squelch (demod,
 	                                    theDemodulator -> get_carrier_ampl());
 	            break;
+
 	         default:;
 	      }
 
@@ -680,12 +683,14 @@ const float rfDcAlpha = 1.0f / inputRate;
 	                  case ELfPlot::RDS_INPUT:
 	                     spectrumBuffer_lf = pcmSample;
 	                     break;
+
 	                  case ELfPlot::RDS_DEMOD:
-	                     spectrumBuffer_lf = magCplx; break;
+	                     spectrumBuffer_lf = magCplx;
+	                     break;
+
 	                  default:;
 	               }
 	            }
-
 	         }
 	      }
 	      else {
@@ -741,7 +746,8 @@ const float rfDcAlpha = 1.0f / inputRate;
 	      audio = audioGainCorrection (audio);
 
 	      int32_t audioAmount;
-	      if (audioDecimator. convert (audio, audioOut, &audioAmount)) {
+	      if (audioDecimator.
+	              convert (audio, audioOut, &audioAmount)) {
 //	   here the sample rate is "workingRate" (typ. 48000Ss)
 	         for (int32_t k = 0; k < audioAmount; k++) {
 	            DSPCOMPLEX pcmSample = audioOut [k];
@@ -782,7 +788,7 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	if (fmModus != FM_Mode::Mono &&
 	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
+	   DSPFLOAT PhaseforLRDiff = currentPilotPhase + pilotDelay;
 //	Due to filtering the real amplitude of the LRDiff might have
 //	to be adjusted, we guess
 	   DSPFLOAT LRDiff = 2.0 * mySinCos. getSin (PhaseforLRDiff) * demod;
@@ -814,7 +820,7 @@ void	fmProcessor::setlfcutoff (int32_t Hz) {
 	}
 	else {
 	   fmAudioFilterActive . store (false);
-	   fprintf (stderr, "audiofilter switched off\n");
+//	   fprintf (stderr, "audiofilter switched off\n");
 	};
 }
 
