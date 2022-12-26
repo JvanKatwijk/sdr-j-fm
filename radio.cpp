@@ -78,6 +78,8 @@
 #define	D_SDRPLAY_V3	"sdrplay-v3"
 #define	D_RTL_TCP	"rtl_tcp"
 #define	D_HACKRF	"hackrf"
+#define	D_LIME		"lime"
+#define	D_AIRSPY	"airspy"
 #define	D_RTLSDR	"rtlsdr"
 #define	D_PLUTO		"pluto"
 #define	D_EXTIO		"extio"
@@ -89,17 +91,23 @@ const char *deviceTable [] = {
 #ifdef	HAVE_SDRPLAY_V3
 	D_SDRPLAY_V3,
 #endif
+#ifdef	HAVE_PLUTO
+	D_PLUTO,
+#endif
+#ifdef	HAVE_AIRSPY
+	D_AIRSPY,
+#endif
 #ifdef	HAVE_HACKRF
 	D_HACKRF,
 #endif
-#ifdef	HAVE_RTLSDR
+#ifdef	HAVE_LIME
+	D_LIME,
+#endif
+#ifdef	HAVE_DABSTICK
 	D_RTLSDR,
 #endif
 #ifdef	HAVE_RTL_TCP
 	D_RTL_TCP,
-#endif
-#ifdef	HAVE_PLUTO
-	D_PLUTO,
 #endif
 	nullptr
 };
