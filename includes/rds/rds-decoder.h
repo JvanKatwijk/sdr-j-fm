@@ -37,10 +37,11 @@
 
 /* massively adapted by tomneda https://github.com/tomneda */
 
-#ifndef __RDS_DECODER
-#define __RDS_DECODER
+#ifndef __RDS_DECODER_H
+#define __RDS_DECODER_H
 
 #include	<QObject>
+#include	<vector>
 #include	"fm-constants.h"
 #include	"rds-group.h"
 #include	"rds-blocksynchronizer.h"
@@ -87,7 +88,7 @@ private:
 	rdsGroupDecoder		*my_rdsGroupDecoder;
 
 	std::vector<DSPFLOAT>	my_matchedFltKernelVec;
-	DSPCOMPLEX		*my_matchedFltBuf;
+	std::vector<DSPCOMPLEX> my_matchedFltBuf;
 	int16_t			my_matchedFltBufIdx;
 	int16_t			my_matchedFltBufSize;
 
@@ -96,7 +97,7 @@ private:
 	bool			previousBit;
 	int			symbolCeiling;
 	int			symbolFloor;
-        std::complex<float>	*syncBuffer;
+        std::vector<std::complex<float>> syncBuffer;
 	bool			prevBit;
 	DSPFLOAT		bitIntegrator;
 	DSPFLOAT		bitClkPhase;
@@ -108,7 +109,7 @@ private:
 	DSPFLOAT		doMatchFiltering	(DSPFLOAT);
 	DSPCOMPLEX		doMatchFiltering	(DSPCOMPLEX);
 
-	void			synchronizeOnBitClk     (DSPCOMPLEX *, int16_t);
+	void			synchronizeOnBitClk	(std::vector<DSPCOMPLEX>, int16_t);
 
 
 signals:

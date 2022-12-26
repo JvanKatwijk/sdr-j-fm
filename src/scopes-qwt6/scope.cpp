@@ -263,7 +263,7 @@ uint16_t	i;
 	   QwtText MarkerLabel_1  =  QwtText ("Max: " + QString::number (max));
 	   QwtText MarkerLabel_2  =  QwtText ("Avg: " +QString::number (avg));
 	   QFont font1 ("Courier New");
-	   font1.	setPixelSize (30);;
+	   font1.	setPixelSize (15);
 	   MarkerLabel_1.    setFont (font1);
 	   MarkerLabel_1.    setColor (Qt::green);
 	   MarkerLabel_1. setRenderFlags (Qt::AlignLeft | Qt::AlignTop);

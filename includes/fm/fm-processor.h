@@ -50,7 +50,7 @@ class newConverter;
 template<typename T> class DelayLine {
 public:
 		DelayLine (const T & iDefault) : mDefault (iDefault) {
-	   set_delay_steps(0); // reserve memory for at least one sample
+	   set_delay_steps (0); // reserve memory for at least one sample
 	}
 
 	void	set_delay_steps (const uint32_t iSteps) {
@@ -70,42 +70,6 @@ private:
 	T mDefault;
 };
 
-
-template<class T> class DataBufferCtrl {
-public:
-	DataBufferCtrl () = default;
-
-	void set_data_ptr (T * const ipData, const int32_t iDataSize) {
-	   mpData = ipData;
-	   DataSize = iDataSize;
-	   clear_content();
-	}
-
-	~DataBufferCtrl() = default;
-
-	void operator = (const T & rhs) {
-	   if (CurIdx < DataSize) {
-	      mpData [CurIdx] = rhs;
-	      CurIdx ++;
-	   }
-	}
-
-	T * get_ptr	() const { return mpData; }
-	bool is_full	() const { return (CurIdx >= DataSize); }
-	void reset_write_pointer () { CurIdx = 0; }
-
-	void clear_content () {
-	   for (int32_t idx = 0; idx < DataSize; ++idx) {
-	      mpData [idx] = T();
-	   }
-	   CurIdx = 0;
-	}
-
-private:
-	T * mpData	= nullptr;
-	int32_t DataSize;
-	int32_t CurIdx = 0;
-};
 
 
 class fmProcessor : public QThread {
@@ -136,7 +100,6 @@ public:
 	              RingBuffer<double> *,     // HFScope
 	              RingBuffer<double> *,     // LFScope
 	              RingBuffer<DSPCOMPLEX> *, // IQScope
-	              int16_t,                  // filterDepth
 	              int16_t);                 // threshold scanning
 		~fmProcessor ();
 
@@ -189,7 +152,7 @@ private:
 	                                         double * const, int32_t &);
 	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
 	                                         double * const, int32_t &);
-	void		processLfSpectrum	();
+	void		processLfSpectrum	(std::vector<std::complex<float>> &);
 	void		fill_average_buffer	(const double * const,
 	                                             double * const);
 	void		add_to_average		(const double * const,
@@ -212,11 +175,10 @@ private:
 	Oscillator	localOscillator;
 	Oscillator	rdsOscillator;
 	SinCos		mySinCos;
-	newConverter	audioDecimator;
 	DecimatingFIR	fmBand_1;
 	DecimatingFIR	fmBand_2;
 	fftFilter	fmFilter;
-	bool		fmFilterOn;
+	std::atomic<bool>	fmFilterOn;
 	fftFilter	fmAudioFilter;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
@@ -237,7 +199,6 @@ private:
 	RingBuffer<double> *hfBuffer;
 	RingBuffer<double> *lfBuffer;
 	RingBuffer<DSPCOMPLEX> *iqBuffer;
-	int16_t		filterDepth;
 	uint8_t		inputMode;
 	bool		scanning;
 	int16_t		thresHold;
@@ -248,8 +209,8 @@ private:
 	common_fft	*spectrum_fft_hf;
 	common_fft	*spectrum_fft_lf;
 	DSPCOMPLEX	*spectrumBuffer_hf;
-	DataBufferCtrl<DSPCOMPLEX> spectrumBuffer_lf;
-
+//	DataBufferCtrl<DSPCOMPLEX> spectrumBuffer_lf;
+	std::vector<std::complex<float>> spectrumBuffer_lf;
 	double		*displayBuffer_lf;
 	newConverter	*theConverter;
 	int32_t		loFrequency;
@@ -275,8 +236,6 @@ private:
 	DSPFLOAT	absPeakLeft;
 	DSPFLOAT	absPeakRight;
 
-	DSPCOMPLEX	*audioOut;
-
 	struct TestTone {
 	   bool		Enabled		= false;
 	   float	TimePeriod	= 2.0f;
@@ -287,12 +246,11 @@ private:
 	   float	PhaseIncr	= 0.0f;
 	} testTone {};
 
-	DelayLine<DSPCOMPLEX> delayLine {DSPCOMPLEX (-40.0f, -40.0f)};
+	DelayLine<DSPCOMPLEX> delayLine {std::complex<float> (-40.0f, -40.0f)};
 
-	void	process_stereo_or_mono_with_rds (const float,
-	                                         DSPCOMPLEX *,
-	                                         DSPFLOAT *,
-	                                         DSPCOMPLEX * rdsValueCmpl);
+	void	process_signal_with_rds (const float,
+	                                 std::complex<float> *,
+	                                 std::complex<float> *);
 //	RDS
 
 	fftFilter	*pilotBandFilter;
@@ -301,8 +259,7 @@ private:
 	fftFilterHilbert *rdsHilbertFilter;
 	uint32_t	rdsSampleCntSrc;
 	uint32_t	rdsSampleCntDst;
-	newConverter	*rdsDecimator;
-	DSPCOMPLEX	*rdsOut;
+//	newConverter	*rdsDecimator;
 	DSPFLOAT	pilotDelay;
 	DSPCOMPLEX	audioGainCorrection (DSPCOMPLEX);
 //
@@ -321,7 +278,7 @@ private:
 	DSPFLOAT	leftChannel;    // -(balance - 50.0) / 100.0;;
 	DSPFLOAT	rightChannel;   // (balance + 50.0) / 100.0;;
 	FM_Mode		fmModus;
-	uint8_t		Selector;
+	uint8_t		soundSelector;
 	fm_Demodulator	*theDemodulator;
 	rdsDecoder::ERdsMode rdsModus;
 

@@ -43,16 +43,16 @@ public:
 	                           int16_t);  // repeat frequency
 			~fft_scope	();
 
-	void		addElement	(DSPCOMPLEX);
-	void		addElement	(DSPCOMPLEX, int16_t);
-	void		addElements	(DSPCOMPLEX *, int16_t);
+	void		addElement		(DSPCOMPLEX);
+	void		addElement		(DSPCOMPLEX, int16_t);
+	void		addElements		(DSPCOMPLEX *, int16_t);
 	void		addElementsandShow	(DSPCOMPLEX *, int16_t);
 	void		setAmplification	(int16_t);
 	void		setZero			(int64_t);
 	void		setZoompoint		(int32_t);
-	void		resetZoompoint		(void);
+	void		resetZoompoint		();
 	void		setNeedle		(int32_t);
-	void		clearAverage		(void);
+	void		clearAverage		();
 	void		SelectView		(int8_t);
 	void		setAverager		(bool);
 	void		setSamplerate		(int32_t);
@@ -61,7 +61,7 @@ private:
 	void		mapSpectrumtoDisplay	(int16_t, int32_t);
 	int64_t		frequencyFor		(int64_t);
 	int32_t		indexOf			(int64_t);
-	void		doAverage		(void);
+	void		doAverage		();
 	double		*dummyBuffer;
 	int32_t		dummyCount;
 

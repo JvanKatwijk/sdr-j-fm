@@ -65,7 +65,6 @@ int	band	= bankFor_rsp1A (freq);
 bool	Rsp1A_handler::restart (int freq) {
 sdrplay_api_ErrT        err;
 
-	fprintf (stderr, "trying to restart at %d\n", freq);
 	chParams -> tunerParams. rfFreq. rfHz = (float)freq;
 	err =parent ->  sdrplay_api_Update (chosenDevice -> dev,
 	                                    chosenDevice -> tuner,

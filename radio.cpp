@@ -40,9 +40,6 @@
 
 #include	"device-handler.h"
 #include	"filereader.h"
-#ifdef HAVE_PMSDR
-#include	"pmsdr.h"
-#endif
 #ifdef HAVE_SDRPLAY
 #include	"sdrplay-handler.h"
 #endif
@@ -64,9 +61,6 @@
 #ifdef HAVE_LIME
 #include	"lime-handler.h"
 #endif
-#ifdef HAVE_COLIBRI
-#include	"colibri-handler.h"
-#endif
 #ifdef HAVE_PLUTO
 #include	"pluto-handler.h"
 #endif
@@ -78,7 +72,39 @@
 #include	<windows.h>
 #endif
 
-static int startknop;
+#include	"deviceselect.h"
+
+#define	D_SDRPLAY	"sdrplay"
+#define	D_SDRPLAY_V3	"sdrplay-v3"
+#define	D_RTL_TCP	"rtl_tcp"
+#define	D_HACKRF	"hackrf"
+#define	D_RTLSDR	"rtlsdr"
+#define	D_PLUTO		"pluto"
+#define	D_EXTIO		"extio"
+static 
+const char *deviceTable [] = {
+#ifdef	HAVE_SDRPLAY
+	D_SDRPLAY,
+#endif
+#ifdef	HAVE_SDRPLAY_V3
+	D_SDRPLAY_V3,
+#endif
+#ifdef	HAVE_HACKRF
+	D_HACKRF,
+#endif
+#ifdef	HAVE_RTLSDR
+	D_RTLSDR,
+#endif
+#ifdef	HAVE_RTL_TCP
+	D_RTL_TCP,
+#endif
+#ifdef	HAVE_PLUTO
+	D_PLUTO,
+#endif
+	nullptr
+};
+
+static int startKnop;
 static	QTimer	*starter;
 static
 // int16_t	delayTable [] = {15, 13, 11, 10, 9, 8, 7, 5, 3, 2, 1};
@@ -167,43 +193,9 @@ int     k;
 //
 	this		-> workingRate = 48000;
 
-#ifdef HAVE_PMSDR
-	deviceSelector	-> addItem ("pmsdr");
-#endif
-#ifdef HAVE_EXTIO
-	deviceSelector	-> addItem ("extio");
-#endif
-#ifdef HAVE_SDRPLAY
-	deviceSelector	-> addItem ("sdrplay");
-#endif
-#ifdef HAVE_SDRPLAY_V3
-	deviceSelector	-> addItem ("sdrplay-v3");
-#endif
-#ifdef HAVE_DABSTICK
-	deviceSelector	-> addItem ("dabstick");
-#endif
-#ifdef HAVE_AIRSPY
-	deviceSelector	-> addItem ("airspy");
-#endif
-#ifdef HAVE_HACKRF
-	deviceSelector	-> addItem ("hackrf");
-#endif
-#ifdef HAVE_LIME
-	deviceSelector	-> addItem ("lime");
-#endif
-#ifdef HAVE_COLIBRI
-	deviceSelector	-> addItem ("colibri");
-#endif
-#ifdef HAVE_PLUTO
-	deviceSelector	-> addItem ("pluto");
-#endif
-#ifdef HAVE_ELAD_S1
-	deviceSelector	-> addItem ("elad-s1");
-#endif
-
-	myFMprocessor = nullptr;
-	our_audioSink = new audioSink (this -> audioRate, 16384);
-	outTable      = new int16_t
+	myFMprocessor	= nullptr;
+	our_audioSink	= new audioSink (this -> audioRate, 16384);
+	outTable	= new int16_t
 	                   [our_audioSink -> numberofDevices () + 1];
 	for (i = 0; i < our_audioSink -> numberofDevices (); i++) 
 	   outTable [i] = -1;
@@ -310,7 +302,6 @@ int     k;
 //	fmRate			= mapRates (inputRate);
 	fprintf (stderr, "fmrate = %d\n", fmRate);
 
-	filterDepth	= fmSettings -> value ("filterDepth", 5). toInt ();
 	hfScope		-> setBitDepth (myRig -> bitDepth ());
 	lfScope		-> setBitDepth (myRig -> bitDepth ());
 //
@@ -345,11 +336,16 @@ int     k;
 
 	QString device =
 	             fmSettings -> value ("device", "no device").toString ();
-	
-	k = deviceSelector -> findText (device);
+
+	k = -1;
+	for (int i = 0; deviceTable [i] != nullptr; i ++)
+	   if (deviceTable [i] == device) {
+	      k = i;
+	      break;
+	}
 	if (k != -1) {
 	   starter	= new QTimer;
-	   startknop	= k;
+	   startKnop	= k;
 	   starter -> setSingleShot (true);
 	   starter -> setInterval (500);
 	   connect (starter, SIGNAL (timeout()), 
@@ -357,8 +353,9 @@ int     k;
 	   starter -> start (500);
 	}
 	else {
-	   deviceSelector	-> setCurrentIndex (0);
-	   startknop	= 0;
+//	   deviceSelector	-> setCurrentIndex (0);
+	   startKnop	= 0;
+	   setDevice (fmSettings);
 	}
 }
 
@@ -367,9 +364,8 @@ void	RadioInterface::quickStart () {
 	            this, SLOT (quickStart ()));
 	fprintf (stderr, "going for quickStart\n");
 	delete starter;
-	deviceSelector	-> setCurrentIndex (startknop);
-	fprintf (stderr, "Going for setDevive \n");
-	setDevice (deviceSelector -> currentText ());
+	if (getDevice (deviceTable [startKnop]) ==  nullptr)
+	   setDevice (fmSettings);
 }
 
 //
@@ -395,7 +391,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	if (s == nullptr)
 	   return;
 
-	s	-> setValue ("device", deviceSelector -> currentText ());
+//	s	-> setValue ("device", deviceSelector -> currentText ());
 	s	-> setValue ("rasterSize", rasterSize);
 	s	-> setValue ("averageCount", averageCount);
 
@@ -414,9 +410,6 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
 	                             fmFilterSelect	-> currentText ());
-	s	-> setValue ("fmFilterDegree",
-	                             fmFilterDegree	-> value ());
- 
 	s	-> setValue ("fmMode",
 	                             fmMode		-> currentText ());
 	s	-> setValue ("fmDecoder",
@@ -681,7 +674,7 @@ void	RadioInterface::set_changeRate	(int r) {
 //	@brief setDevice is called upon pressing the device button
 //	@params: the name (string) on the button
 
-void	RadioInterface::setDevice (const QString &s) {
+deviceHandler	*RadioInterface::getDevice (const QString &s) {
 QString file;
 bool    success;
 
@@ -827,8 +820,7 @@ bool    success;
 	                               tr ("loading device failed"));
 	   if (myRig == nullptr)
 	      myRig = new deviceHandler ();	// the empty one
-	   resetSelector	();
-	   return;
+	   return nullptr;
 	}
 
 	inputRate = myRig -> getRate ();
@@ -873,6 +865,27 @@ bool    success;
 #endif
 	myRig -> setVFOFrequency (currentFreq);
 	setStart ();
+	fmSettings	-> setValue ("device", s);
+	return myRig;
+}
+//
+
+deviceHandler	*RadioInterface::setDevice (QSettings *fmSettings) {
+deviceSelect	deviceSelect;
+deviceHandler	*theDevice	= nullptr;
+QStringList devices;
+	for (int i = 0; deviceTable [i] != nullptr; i ++)
+	   devices += deviceTable [i];
+	deviceSelect. addList (devices);
+	int theIndex = -1;
+	while (theDevice == nullptr) {
+	   theIndex = deviceSelect. QDialog::exec ();
+	   if (theIndex < 0)
+	      continue;
+	   QString s = devices. at (theIndex);
+	   theDevice	= getDevice (s);
+	}
+	return theDevice;
 }
 //
 //	Just for convenience packed as a function
@@ -898,7 +911,6 @@ void	RadioInterface::make_newProcessor () {
 	                                 hfBuffer,
 	                                 lfBuffer,
 	                                 &iqBuffer,
-	                                 filterDepth,
 	                                 thresHold);
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
@@ -907,7 +919,6 @@ void	RadioInterface::make_newProcessor () {
 
 	setAttenuation		(1);
 	setfmBandwidth		(fmFilterSelect		-> currentText ());
-//	setfmBandwidth		(fmFilterDegree		-> value ());
 	setfmMode		(fmMode			-> currentText ());
 	setfmRdsSelector	(fmRdsSelector 		-> currentText ());
 //	setfmDecoder		(fmDecoder		-> currentText ());
@@ -916,7 +927,7 @@ void	RadioInterface::make_newProcessor () {
 	set_squelchValue	(squelchSlider		-> value ());
 	setfmLFcutoff		(fmLFcutoff		-> currentText ());
 	setLogging		(logging		-> currentText ());
-	hfScope			->setBitDepth	(myRig	-> bitDepth ());
+	hfScope			->setBitDepth		(myRig	-> bitDepth ());
 
 	set_display_delay	(sbDispDelay		-> value ());
 	setfmStereoBalanceSlider(fmStereoBalanceSlider	-> value ());
@@ -1307,8 +1318,8 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (clickPause ()));
 	connect (streamOutSelector, SIGNAL (activated (int)),
 	         this, SLOT (setStreamOutSelector (int)));
-	connect (deviceSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (setDevice (const QString &)));
+//	connect (deviceSelector, SIGNAL (activated (const QString &)),
+//	         this, SLOT (setDevice (const QString &)));
 	connect (dumpButton, SIGNAL (clicked ()),
 	         this, SLOT (set_dumping ()));
 	connect (audioDump, SIGNAL (clicked ()),
@@ -1340,8 +1351,6 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (setLogsaving ()));
 	connect (fmFilterSelect, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmBandwidth (const QString &)));
-//	connect (fmFilterDegree, SIGNAL (valueChanged (int)),
-//	         this, SLOT (setfmBandwidth (int)));
 	connect (fmMode, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmMode (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
@@ -1613,7 +1622,7 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	};
 
 	peak_avr (iPeakLeft,  peakLeftDamped);
-	peak_avr(iPeakRight, peakRightDamped);
+	peak_avr (iPeakRight, peakRightDamped);
 
 	thermoPeakLevelLeft	-> setValue (peakLeftDamped);
 	thermoPeakLevelRight	-> setValue (peakRightDamped);
@@ -1864,6 +1873,8 @@ void	RadioInterface::lfBufferLoaded (bool fullSpectrum,
 double  X_axis [displaySize];
 double  Y_values [displaySize];
 double  temp	= (double)sampleRate / 2 / displaySize;
+	if (runMode. load () != ERunStates::RUNNING) 
+	   return;
 
 //	first X axis labels
 	if (fullSpectrum) {
@@ -1996,10 +2007,6 @@ int     k;
 	                      spectrumAmplitudeSlider_lf -> value ()). toInt ();
 	spectrumAmplitudeSlider_lf -> setValue (k);
 
-	k	= s -> value ("fmFilterDegree",
-	                      fmFilterDegree -> value ()). toInt ();
-	fmFilterDegree		-> setValue (k);
-
 	k	= s -> value ("fmStereoPanoramaSlider", 100). toInt ();
 	fmStereoPanoramaSlider	-> setValue (k);
 
@@ -2075,25 +2082,6 @@ int32_t res;
 	          inputRate < Khz(6000) ? inputRate / 25 :
 	          inputRate / 30;
 	return res;
-}
-
-//	In case selection of a device did not work out for whatever
-//	reason, the device selector is reset to "no device"
-//	Qt will trigger on the change of value in the deviceSelector
-//	which will cause selectdevice to be called again (while we
-//	are in the middle, so we first disconnect the selector
-//	from the slot. Obviously, after setting the index of
-//	the device selector, we connect again
-
-void	RadioInterface::resetSelector () {
-	disconnect (deviceSelector, SIGNAL (activated (const QString&)),
-	            this, SLOT (setDevice (const QString&)));
-	int k = deviceSelector -> findText (QString ("no device"));
-	if (k != -1) { // should not happen
-	   deviceSelector -> setCurrentIndex(k);
-	}
-	connect (deviceSelector, SIGNAL (activated (const QString&)),
-	         this, SLOT (setDevice (const QString&)));
 }
 
 void	RadioInterface::handle_freqButton () {

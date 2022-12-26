@@ -45,9 +45,9 @@ constexpr DSPFLOAT RDS_BITCLK_HZ = 1187.5;
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
-	               	            my_AGC (2e-3f, 0.4f, 10.0f)
-	                            ,my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f)
-	                            ,my_Costas (rate, 1.0f, 0.02f, 20.0f) {
+	               	            my_AGC (2e-3f, 0.4f, 10.0f),
+	                            my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f),
+	                            my_Costas (rate, 1.0f, 0.02f, 20.0f) {
 
 DSPFLOAT	synchronizerSamples;
 
@@ -67,8 +67,9 @@ DSPFLOAT	synchronizerSamples;
 
 	my_matchedFltBufSize	= my_matchedFltKernelVec. size ();
 	assert (my_matchedFltBufSize & 1); // is it odd?
-	my_matchedFltBuf	= new DSPCOMPLEX [my_matchedFltBufSize];
-	memset (my_matchedFltBuf, 0, my_matchedFltBufSize * sizeof (DSPCOMPLEX));
+	my_matchedFltBuf. resize (my_matchedFltBufSize);
+	memset (my_matchedFltBuf. data (), 0,
+	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
 	my_matchedFltBufIdx	= 0;
 	previousBit		= false;
 
@@ -85,8 +86,9 @@ DSPFLOAT	synchronizerSamples;
         synchronizerSamples     = sampleRate / (DSPFLOAT)RDS_BITCLK_HZ;
         symbolCeiling           = ceil (synchronizerSamples); 
         symbolFloor             = floor (synchronizerSamples);
-        syncBuffer              = new DSPCOMPLEX [symbolCeiling];
-	memset (syncBuffer, 0, symbolCeiling * sizeof (DSPFLOAT));
+        syncBuffer. resize (symbolCeiling);
+	memset (syncBuffer. data (), 0,
+	                   symbolCeiling * sizeof (DSPCOMPLEX));
 
         p                       = 0;
         bitIntegrator           = 0;
@@ -104,10 +106,10 @@ DSPFLOAT	synchronizerSamples;
 }
 
 	rdsDecoder::~rdsDecoder () {
-	delete	my_rdsGroupDecoder;
-	delete	my_rdsGroup;
-	delete	my_rdsBlockSync;
-	delete	my_matchedFltBuf;
+	delete		my_rdsGroupDecoder;
+	delete		my_rdsGroup;
+	delete		my_rdsBlockSync;
+	delete		mySinCos;
 }
 
 void	rdsDecoder::reset () {
@@ -192,15 +194,13 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 
 void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag, int ptyLocale) {
 DSPFLOAT clkState;
-
-	syncBuffer [p]	= v;
+std::complex<float> tt;
+	
 	*mag		= syncBuffer [p];
-//	*mag		= syncBuffer [p] + std::complex<float> (-0.5, -0.5);
+	syncBuffer [p]	= v;
 	p		= (p + 1) % symbolCeiling;
-	v		= syncBuffer [p];	// an old one
 
-	if (Resync ||
-	   (my_rdsBlockSync -> getNumSyncErrors () > 3)) {
+	if (Resync || (my_rdsBlockSync -> getNumSyncErrors () > 3)) {
 	   synchronizeOnBitClk (syncBuffer, p);
 	   my_rdsBlockSync -> resync ();
 	   my_rdsBlockSync -> resetResyncErrorCounter ();
@@ -212,28 +212,27 @@ DSPFLOAT clkState;
 //
 //	rising edge -> look at integrator
 	if (prev_clkState <= 0 && clkState > 0) {
-	   bool currentBit = bitIntegrator >= 0;
+	   bool currentBit	= bitIntegrator >= 0;
 	   processBit (currentBit ^ previousBit, ptyLocale);
-	   bitIntegrator = 0;		// we start all over
-	   previousBit   = currentBit;
+	   bitIntegrator	= 0;		// we start all over
+	   previousBit		= currentBit;
 	}
 
 	prev_clkState	= clkState;
 	bitClkPhase	= fmod (bitClkPhase + omegaRDS, 2 * M_PI);
 }
 
-void	rdsDecoder::synchronizeOnBitClk (DSPCOMPLEX *v, int16_t first) {
+void	rdsDecoder::synchronizeOnBitClk (std::vector<DSPCOMPLEX> v,
+	                                                int16_t first) {
 bool	isHigh	= false;
 int32_t	k = 0;
-int32_t	i;
 DSPFLOAT	phase;
-DSPFLOAT *correlationVector =
-	(DSPFLOAT *)alloca (symbolCeiling * sizeof (DSPFLOAT));
+DSPFLOAT correlationVector [symbolCeiling];
 
 	memset (correlationVector, 0, symbolCeiling * sizeof (DSPFLOAT));
 
 //	synchronizerSamples	= sampleRate / (DSPFLOAT)RDS_BITCLK_HZ;
-	for (i = 0; i < symbolCeiling; i ++) {
+	for (int i = 0; i < symbolCeiling; i ++) {
 	   phase = fmod (i * (omegaRDS / 2), 2 * M_PI);
 //	reset index on phase change
 	   if (mySinCos -> getSin (phase) > 0 && !isHigh) {
@@ -246,7 +245,8 @@ DSPFLOAT *correlationVector =
 	      k = 0;
 	   }
 
-	   correlationVector [k ++] += real (v [(first + i) % symbolCeiling]);
+	   correlationVector [k ++] += imag (v [(first + i) % symbolCeiling]);
+//	   correlationVector [k ++] += real (v [(first + i) % symbolCeiling]);
 	}
 
 //	detect rising edge in correlation window
@@ -256,6 +256,6 @@ DSPFLOAT *correlationVector =
 
 //	set the phase, previous sample (iMin - 1) is obviously the one
 	bitClkPhase = fmod (-omegaRDS * (iMin - 1), 2 * M_PI);
-	while (bitClkPhase < 0) bitClkPhase += 2 * M_PI;
+	while (bitClkPhase < 0)
+	   bitClkPhase += 2 * M_PI;
 }
-//

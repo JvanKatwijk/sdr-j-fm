@@ -108,7 +108,6 @@ private:
 	int16_t		spectrumSize;
 	int32_t		averageCount;
 	int16_t		repeatRate;
-	int16_t		filterDepth;
 	audioSink	*our_audioSink;
 	int8_t		channelSelector;
 	deviceHandler	*myRig;
@@ -208,7 +207,8 @@ private slots:
 	void	TerminateProcess	();
 	void	make_newProcessor	();
 	void	stopDumping		();
-	void	setDevice		(const QString &);
+	deviceHandler	*getDevice	(const QString &);
+	deviceHandler	*setDevice	(QSettings *);
 	void	set_dumping		();
 	void	set_audioDump		();
 

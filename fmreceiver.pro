@@ -95,6 +95,7 @@ HEADERS += ./radio.h \
            ./includes/sdr/time_sync.h  \
            ./includes/sdr/shaping_filter.h  \
 	   ./devices/device-handler.h \
+	   ./devices/deviceselect.h \
 	   ./devices/filereader/filereader.h \
 	   ./devices/filereader/filehulp.h
 
@@ -129,6 +130,7 @@ SOURCES += ./main.cpp \
 	   ./src/rds/rds-groupdecoder.cpp \
 	   ./src/sdr/shaping_filter.cpp \
 	   ./devices/device-handler.cpp \
+	   ./devices/deviceselect.cpp \
 	   ./devices/filereader/filereader.cpp \
 	   ./devices/filereader/filehulp.cpp
 #

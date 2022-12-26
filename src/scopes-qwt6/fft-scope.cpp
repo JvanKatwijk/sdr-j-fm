@@ -116,7 +116,7 @@ double  temp;
                   +  (double)((i) * (double)2 * temp)) / ((double)scale);
 }
 
-	fft_scope::~fft_scope (void) {
+	fft_scope::~fft_scope () {
 	delete[]	this	-> displayBuffer;
 	delete[]	this	-> averageBuffer;
 	delete[]	this	-> X_axis;
@@ -156,7 +156,7 @@ void	fft_scope::setZoompoint (int32_t freq) {
 	   zoomingLevel++;
 }
 
-void	fft_scope::resetZoompoint (void) {
+void	fft_scope::resetZoompoint () {
 	this	-> zoomingLevel--;
 	if (zoomingLevel < 1)
 	   zoomingLevel = 1;
@@ -266,7 +266,7 @@ void	fft_scope::addValue (double v, int i) {
 	displayBuffer [i] = v;
 }
 
-void	fft_scope::showSpectrum (void) {
+void	fft_scope::showSpectrum () {
 	Scope::Display (X_axis,
 	                displayBuffer,
 	                amplification,
@@ -283,7 +283,7 @@ void	fft_scope::setAverager (bool b) {
 	averageCount = (b ? 1 : 0);
 }
 
-void	fft_scope::clearAverage (void) {
+void	fft_scope::clearAverage () {
 
 	if (averageCount > 0) {
 	   averageCount = 1;
@@ -368,7 +368,7 @@ float	get_ldb (float x) {
 	return 20 * log10 ((x + 1) / (float)(512));
 }
 
-void	fft_scope::doAverage (void) {
+void	fft_scope::doAverage () {
 
 	if (averageCount > 0) {
 	   for (int i = 0; i < displaySize; i++) {

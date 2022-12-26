@@ -21,7 +21,6 @@ some serious cpu use.
 
 If the filter is switched "Off", it is excluded from the processing chain.
 
-
 As usual, next to the sources, an AppImage (for Linux x64) and a Windows
 installer are available in the releases section.
 
