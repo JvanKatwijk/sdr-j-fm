@@ -5,6 +5,7 @@
  *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J-FM
+ *
  *    SDR-J-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
@@ -19,8 +20,8 @@
  *    along with SDR-J-FM; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef __PLL_CH
-#define __PLL_CH
+#ifndef __PLL_CH_H
+#define __PLL_CH_H
 /*
  */
 #include	"fm-constants.h"
@@ -52,11 +53,11 @@ public:
 			~pllC ();
 
 	void		do_pll		(DSPCOMPLEX signal);
-	DSPCOMPLEX	getDelay	(void);
-	DSPFLOAT	getPhaseIncr	(void);
-	DSPCOMPLEX	getNco		(void);
-	DSPFLOAT	getPhaseError	(void);
-//	bool		isLocked	void();
+	DSPCOMPLEX	getDelay	();
+	DSPFLOAT	getPhaseIncr	();
+	DSPCOMPLEX	getNco		();
+	DSPFLOAT	getPhaseError	();
+//	bool		isLocked	();
 };
 
 #endif

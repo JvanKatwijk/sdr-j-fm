@@ -83,8 +83,8 @@ using namespace std;
 #define	PILOTFILTER_SIZE	31
 #define	RDSLOWPASS_SIZE		89
 #define	HILBERT_SIZE		13
-#define	RDSBANDFILTER_SIZE	295
-#define	FFT_SIZE		(2 *16384)
+#define	RDSBANDFILTER_SIZE	(2 * 384)
+#define	FFT_SIZE		(2 * 16384)
 #define	PILOT_WIDTH		1000
 #define	RDS_WIDTH		2400
 #define	LEVEL_SIZE		512

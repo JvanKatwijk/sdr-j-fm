@@ -2,7 +2,7 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This part of the FM demodulation software is largely a
  *    rewrite and local adaptation of FMSTACK software
@@ -13,39 +13,36 @@
  *    Initial release : 01.09.2009
  *    Last changed    : 09.03.2010
  * 
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fmreceiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __RDS_BLOCK_SYNCHRONIZER
-#define	__RDS_BLOCK_SYNCHRONIZER
+#ifndef __RDS_BLOCK_SYNCHRONIZER_H
+#define	__RDS_BLOCK_SYNCHRONIZER_H
 
 #include	"fm-constants.h"
 #include	"rds-group.h"
 #include	<QObject>
-class	RadioInterface;
+class		RadioInterface;
 
 class	rdsBlockSynchronizer: public QObject {
 Q_OBJECT
 public:
 		rdsBlockSynchronizer	(RadioInterface *);
-		~rdsBlockSynchronizer	(void);
+		~rdsBlockSynchronizer	();
 	void	setFecEnabled		(bool);
 
 	enum SyncResult {
@@ -56,17 +53,17 @@ public:
 	   	   RDS_COMPLETE_GROUP
 	};
 
-	void		reset			(void);
+	void		reset			();
 	SyncResult	pushBit			(bool, RDSGroup *);
 	SyncResult	pushBitSynchronized	(bool, RDSGroup *);
 	SyncResult	pushBitinBlockA		(bool, RDSGroup *);
 	SyncResult	pushBitNotSynchronized	(bool, RDSGroup *);
-	int16_t		getNumSyncErrors	(void);
-	void		resetResyncErrorCounter	(void);
-	void		resetCRCErrorCounter	(void);
-	int16_t		getNumCRCErrors		(void);
-	void		resync			(void);
-	DSPFLOAT	getBitErrorRate		(void);
+	int16_t		getNumSyncErrors	();
+	void		resetResyncErrorCounter	();
+	void		resetCRCErrorCounter	();
+	int16_t		getNumCRCErrors		();
+	void		resync			();
+	DSPFLOAT	getBitErrorRate		();
 
 private:
 	RadioInterface	*MyRadioInterface;

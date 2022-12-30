@@ -31,6 +31,7 @@
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
 #define RDS_RATE		19000   // 16 samples for one RDS sympols
 #define OMEGA_PILOT	((DSPFLOAT(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
+#define OMEGA_PILOT_1	((DSPFLOAT(PILOT_FREQUENCY + 2)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
 //
@@ -163,13 +164,13 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE + 1) * OMEGA_PILOT;
+	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE + 1) / fmRate;
+	pilotDelay	= fmod (pilotDelay * PILOT_FREQUENCY, fmRate) /  fmRate * 2 * M_PI;
 	fmAudioFilterActive . store (false);
 //
 //	the constant K_FM is still subject to many questions
 	DSPFLOAT F_G     = 0.65 * fmRate / 2;// highest freq in message
 	DSPFLOAT Delta_F = 0.95 * fmRate / 2;    //
-
 	DSPFLOAT B_FM    = 2 * (Delta_F + F_G);
 
 	K_FM           = B_FM * M_PI / F_G;
@@ -770,7 +771,7 @@ DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demod);
 DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 
 	if (fmModus != FM_Mode::Mono &&
-	         (pilotRecover -> isLocked() || autoMono == false)) {
+	         (pilotRecover -> isLocked () || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
 	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
 //	Due to filtering the real amplitude of the LRDiff might have

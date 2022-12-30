@@ -53,7 +53,7 @@ void	rdsBlockSynchronizer::setFecEnabled (bool b) {
 	crcFecEnabled	= b;
 }
 
-void	rdsBlockSynchronizer::reset	(void) {
+void	rdsBlockSynchronizer::reset	() {
 	rdsBitstream		= 0;
 	rdsIsSynchronized	= false;
 	rdsCurrentBlock		= RDSGroup::BLOCK_A;
@@ -67,7 +67,7 @@ void	rdsBlockSynchronizer::reset	(void) {
 	setRDSisSynchronized	(false);
 }
 
-void	rdsBlockSynchronizer::setNextBlock	(void) {
+void	rdsBlockSynchronizer::setNextBlock	() {
 	switch (rdsCurrentBlock) {
 	   case RDSGroup::BLOCK_A:
 	      rdsCurrentBlock	= RDSGroup::BLOCK_B;
@@ -84,30 +84,30 @@ void	rdsBlockSynchronizer::setNextBlock	(void) {
 	}
 }
 
-int16_t	rdsBlockSynchronizer::getNumSyncErrors	(void) {
+int16_t	rdsBlockSynchronizer::getNumSyncErrors	() {
 	return rdsNumofSyncErrors;
 }
 
-DSPFLOAT	rdsBlockSynchronizer::getBitErrorRate	(void) {
+DSPFLOAT	rdsBlockSynchronizer::getBitErrorRate	() {
 	return rdsbitErrorRate;
 }
 
-void	rdsBlockSynchronizer::resync	(void) {
+void	rdsBlockSynchronizer::resync	() {
 	rdsCurrentBlock		= RDSGroup::BLOCK_A;
 	rdsIsSynchronized	= false;
 	setRDSisSynchronized (false);
 	rdsBitsinBlock		= 0;
 }
 
-void	rdsBlockSynchronizer::resetResyncErrorCounter (void) {
+void	rdsBlockSynchronizer::resetResyncErrorCounter	() {
 	rdsNumofSyncErrors	= 0;
 }
 
-int16_t	rdsBlockSynchronizer::getNumCRCErrors		(void) {
+int16_t	rdsBlockSynchronizer::getNumCRCErrors		() {
 	return rdsNumofCRCErrors;
 }
 
-void	rdsBlockSynchronizer::resetCRCErrorCounter 	(void) {
+void	rdsBlockSynchronizer::resetCRCErrorCounter 	() {
 	rdsNumofCRCErrors	= 0;
 }
 
@@ -276,8 +276,7 @@ uint32_t	syndrome	= 0;
 //	syndrome == 0, extract the 16 bit data, we know
 //	it is block A
 	rdsGrp -> setBlock (RDSGroup::BLOCK_A,
-	                    (uint16_t)(rdsBitstream >>
-	                                                  NUM_BITS_CRC));
+	                    (uint16_t)(rdsBitstream >> NUM_BITS_CRC));
 //
 //	go for the next block
 	rdsBitsinBlock		= 0;
@@ -286,7 +285,8 @@ uint32_t	syndrome	= 0;
 }
 
 rdsBlockSynchronizer::SyncResult
-	rdsBlockSynchronizer::pushBitNotSynchronized (bool b, RDSGroup *rdsGrp) {
+	rdsBlockSynchronizer::pushBitNotSynchronized (bool b,
+	                                              RDSGroup *rdsGrp) {
 uint32_t	offsetWord	= 0;
 uint32_t	syndrome	= 0;
 //

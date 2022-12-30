@@ -59,47 +59,37 @@
 }
 
 void	fftFilter::setSimple (int32_t low, int32_t high, int32_t rate) {
-BasicBandPass *BandPass		= new BasicBandPass (filterDegree,
-	                                             low, high, rate);
+BasicBandPass BandPass (filterDegree, low, high, rate);
 
 	for (int i = 0; i < filterDegree; i++)
-	   filterVector [i] = (BandPass -> getKernel ()) [i];
+	   filterVector [i] = (BandPass. getKernel ()) [i];
 
         memset (&filterVector [filterDegree], 0,
                         (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
         FilterFFT       -> do_FFT ();
         inp             = 0;
-        delete  BandPass;
 }
 
 void	fftFilter::setBand (int32_t low, int32_t high, int32_t rate) {
-BandPassFIR	*BandPass	= new BandPassFIR ((int)filterDegree,
-	                                           low, high,
-	                                           rate);
+BandPassFIR BandPass ((int)filterDegree, low, high, rate);
 
       for (int i = 0; i < filterDegree; i ++)
-           filterVector [i] = (BandPass -> getKernel ()) [i];
-//         filterVector [i] = conj ((BandPass -> getKernel ()) [i]);
+           filterVector [i] = (BandPass. getKernel ()) [i];
         memset (&filterVector [filterDegree], 0,
                         (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
         FilterFFT       -> do_FFT ();
         inp             = 0;
-        delete  BandPass;
 }
 
 void	fftFilter::setLowPass (int32_t low, int32_t rate) {
-int32_t	i;
-LowPassFIR	*LowPass	= new LowPassFIR (filterDegree,
-	                                          low,
-	                                          rate);
+LowPassFIR LowPass (filterDegree, low, rate);
 
-	for (i = 0; i < filterDegree; i ++)
-	   filterVector [i] = (LowPass -> getKernel ()) [i];
+	for (int i = 0; i < filterDegree; i ++)
+	   filterVector [i] = (LowPass. getKernel ()) [i];
 	memset (&filterVector [filterDegree], 0,
 	                (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
 	FilterFFT	-> do_FFT ();
 	inp	= 0;
-	delete LowPass;
 }
 
 DSPFLOAT	fftFilter::Pass (DSPFLOAT x) {

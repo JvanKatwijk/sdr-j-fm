@@ -2,25 +2,22 @@
 /*
  *    Copyright (C)  2012, 2013, 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fmreceiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include	"scope.h"
@@ -36,27 +33,25 @@
 	Displaysize		= displaysize;
 	Rastersize		= rastersize;
 	bitDepth		= 24;
-	Spectrum	= NULL;
-	Waterfall	= new WaterfallViewer (Plotter, Displaysize, Rastersize);
+	Spectrum		= nullptr;
+	Waterfall		= new WaterfallViewer (Plotter,
+	                                               Displaysize,
+	                                               Rastersize);
 	CurrentWidget	= WATERFALL_MODE;
-	connect (Waterfall,
-	         SIGNAL (leftClicked (int)),
-	         this,
-	         SLOT (leftClicked (int)));
-	connect (Waterfall,
-	         SIGNAL (rightClicked (int)),
-	         this,
-	         SLOT (rightClicked (int)));
+	connect (Waterfall, SIGNAL (leftClicked (int)),
+	         this, SLOT (leftClicked (int)));
+	connect (Waterfall, SIGNAL (rightClicked (int)),
+	         this, SLOT (rightClicked (int)));
 }
 
-	Scope::~Scope (void) {
-	if (Spectrum != NULL)
+	Scope::~Scope () {
+	if (Spectrum != nullptr)
 	   delete Spectrum;
-	if (Waterfall != NULL)
+	if (Waterfall != nullptr)
 	   delete Waterfall;
 }
 
-int	Scope::currentMode (void) {
+int	Scope::currentMode () {
 	return CurrentWidget;
 }
 
@@ -73,40 +68,32 @@ void	Scope::SelectView (uint8_t n) {
 	   return;
 
 	if (n == SPECTRUM_MODE) {
-	   if (Waterfall != NULL)
+	   if (Waterfall != nullptr)
 	      delete Waterfall;
 	   Plotter	-> detachItems ();
-	   Waterfall	= NULL;
+	   Waterfall	= nullptr;
 	   Spectrum	= new SpectrumViewer  (Plotter,
 	                                       Displaysize);
-	   connect (Spectrum,
-	            SIGNAL (leftClicked (int)),
-	            this,
-	            SLOT (leftClicked (int)));
-	   connect (Spectrum,
-	            SIGNAL (rightClicked (int)),
-	            this,
-	            SLOT (rightClicked (int)));
+	   connect (Spectrum, SIGNAL (leftClicked (int)),
+	            this, SLOT (leftClicked (int)));
+	   connect (Spectrum, SIGNAL (rightClicked (int)),
+	            this, SLOT (rightClicked (int)));
 	   CurrentWidget = SPECTRUM_MODE;
 	   Spectrum -> setBitDepth (bitDepth);
 	}
 	else	// n == WATERFALL_MODE
 	if (n == WATERFALL_MODE) {
-	   if (Spectrum != NULL)
+	   if (Spectrum != nullptr)
 	      delete Spectrum;
 //	   Plotter	-> detachItems ();
-	   Spectrum	= NULL;
+	   Spectrum	= nullptr;
 	   Waterfall	= new WaterfallViewer (Plotter,
 	                                       Displaysize,
 	                                       Rastersize);
-	   connect (Waterfall,
-	            SIGNAL (leftClicked (int)),
-	            this,
-	            SLOT (leftClicked (int)));
-	   connect (Waterfall,
-	            SIGNAL (rightClicked (int)),
-	            this,
-	            SLOT (rightClicked (int)));
+	   connect (Waterfall, SIGNAL (leftClicked (int)),
+	            this, SLOT (leftClicked (int)));
+	   connect (Waterfall, SIGNAL (rightClicked (int)),
+	            this, SLOT (rightClicked (int)));
 	   
 	   CurrentWidget = WATERFALL_MODE;
 	}
@@ -136,7 +123,8 @@ void	Scope::setBitDepth	(int16_t b) {
 /*
  *	The spectrumDisplay
  */
-	SpectrumViewer::SpectrumViewer (QwtPlot *plot, uint16_t displaysize) {
+	SpectrumViewer::SpectrumViewer (QwtPlot *plot,
+	                                   uint16_t displaysize) {
 
 	plotgrid		= plot;
 	this	-> Displaysize	= displaysize;
@@ -199,14 +187,10 @@ void	Scope::setBitDepth	(int16_t b) {
 }
 
 	SpectrumViewer::~SpectrumViewer () {
-	disconnect (lm_picker,
-	            SIGNAL (selected (const QPointF &)),
-	            this,
-	            SLOT (leftMouseClick (const QPointF &)));
-	disconnect (rm_picker,
-	            SIGNAL (selected (const QPointF &)),
-	            this,
-	            SLOT (rightMouseClick (const QPointF &)));
+	disconnect (lm_picker, SIGNAL (selected (const QPointF &)),
+	            this, SLOT (leftMouseClick (const QPointF &)));
+	disconnect (rm_picker, SIGNAL (selected (const QPointF &)),
+	            this, SLOT (rightMouseClick (const QPointF &)));
 	plotgrid	-> enableAxis (QwtPlot::yLeft, false);
 	Marker		-> detach ();
 	SpectrumCurve	-> detach ();
@@ -266,10 +250,10 @@ uint16_t	i;
 	   font1.	setPixelSize (15);
 	   MarkerLabel_1.    setFont (font1);
 	   MarkerLabel_1.    setColor (Qt::green);
-	   MarkerLabel_1. setRenderFlags (Qt::AlignLeft | Qt::AlignTop);
+	   MarkerLabel_1.    setRenderFlags (Qt::AlignLeft | Qt::AlignTop);
 	   MarkerLabel_2.    setFont (font1);
 	   MarkerLabel_2.    setColor (Qt::yellow);
-	   MarkerLabel_2. setRenderFlags (Qt::AlignRight | Qt::AlignTop);
+	   MarkerLabel_2.    setRenderFlags (Qt::AlignRight | Qt::AlignTop);
 	   maxLabel	-> detach ();
 	   maxLabel	-> setText (MarkerLabel_1);
 	   maxLabel	-> attach (plotgrid);
@@ -277,7 +261,7 @@ uint16_t	i;
 	   minLabel	-> setText (MarkerLabel_2);
 	   minLabel	-> attach (plotgrid);
 	   Marker       -> detach ();
-	   Marker       = new QwtPlotMarker ();
+//	   Marker       = new QwtPlotMarker ();
 	   Marker       -> setLineStyle (QwtPlotMarker::VLine);
 	   Marker       -> setLinePen (QPen (Qt::red, 3.0));
 	   Marker       -> attach (plotgrid);
@@ -422,7 +406,7 @@ int	width	= (int)(X_axis [Displaysize - 1] - orig);
 	        Displaysize * sizeof (double));
 
 	this		-> detach	();
-//	if (WaterfallData != NULL)
+//	if (WaterfallData != nullptr)
 //	   delete WaterfallData;
 
 	WaterfallData = new SpectrogramData (plotData,

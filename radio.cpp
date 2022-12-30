@@ -330,7 +330,7 @@ int     k;
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
 	         this,  SLOT (check_afc (int)));
 //	connect (cbAfc, &QAbstractButton::clicked,
-//	         this, [this](bool checked){ mAfcActive = checked; reset_afc(); } );
+//	         this, [this](bool checked){ afcActive = checked; reset_afc(); } );
 
 	QString country	= 
 	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
@@ -957,7 +957,7 @@ void	RadioInterface::make_newProcessor () {
 //	else
 //	   inputMode	= IandQ;
 //	
-//	if (myFMprocessor != NULL)
+//	if (myFMprocessor != nullptr)
 //	   myFMprocessor	-> setInputMode	(inputMode);
 //}
 
@@ -1088,8 +1088,17 @@ int32_t	vfo;
 
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor -> set_localOscillator (LOFrequency);
-	   myFMprocessor -> resetRds ();
+//	   myFMprocessor -> resetRds ();
+//	redraw LF frequency and reset RDS only with bigger frequency steos
+//	AFC will trigger this too
+	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100)) {
+	      myFMprocessor -> resetRds ();
+//	      on a change in frequency. draw new LF spectrum immediately
+//	      without averaging
+	      myFMprocessor -> triggerDrawNewLfSpectrum (); //
+	   }
 	}
+	
 	Display (vfo + LOFrequency);
 	return vfo + LOFrequency;
 }
@@ -2150,8 +2159,8 @@ void	RadioInterface::closeEvent (QCloseEvent *event) {
 
 void	RadioInterface::check_afc	(int b) {
 	(void)b;
-	if (cbAfc	-> isChecked ()) 
-	   afcActive	= true;
+	afcActive	= cbAfc -> isChecked ();
+	fprintf (stderr, "afcActive = %s\n", afcActive ? "true" : "false");
 	reset_afc ();
 }
 

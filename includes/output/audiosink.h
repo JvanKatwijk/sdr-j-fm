@@ -55,6 +55,7 @@ const	char		*outputChannelwithRate	(int16_t, int32_t);
 	void		stopDumping		(void);
 	int32_t		getSelectedRate		(void);
 private:
+	RingBuffer<float>	_O_Buffer;
 	bool		OutputrateIsSupported	(int16_t, int32_t);
 	int32_t		CardRate;
 	int32_t		size;
@@ -66,7 +67,6 @@ private:
 	int16_t		bufSize;
 	PaStream	*ostream;
 	SNDFILE		*dumpFile;
-	RingBuffer<float>	*_O_Buffer;
 	PaStreamParameters	outputParameters;
 protected:
 static	int		paCallback_o	(const void	*input,

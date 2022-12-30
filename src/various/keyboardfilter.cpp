@@ -26,9 +26,9 @@
 #include	"keyboardfilter.h"
 
 	KeyboardFilter::KeyboardFilter (QObject *parent):
-	                       QObject (parent) {}
+	                                      QObject (parent) {}
 
-	KeyboardFilter::~KeyboardFilter (void) {}
+	KeyboardFilter::~KeyboardFilter () {}
 
 bool	KeyboardFilter::eventFilter (QObject *dist, QEvent *event) {
 	if (event -> type () == QEvent::KeyPress) {

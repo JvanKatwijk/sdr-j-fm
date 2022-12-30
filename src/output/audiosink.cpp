@@ -2,25 +2,22 @@
 /*
  *    Copyright (C) 2011, 2012, 2013
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fmreceiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -29,7 +26,8 @@
 /*
  *	The class is the sink for the data generated
  */
-	audioSink::audioSink	(int32_t rate, int32_t size) {
+	audioSink::audioSink	(int32_t rate, int32_t size):
+	                                 _O_Buffer (4 * 32768) {
 int32_t	i;
 
 	this	-> CardRate	= rate;
@@ -38,7 +36,6 @@ int32_t	i;
 	else
 	   this	-> size		= size;
 	this -> Latency		= 1;
-	_O_Buffer		= new RingBuffer<float>(4 * 32768);
 	portAudio		= false;
 	writerRunning		= false;
 
@@ -54,12 +51,12 @@ int32_t	i;
 	   qDebug ("Api %d is %s\n", i, Pa_GetHostApiInfo (i) -> name);
 
 	numofDevices	= Pa_GetDeviceCount ();
-	ostream		= NULL;
-	dumpFile	= NULL;
+	ostream		= nullptr;
+	dumpFile	= nullptr;
 }
 
-	audioSink::~audioSink	(void) {
-	if ((ostream != NULL) && !Pa_IsStreamStopped (ostream)) {
+	audioSink::~audioSink	() {
+	if ((ostream != nullptr) && !Pa_IsStreamStopped (ostream)) {
 	   paCallbackReturn = paAbort;
 	   (void) Pa_AbortStream (ostream);
 	   while (!Pa_IsStreamStopped (ostream))
@@ -67,13 +64,11 @@ int32_t	i;
 	   writerRunning = false;
 	}
 
-	if (ostream != NULL)
+	if (ostream != nullptr)
 	   Pa_CloseStream (ostream);
 
 	if (portAudio)
 	   Pa_Terminate ();
-
-	delete	_O_Buffer;
 }
 //
 bool	audioSink::selectDevice (int16_t odev) {
@@ -82,7 +77,7 @@ PaError err;
 	if (!isValidDevice (odev))
 	   return false;
 
-	if ((ostream != NULL) && !Pa_IsStreamStopped (ostream)) {
+	if ((ostream != nullptr) && !Pa_IsStreamStopped (ostream)) {
 	   paCallbackReturn = paAbort;
 	   (void) Pa_AbortStream (ostream);
 	   while (!Pa_IsStreamStopped (ostream))
@@ -90,7 +85,7 @@ PaError err;
 	   writerRunning = false;
 	}
 
-	if (ostream != NULL)
+	if (ostream != nullptr)
 	   Pa_CloseStream (ostream);
 
 	outputParameters. device		= odev;
@@ -105,12 +100,12 @@ PaError err;
 	if (bufSize < 0 || bufSize > 16300)
 	   bufSize = 2 * 8192;
 
-	outputParameters. hostApiSpecificStreamInfo = NULL;
+	outputParameters. hostApiSpecificStreamInfo = nullptr;
 //
 	fprintf (stderr, "Suggested size for outputbuffer = %d\n", bufSize);
 	err = Pa_OpenStream (
 	             &ostream,
-	             NULL,
+	             nullptr,
 	             &outputParameters,
 	             CardRate,
 	             bufSize,
@@ -162,9 +157,9 @@ PaStreamParameters *outputParameters =
 	outputParameters -> channelCount	= 2;	/* I and Q	*/
 	outputParameters -> sampleFormat	= paFloat32;
 	outputParameters -> suggestedLatency	= 0;
-	outputParameters -> hostApiSpecificStreamInfo = NULL;
+	outputParameters -> hostApiSpecificStreamInfo = nullptr;
 
-	return Pa_IsFormatSupported (NULL, outputParameters, Rate) ==
+	return Pa_IsFormatSupported (nullptr, outputParameters, Rate) ==
 	                                          paFormatIsSupported;
 }
 /*
@@ -192,7 +187,7 @@ uint32_t	i;
 	}
 
 	if (ud -> paCallbackReturn == paContinue) {
-	   outB = (reinterpret_cast <audioSink *>(userData)) -> _O_Buffer;
+	   outB = &((reinterpret_cast <audioSink *>(userData)) -> _O_Buffer);
 	   actualSize = outB -> getDataFromBuffer (outp, 2 * framesPerBuffer);
 	   for (i = actualSize; i < 2 * framesPerBuffer; i ++)
 	      outp [i] = 0;
@@ -209,7 +204,7 @@ int32_t	minimum (int32_t a, int32_t b) {
 //	Just for my own curiosity I want to know to what degree
 //	the buffer is filled
 int32_t	audioSink::capacity	(void) {
-	return _O_Buffer -> GetRingBufferWriteAvailable () / 2;
+	return _O_Buffer. GetRingBufferWriteAvailable () / 2;
 }
 //
 //	putSample output comes from the FM receiver
@@ -221,7 +216,7 @@ int32_t	audioSink::putSample	(DSPCOMPLEX v) {
 int32_t	audioSink::putSamples		(DSPCOMPLEX *V, int32_t n) {
 float	*buffer = (float *)alloca (2 * n * sizeof (float));
 int32_t	i;
-int32_t	available = _O_Buffer -> GetRingBufferWriteAvailable ();
+int32_t	available = _O_Buffer. GetRingBufferWriteAvailable ();
 
 	if (2 * n > available)
 	   n = (available / 2) & ~01;
@@ -230,9 +225,9 @@ int32_t	available = _O_Buffer -> GetRingBufferWriteAvailable ();
 	   buffer [2 * i + 1] = imag (V [i]);
 	}
 
-	if (dumpFile != NULL)
+	if (dumpFile != nullptr)
 	   sf_writef_float (dumpFile, buffer, n);
-	_O_Buffer	-> putDataIntoBuffer (buffer, 2 * n);
+	_O_Buffer. putDataIntoBuffer (buffer, 2 * n);
 	return n;
 }
 
@@ -242,13 +237,13 @@ int16_t	audioSink::numberofDevices	(void) {
 
 const char	*audioSink::outputChannelwithRate (int16_t ch, int32_t rate) {
 const PaDeviceInfo *deviceInfo;
-const	char	*name	= NULL;
+const	char	*name	= nullptr;
 
 	if ((ch < 0) || (ch >= numofDevices))
 	   return name;
 
 	deviceInfo = Pa_GetDeviceInfo (ch);
-	if (deviceInfo == NULL)
+	if (deviceInfo == nullptr)
 	   return name;
 	if (deviceInfo -> maxOutputChannels <= 0)
 	   return name;
@@ -275,7 +270,7 @@ void	audioSink::startDumping	(SNDFILE *f) {
 }
 
 void	audioSink::stopDumping	(void) {
-	dumpFile	= NULL;
+	dumpFile	= nullptr;
 }
 
 int32_t	audioSink::getSelectedRate	(void) {

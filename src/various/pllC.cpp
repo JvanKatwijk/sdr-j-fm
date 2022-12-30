@@ -67,7 +67,7 @@ DSPFLOAT fac = 2.0 * M_PI / rate;
 void		pllC::do_pll (DSPCOMPLEX signal) {
 DSPCOMPLEX NcoSignal;
 
-	NcoSignal = (mySinCos != NULL) ?
+	NcoSignal = (mySinCos != nullptr) ?
 		         mySinCos -> getComplex (NcoPhase) :
 	                 DSPCOMPLEX (cos (NcoPhase), sin (NcoPhase));
 
@@ -89,24 +89,24 @@ DSPCOMPLEX NcoSignal;
 	   NcoPhase += 2 * M_PI;
 }
 
-DSPCOMPLEX	pllC::getDelay (void) {
+DSPCOMPLEX	pllC::getDelay () {
 	return pll_Delay;
 }
 
-DSPFLOAT	pllC::getPhaseIncr (void) {
+DSPFLOAT	pllC::getPhaseIncr () {
 	return phaseIncr;
 }
 
-DSPCOMPLEX	pllC::getNco (void) {
-	return (mySinCos != NULL) ?
+DSPCOMPLEX	pllC::getNco () {
+	return (mySinCos != nullptr) ?
 	   mySinCos -> getComplex (NcoPhase) :
 	   DSPCOMPLEX (cos (NcoPhase), sin(NcoPhase));
 }
 
-DSPFLOAT	pllC::getPhaseError (void) {
+DSPFLOAT	pllC::getPhaseError () {
 	return phaseError;
 }
 
-//bool		pllC::isLocked	(void) {
+//bool		pllC::isLocked	() {
 //	return pll_lock;
 //	}

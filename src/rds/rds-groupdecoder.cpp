@@ -172,11 +172,11 @@ void	rdsGroupDecoder::Handle_Basic_Tuning_and_Switching (RDSGroup * grp) {
 uint32_t segIndex		= grp -> getBlock_B () & 0x3;
 uint32_t charsforStationName	= grp -> getBlock_D () & 0xFFFF;
 
-	addtoStationLabel (segIndex, charsforStationName);
-	additionalFrequencies (grp -> getBlock_C ());
+	addtoStationLabel	(segIndex, charsforStationName);
+	additionalFrequencies	(grp -> getBlock_C ());
 
 //	Set Music/Speech flag
-	setMusicSpeechFlag ((grp -> getBlock_B () >> 3) & 1);
+	setMusicSpeechFlag	((grp -> getBlock_B () >> 3) & 1);
 
 //	Fill DI code
 	m_grp1_diCode |= ((grp -> getBlock_B () >> 2) & 1) << segIndex;
@@ -220,8 +220,8 @@ uint8_t af2 = blockContents & 0xFF;
 //	textSegmentRegister is an order bitset, containing the
 //	bits set for available segments
 void	rdsGroupDecoder::Handle_RadioText (RDSGroup * grp) {
-const uint16_t new_txtABflag = (grp ->  getBlock_B () >> 4) & 1;
-const uint16_t currentSegment = (grp -> getBlock_B ()) & 0xF;
+const uint16_t new_txtABflag	= (grp ->  getBlock_B () >> 4) & 1;
+const uint16_t currentSegment	= (grp -> getBlock_B ()) & 0xF;
 char* textFragment = &textBuffer [4 * currentSegment];
 //  bool endF = false;
 uint16_t textPart1, textPart2;
@@ -294,7 +294,7 @@ uint16_t offset = (grp -> getBlock_D ()) & 0x4F;
 void	rdsGroupDecoder::prepareText (char *v, int16_t length) {
 int16_t i;
 uint8_t previousChar = v[0];
-QString outString = QString("");
+QString outString = QString ("");
 
 	for (i = 1; i < length; i++) {
 	   uint8_t currentChar = v[i];

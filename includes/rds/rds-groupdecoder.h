@@ -85,7 +85,7 @@ private:
 //	Group 2 members
 	uint32_t textSegmentRegister;
 	int32_t	 textABflag;
-	char 	textBuffer [NUM_OF_CHARS_RADIOTEXT + 1];
+	char	textBuffer [NUM_OF_CHARS_RADIOTEXT + 1];
 
 signals:
 	void	setGroup		(int);
