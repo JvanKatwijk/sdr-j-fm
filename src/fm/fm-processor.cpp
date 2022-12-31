@@ -66,6 +66,7 @@
 	                                           IRate,
 	                                           IRate / fmRate),
 	                             fmAudioFilter (4096, 756),
+//	                             rdsLowPass	 (349, 1500, fmRate),
 	                             fmFilter	   (2 * 32768, 251) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
@@ -116,6 +117,9 @@
 	this	-> spectrumSampleRate	= fmRate;
 	this	-> zoomFactor		= 1;
 
+	int	Df			= 1000;
+	int	f			= 192000;
+	fprintf (stderr, "order = %f\n", (float)f / Df * 40 / 22);
 	peakLevelSampleMax = workingRate / 50;  // workingRate is typ. 48000S/s
 
 //	this	-> localBuffer		= new double [displaySize];

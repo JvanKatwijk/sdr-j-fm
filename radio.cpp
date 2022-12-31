@@ -790,7 +790,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_DABSTICK
-	if (s == "dabstick") {
+	if (s == "rtlsdr") {
 	   success = true;
 	   try {
 	      myRig = new rtlsdrHandler (fmSettings);
