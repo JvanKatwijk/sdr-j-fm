@@ -80,15 +80,20 @@ using namespace std;
 
 #define	MSECFORTIMER	10
 //
-#define	PILOTFILTER_SIZE	31
-#define	RDSLOWPASS_SIZE		89
-#define	HILBERT_SIZE		13
-#define	RDSBANDFILTER_SIZE	(2 * 384)
+//	a ruleof thumb is that the attenuation of a FIR filter
+//	is N_taps * (22 * Bt), where Bt = (Fstop - Fpass) /Fsampling
+//	(or N_taps = atten / (22 * Bt)
+//	For the pilot filter we need an atten of 30  dB,  with an
+//	extremely small transition band 
+//	For a transition band of 100 Hz and samplingrate 192000, we
+//	need 30 / (22 * 1 / 1920) = 2618
+//	For a filtersize of 500 we have (at 30 dB)  a transitionband
+//	of 30 / (22 * 500), i.e. 0.027, i.e.  192000 * 0.027 = 5.2 KHz
+//	or 1.7 Khz with an attenuation of 10 dB
+#define	PILOTFILTER_SIZE	(2 * 384)
 #define	FFT_SIZE		(2 * 16384)
-#define	PILOT_WIDTH		1000
-#define	RDS_WIDTH		2400
-#define	LEVEL_SIZE		512
-#define	LEVEL_FREQ		3
+#define	PILOT_WIDTH		(1200)
+#define	RDS_WIDTH		(2600)
 //
 //	common functions
 static inline

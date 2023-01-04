@@ -26,12 +26,12 @@
 #include "fm-constants.h"
 #include "radio.h"
 
+
 #define AUDIO_FREQ_DEV_PROPORTION    0.85f
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
 #define RDS_RATE		19000   // 16 samples for one RDS sympols
 #define OMEGA_PILOT	((DSPFLOAT(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
-#define OMEGA_PILOT_1	((DSPFLOAT(PILOT_FREQUENCY + 2)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
 //
@@ -66,7 +66,15 @@
 	                                           IRate,
 	                                           IRate / fmRate),
 	                             fmAudioFilter (4096, 756),
-//	                             rdsLowPass	 (349, 1500, fmRate),
+#ifdef	__PILOT_FIR__
+	                             pilotBandFilter (PILOTFILTER_SIZE,
+	                                             PILOT_FREQUENCY - PILOT_WIDTH / 2,
+	                                             PILOT_FREQUENCY + PILOT_WIDTH / 2,
+	                                             fmRate),
+#else
+	                             pilotBandFilter (FFT_SIZE,
+	                                              PILOTFILTER_SIZE),
+#endif
 	                             fmFilter	   (2 * 32768, 251) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
@@ -160,16 +168,20 @@
 
 //	to isolate the pilot signal, we need a reasonable
 //	filter. The filtered signal is beautified by a pll
-	pilotBandFilter = new fftFilter (FFT_SIZE, PILOTFILTER_SIZE);
-	pilotBandFilter -> setBand (PILOT_FREQUENCY - PILOT_WIDTH / 2,
-	                            PILOT_FREQUENCY + PILOT_WIDTH / 2,
-	                            fmRate);
+#ifdef	__PILOT_FIR__
+	pilotDelay	= (PILOTFILTER_SIZE + 1) * OMEGA_PILOT;
+#else
+	pilotBandFilter. setBand (PILOT_FREQUENCY - PILOT_WIDTH / 2,
+	                          PILOT_FREQUENCY + PILOT_WIDTH / 2,
+	                          fmRate);
+//	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE - 1) * OMEGA_PILOT;
+	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE + 1) / fmRate;
+	pilotDelay	= fmod (pilotDelay * PILOT_FREQUENCY, fmRate) /  fmRate * 2 * M_PI;
+#endif
 	pilotRecover	= new pilotRecovery (fmRate,
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE + 1) / fmRate;
-	pilotDelay	= fmod (pilotDelay * PILOT_FREQUENCY, fmRate) /  fmRate * 2 * M_PI;
 	fmAudioFilterActive . store (false);
 //
 //	the constant K_FM is still subject to many questions
@@ -183,8 +195,11 @@
 //	In the case of mono we do not assume a pilot
 //	to be available. We borrow the approach from CuteSDR
 	rdsHilbertFilter	= new fftFilterHilbert (FFT_SIZE,
-	                                           RDSBANDFILTER_SIZE);
-	rdsBandFilter		= new fftFilter (FFT_SIZE, RDSBANDFILTER_SIZE);
+	                                                PILOTFILTER_SIZE);
+//	                                                RDSBANDFILTER_SIZE);
+	rdsBandFilter		= new fftFilter (FFT_SIZE,
+	                                         PILOTFILTER_SIZE);
+//	                                         RDSBANDFILTER_SIZE);
 	rdsBandFilter	-> setBand (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                            RDS_FREQUENCY + RDS_WIDTH / 2, fmRate);
 
@@ -771,7 +786,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	                                      std::complex<float> *rdsValueCmpl){
 //	Get the phase for the "carrier to be inserted" right.
 //	Do this alwas to be able to check of a locked pilot PLL.
-DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demod);
+DSPFLOAT pilot = pilotBandFilter. Pass (5 * demod);
 DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 
 	if (fmModus != FM_Mode::Mono &&
@@ -789,7 +804,7 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	}
 
 //	process RDS
-//#define	__TOMNEDA__
+#define	__TOMNEDA__
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 	   DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demod);
 #ifndef	__TOMNEDA__

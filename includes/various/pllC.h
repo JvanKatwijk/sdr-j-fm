@@ -46,9 +46,9 @@ private:
 
 public:
 			pllC (int32_t	rate,
-			DSPFLOAT freq, DSPFLOAT lofreq, DSPFLOAT hifreq,
-	                DSPFLOAT bandwidth,
-	                SinCos *Table	= nullptr);
+			       DSPFLOAT freq, DSPFLOAT lofreq, DSPFLOAT hifreq,
+	                       DSPFLOAT bandwidth,
+	                       SinCos *Table	= nullptr);
 
 			~pllC ();
 

@@ -157,7 +157,7 @@ DSPCOMPLEX	fftFilterHilbert::Pass (DSPFLOAT x) {
 }
 
 void	fftFilterHilbert::setHilbert () {
-// set the frequency coefficients directly (set negative spectrum to zero)
+//	set the frequency coefficients directly (set negative spectrum to zero)
 
 	if ((fftSize & 0x1) == 0) {		// even fftSize
 	   filterVector [0] = 1.0f;

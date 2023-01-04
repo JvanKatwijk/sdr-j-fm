@@ -73,8 +73,7 @@ DSPCOMPLEX	*LowPassFIR::getKernel () {
 //FIR HighPass
 
 	HighPassFIR::HighPassFIR (int firsize,
-	                          int32_t Fc, int32_t fs):
-	                                         Basic_FIR(firsize) {
+	                          int32_t Fc, int32_t fs) : Basic_FIR(firsize) {
 	sampleRate = fs;
 	newKernel (Fc);
 }
@@ -138,7 +137,7 @@ DSPFLOAT	sum = 0;
 }
 
 static
-DSPFLOAT	*BandPassKernel (DSPFLOAT *v, int fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
+DSPFLOAT	*BandPassKernel(DSPFLOAT *v, int fsize, DSPFLOAT Fcl, DSPFLOAT Fch) {
 DSPFLOAT	sumA	= 0.0;
 DSPFLOAT	sumB	= 0.0;
 DSPFLOAT	*tmp1	= (DSPFLOAT *)alloca (fsize * sizeof (DSPFLOAT));
@@ -507,20 +506,20 @@ DSPFLOAT	re, im;
 
 // taken from GnuRadio to calculate the needed tap size
 /*static*/
-int32_t	Basic_FIR::compute_ntaps (const double	iSamplFreq,
-	                          const double	iTransitionWidth,
+int32_t	Basic_FIR::compute_ntaps (const double iSamplFreq,
+	                          const double iTransitionWidth,
 	                          const EWinType iWinType,
-	                          const double	iBetaKaiser/*=6.76*/) {
+	                          const double iBetaKaiser/*=6.76*/) {
 auto	get_max_win_att = [&]() -> int32_t {
 	switch (iWinType) {
 	   case (WIN_HAMMING):		return 53; break;
-	   case (WIN_HANN):		return 44; break;
-	   case (WIN_BLACKMAN):		return 74; break;
-	   case (WIN_RECTANGULAR):	return 21; break;
-	   case (WIN_KAISER):		return (iBetaKaiser/0.1102 + 8.7); break;
-	   case (WIN_BLACKMAN_HARRIS):	return 92; break;
-	   case (WIN_BARTLETT):		return 27; break;
-	   case (WIN_FLATTOP):		return 93; break;
+	   case(WIN_HANN):		return 44; break;
+	   case(WIN_BLACKMAN):		return 74; break;
+	   case(WIN_RECTANGULAR):	return 21; break;
+	   case(WIN_KAISER):		return (iBetaKaiser/0.1102 + 8.7); break;
+	   case(WIN_BLACKMAN_HARRIS):	return 92; break;
+	   case(WIN_BARTLETT):		return 27; break;
+	   case(WIN_FLATTOP):		return 93; break;
 	   default:
 	      throw std::out_of_range ("window::max_attenuation: unknown window type provided.");
 	}

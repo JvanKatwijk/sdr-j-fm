@@ -188,6 +188,7 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
+DEFINES		+= __PILOT_FIR__
 #CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay

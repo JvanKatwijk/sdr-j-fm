@@ -252,8 +252,11 @@ private:
 	                                 std::complex<float> *,
 	                                 std::complex<float> *);
 //	RDS
-
-	fftFilter	*pilotBandFilter;
+#ifndef	__PILOT_FIR__
+	fftFilter	pilotBandFilter;
+#else
+	BandPassFIR	pilotBandFilter;
+#endif
 	fftFilter	*rdsBandFilter;
 	pilotRecovery	*pilotRecover;
 	fftFilterHilbert *rdsHilbertFilter;

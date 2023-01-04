@@ -47,10 +47,10 @@ public:
 	};
 
 static
-int32_t		compute_ntaps (const double iSamplFreq,
-	                       const double iTransitionWidth,
-	                       const EWinType iWinType,
-	                       const double iBetaKaiser = 6.76);
+int32_t		compute_ntaps (const double	iSamplFreq,
+	                       const double	iTransitionWidth,
+	                       const EWinType	iWinType,
+	                       const double	iBetaKaiser = 6.76);
 
 public:
 	int		filterSize;
@@ -116,22 +116,22 @@ public:
 	                    int32_t   // samplerate
 	                   );
 		~LowPassFIR ();
-	DSPCOMPLEX  *getKernel (void);
+	DSPCOMPLEX  *getKernel ();
 	void	newKernel (int32_t);        // cutoff
 };
 
 //	Both for lowpass band bandpass, we provide:
 class	DecimatingFIR: public Basic_FIR {
 public:
-		DecimatingFIR (int, int32_t, int32_t, int);
-		DecimatingFIR (int, int32_t, int32_t, int32_t, int);
-		~DecimatingFIR  (void);
+		DecimatingFIR	(int, int32_t, int32_t, int);
+		DecimatingFIR	(int, int32_t, int32_t, int32_t, int);
+		~DecimatingFIR  ();
 
 	void	newKernel	(int32_t);
 	void	newKernel	(int32_t, int32_t);
 	bool	Pass		(DSPCOMPLEX, DSPCOMPLEX *);
 	bool	Pass		(DSPFLOAT, DSPFLOAT *);
-	DSPCOMPLEX *getKernel	(void);
+	DSPCOMPLEX *getKernel	();
 
 private:
 	int	decimationFactor;
@@ -141,16 +141,16 @@ private:
 class	HighPassFIR: public Basic_FIR {
 public:
 		HighPassFIR	(int, int32_t, int32_t);
-		~HighPassFIR	(void);
+		~HighPassFIR	();
 	void	newKernel	(int32_t);
 };
 
 class	BandPassFIR: public Basic_FIR {
 public:
 		BandPassFIR	(int, int32_t, int32_t, int32_t);
-		~BandPassFIR	(void);
+		~BandPassFIR	();
 
-	DSPCOMPLEX *getKernel	(void);
+	DSPCOMPLEX *getKernel	();
 	void	newKernel	(int32_t, int32_t);
 private:
 };
@@ -158,9 +158,9 @@ private:
 class	BasicBandPass: public Basic_FIR {
 public:
 		BasicBandPass	(int, int32_t, int32_t, int32_t);
-		~BasicBandPass	(void);
+		~BasicBandPass	();
 
-	DSPCOMPLEX *getKernel	(void);
+	DSPCOMPLEX *getKernel	();
 private:
 };
 
