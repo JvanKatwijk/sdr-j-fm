@@ -813,7 +813,7 @@ int		iqCounter	= 0;
 
 				metaData.	GuiPilotStrength = get_pilotStrength	();
 				metaData.	PilotPllLocked = isPilotLocked	(metaData.PilotPllLockStrength);
-				metaData.	DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : 0);
+				metaData.	DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.99);
 				metaData.	DcValIf = get_demodDcComponent	();
 				metaData.   PssPhaseShiftDegree = pilotDelayPSS / M_PI * 180.0f;
 				metaData.	PssPhaseChange = pPSS->get_mean_error() * 1000;

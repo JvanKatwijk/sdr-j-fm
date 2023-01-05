@@ -1675,14 +1675,14 @@ bool triggerLog = false;
 	if (runMode. load () != ERunStates::RUNNING)
 	   return;
 
+	static const float w = 1.0f / std::log10(2.0f);
+
 	if ((logTime > 0) && (++teller == logTime)) {
 	   triggerLog = true;
 	   teller = 0;
 	}
 
-	float lockStrength;
-
-	if (myFMprocessor -> isPilotLocked (lockStrength)) {
+	if (ipMD -> PilotPllLocked) {
 	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green}");
 	   pll_isLocked -> setText("Pilot PLL Locked");
 	}
@@ -1691,17 +1691,29 @@ bool triggerLog = false;
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 
-	rf_dc_component -> display (QString ("%1").arg(lockStrength, 0, 'f', 3)); // allow one fix digit after decimal point
+	rf_dc_component -> display (QString ("%1").arg(ipMD -> DcValRf, 0, 'f', 2));
+	demod_dc_component -> display (QString("%1").arg(ipMD -> DcValIf, 0, 'f', 2));
 
-	demod_dc_component -> display (QString("%1").arg(ipMD	-> DcValIf, 0, 'f', 2)); // allow tow fix digit after decimal point
+	thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
 
-	static const float w = 1.0f / std::log10(2.0f);
-	const float dcVal = (ipMD	-> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD	-> DcValIf) + 1.0f);
-	thermoDcComponent -> setValue (dcVal);
+	if (ipMD -> PssErrorMinimized) {
+		pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
+		pss_state -> setText("PSS established");
+	}
+	else {
+		pss_state -> setStyleSheet ("QLabel {background-color:yellow} QLabel {color:black}");
+		pss_state -> setText("PSS analyzing ... ");
+	}
+
+	pss_phase_corr -> display (QString("%1").arg(ipMD -> PssPhaseShiftDegree, 0, 'f', 2));
+	pss_phase_error -> display (QString("%1").arg(ipMD -> PssPhaseChange, 0, 'f', 2));
+
+	//thermoPSSCorr -> setValue ((ipMD -> PssPhaseChange < 0.0f ? -1 : 1) * w * std::log10(std::abs(ipMD -> PssPhaseChange) + 1.0f));
+	thermoPSSCorr -> setValue (ipMD -> PssPhaseChange);
 
 //	some kind of AFC
 	if (afcActive) {
-		int32_t afcOffFreq = ipMD	-> DcValIf * 10000;
+		int32_t afcOffFreq = ipMD -> DcValIf * 10000;
 // the_dcComponent is positive with too little frequency
 	   afcCurrOffFreq = (1 - afcAlpha) * afcCurrOffFreq +
 	                                           afcAlpha * afcOffFreq;
