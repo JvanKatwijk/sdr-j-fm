@@ -239,25 +239,6 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
-        <widget class="QCheckBox" name="cbDCRemove">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove DC component from input samples&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>DCR</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="pll_isLocked">
          <property name="maximumSize">
           <size>
@@ -817,29 +798,6 @@
        </item>
       </widget>
      </item>
-     <item>
-      <widget class="QComboBox" name="countrySelector">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>37</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select region to choose the suitable RDS PTY code.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <item>
-        <property name="text">
-         <string>Europe</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>USA</string>
-        </property>
-       </item>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>
@@ -1103,81 +1061,104 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="fmFilterSelect">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter, applied to the incoming raw data to isolate the FM signal from the noise around it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="4,2">
            <item>
-            <property name="text">
-             <string>9kHz (AM)</string>
-            </property>
+            <widget class="QCheckBox" name="cbDCRemove">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove DC component from input samples&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>DCR</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>15kHz</string>
-            </property>
+            <widget class="QComboBox" name="fmFilterSelect">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter, applied to the incoming raw data to isolate the FM signal from the noise around it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>9kHz (AM)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>15kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>25kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>35kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>45kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>55kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>65kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>75kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>90kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>115kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>140kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>165kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>190kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </item>
+            </widget>
            </item>
-           <item>
-            <property name="text">
-             <string>25kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>35kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>45kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>55kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>65kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>75kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>90kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>115kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>140kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>165kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>190kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-          </widget>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1,2,2">
@@ -1422,7 +1403,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="4,1,4,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="4,1,4,4,1">
            <item>
             <widget class="QComboBox" name="squelchSelector">
              <property name="toolTip">
@@ -1447,6 +1428,12 @@
            </item>
            <item>
             <widget class="QLabel" name="sqlStatusLabel">
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;GREY: Squelch is OFF&lt;br/&gt;GREEN: No squelch active, audio is on&lt;br/&gt;RED: Squelch active, audio is muted&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1462,6 +1449,23 @@
              <property name="text">
               <string/>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="countrySelector">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select region to choose the suitable RDS PTY code.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Europe</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>USA</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
@@ -1488,6 +1492,12 @@
            </item>
            <item>
             <widget class="QLabel" name="rdsSyncLabel">
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Green means a more or less decent rds signal can be decoded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1511,13 +1521,6 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-          </widget>
-         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="0,7,2">
            <item>
