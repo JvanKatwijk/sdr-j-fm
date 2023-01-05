@@ -328,8 +328,6 @@ int     k;
 	         this, SLOT (set_freqSave ()));
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
 	         this,  SLOT (check_afc (int)));
-//	connect (cbAfc, &QAbstractButton::clicked,
-//	         this, [this](bool checked){ afcActive = checked; reset_afc(); } );
 
 	QString country	= 
 	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
@@ -522,6 +520,8 @@ bool r = false;
 //	         this, &RadioInterface::set_display_delay);
 	connect (sbDispDelay, SIGNAL (valueChanged (int)),
 	         this,  SLOT (set_display_delay (int)));
+	connect (btnRestartPSS, &QAbstractButton::clicked,
+	         this, [this](){myFMprocessor -> restartPssAnalyzer(); });
 
 	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
 
@@ -614,6 +614,7 @@ int32_t vfo	= myRig -> getVFOFrequency ();
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	-> set_localOscillator (LOFrequency);
 	   myFMprocessor	-> resetRds ();
+		myFMprocessor	-> restartPssAnalyzer();
 	}
 }
 //
@@ -1108,6 +1109,7 @@ int32_t	vfo;
 //	AFC will trigger this too
 	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100)) {
 	      myFMprocessor -> resetRds ();
+			myFMprocessor -> restartPssAnalyzer();
 //	      on a change in frequency. draw new LF spectrum immediately
 //	      without averaging
 	      myFMprocessor -> triggerDrawNewLfSpectrum (); //
@@ -2176,7 +2178,7 @@ void	RadioInterface::reset_afc () {
 #include <QCloseEvent>
 void	RadioInterface::closeEvent (QCloseEvent *event) {
 	QMessageBox::StandardButton resultButton =
-	        QMessageBox::question (this, "fmRadio",
+	        QMessageBox::question (this, "Quitting fmreceiver?",
 	                               tr("Are you sure?\n"),
 	                               QMessageBox::No | QMessageBox::Yes,
 	                                               QMessageBox::Yes);

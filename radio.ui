@@ -1014,7 +1014,7 @@
               </palette>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS phase correction of 38 kHz L/R stereo sub carrier&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS phase correction in degree of the 38 kHz L/R stereo sub carrier&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="autoFillBackground">
               <bool>false</bool>
@@ -1076,7 +1076,7 @@
               </palette>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS current measured mean error&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS current measured mean error&lt;/p&gt;&lt;p&gt;Best results can be expected with values around zero.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="autoFillBackground">
               <bool>false</bool>
@@ -1149,6 +1149,16 @@
            </property>
            <property name="value">
             <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnRestartPSS">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;&lt;br/&gt;This could be important when the anaylzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a new report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Restart PSS analyzer</string>
            </property>
           </widget>
          </item>

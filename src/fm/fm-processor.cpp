@@ -993,10 +993,13 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 	}
 }
 
-void	fmProcessor::resetRds	() {
-	myRdsDecoder. reset ();
+void	fmProcessor::restartPssAnalyzer	() {
 	pilotDelayPSS = 0;
 	pPSS	->	reset	(); // TODO shift this as it is called while RDS switch, too
+}
+
+void	fmProcessor::resetRds	() {
+	myRdsDecoder. reset ();
 }
 
 void	fmProcessor::set_localOscillator (int32_t lo) {
