@@ -78,10 +78,13 @@
 #define	D_RTL_TCP	"rtl_tcp"
 #define	D_HACKRF	"hackrf"
 #define	D_LIME		"lime"
+#define	D_COLIBRI		"colibri"
 #define	D_AIRSPY	"airspy"
 #define	D_RTLSDR	"dabstick"
 #define	D_PLUTO		"pluto"
+#define	D_ELAD_S1		"elad-s1"
 #define	D_EXTIO		"extio"
+#define	D_PMSDR		"pmsdr"
 static 
 const char *deviceTable [] = {
 #ifdef	HAVE_SDRPLAY
@@ -704,7 +707,7 @@ bool    success;
 	delete myRig;
 	success		= true;		// default for now
 #ifdef HAVE_SDRPLAY
-	if (s == "sdrplay") {
+	if (s == D_SDRPLAY) {
 	   try {
 	      success = true;
 	      myRig = new sdrplayHandler (fmSettings);
@@ -715,7 +718,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_SDRPLAY_V3
-	if (s == "sdrplay-v3") {
+	if (s == D_SDRPLAY_V3) {
 	   try {
 	      success = true;
 	      myRig = new sdrplayHandler_v3 (fmSettings);
@@ -726,7 +729,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_AIRSPY
-	if (s == "airspy") {
+	if (s == D_AIRSPY) {
 	   try {
 	      success	= true;
 	      myRig = new airspyHandler (fmSettings);
@@ -737,7 +740,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_HACKRF
-	if (s == "hackrf") {
+	if (s == D_HACKRF) {
 	   try {
 	      success = true;
 	      myRig = new hackrfHandler (fmSettings);
@@ -748,7 +751,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_LIME
-	if (s == "lime") {
+	if (s == D_LIME) {
 	   try {
 	      success = true;
 	      myRig = new limeHandler (fmSettings);
@@ -759,10 +762,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_COLIBRI
-	if (s == "colibri") {
-	   success = true;
+	if (s == D_COLIBRI) {
 	   try {
-	      myRig = new colibriHandler (fmSettings);
+			success = true;
+			myRig = new colibriHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -770,10 +773,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_PLUTO
-	if (s == "pluto") {
-	   success = true;
+	if (s == D_PLUTO) {
 	   try {
-	      myRig = new plutoHandler (fmSettings);
+			success = true;
+			myRig = new plutoHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -781,10 +784,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_ELAD_S1
-	if (s == "elad-s1") {
-	   success = true;
+	if (s == D_ELAD_S1) {
 	   try {
-	      myRig = new eladHandler (fmSettings, true, &success);
+			success = true;
+			myRig = new eladHandler (fmSettings, true, &success);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -792,10 +795,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_DABSTICK
-	if (s == "rtlsdr") {
-	   success = true;
+	if (s == D_RTLSDR) {
 	   try {
-	      myRig = new rtlsdrHandler (fmSettings);
+			success = true;
+			myRig = new rtlsdrHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -803,21 +806,21 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_EXTIO
-	if (s == "extio") {
+	if (s == D_EXTIO) {
 	   myRig = new ExtioHandler(fmSettings, theSelector, &success);
 	}
 	else
 #endif
 #ifdef HAVE_PMSDR
-	if (s == "pmsdr") {
+	if (s == D_PMSDR) {
 	   myRig = new pmsdrHandler (fmSettings, &success);
 	}
 	else
 #endif
 	if (s == "filereader") {
-	   success = true;
 	   try {
-	      myRig = new fileReader (fmSettings);
+			success = true;
+			myRig = new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -856,7 +859,7 @@ bool    success;
 
 #ifdef __MINGW32__
 //	communication from the dll to the main program is through signals
-	if (s == "extio") {
+	if (s == D_EXTIO) {
 //	and for the extio:
 //	The following signals originate from the Winrad Extio interface
 	   connect (myRig, SIGNAL (set_ExtFrequency (int)),

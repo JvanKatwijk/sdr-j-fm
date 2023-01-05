@@ -189,18 +189,18 @@ isEmpty(GITHASHSTRING) {
 }
 include ( $$(QWT_ROOT)/features/qwt.prf )
 DEFINES		+= __PILOT_FIR__
-#CONFIG		+= console
+CONFIG		+= console
 #CONFIG		+= pmsdr
-#CONFIG		+= sdrplay
+CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3
-#CONFIG		+= airspy
+CONFIG		+= airspy
 CONFIG		+= dabstick
-#CONFIG		+= elad_s1
-#CONFIG		+= hackrf
-#CONFIG		+= lime
-#CONFIG		+= pluto
+CONFIG		+= elad_s1
+CONFIG		+= hackrf
+CONFIG		+= lime
+CONFIG		+= pluto
 #CONFIG		+= colibri
-#CONFIG		+= qwt
+CONFIG		+= qwt
 #INCLUDEPATH 	+= /usr/include/qt5/qwt
 #INCLUDEPATH 	+= /usr/local/qwt-6.2.0/include
 #for ubuntu the first line
