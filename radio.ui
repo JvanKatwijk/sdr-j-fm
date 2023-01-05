@@ -459,34 +459,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QCheckBox" name="cbAfc">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable AFC (Automatic Frequency Control).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>AFC</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
      <item>
@@ -1061,17 +1033,27 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="4,2">
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
-            <widget class="QCheckBox" name="cbDCRemove">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
+            <widget class="QCheckBox" name="cbAfc">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove DC component from input samples&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Automatic Frequency Control&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>AFC</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbDCRemove">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;DC Removal&lt;/p&gt;&lt;p&gt;Remove DC component from input samples.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>DCR</string>
@@ -1081,6 +1063,36 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="cbAutoMono">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Auto Mono&lt;/p&gt;&lt;p&gt;Force stereo decoder to mono if no pilot is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>AM</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbPSS">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perfect Stereo Separation&lt;/p&gt;&lt;p&gt;The Stereo L/R difference signal is analyzed to calculate the best mixing phase to get best stereo L/R separation. It works best if the signal contains big differences between L and R.&lt;/p&gt;&lt;p&gt;Check with &amp;quot;T | T&amp;quot; for minimal audio level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>PSS</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,0,0">
            <item>
             <widget class="QComboBox" name="fmFilterSelect">
              <property name="toolTip">
@@ -1156,36 +1168,6 @@
                <string>Off</string>
               </property>
              </item>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1,2,2">
-           <item>
-            <widget class="QCheckBox" name="cbAutoMono">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Auto Mono&lt;/p&gt;&lt;p&gt;Force audio to mono if no pilot is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>AM</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cbPSS">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perfect Stereo Separation&lt;/p&gt;&lt;p&gt;The Stereo L/R difference signal is analyzed to calculate the best mixing phase to get best stereo L/R separation. It works best if the signal contains big differences between L and R.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>PSS</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
             </widget>
            </item>
            <item>

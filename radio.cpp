@@ -32,7 +32,6 @@
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
-#include	"fm-processor.h"
 #include	"popup-keypad.h"
 #include	"rds-decoder.h"
 
@@ -881,6 +880,7 @@ bool    success;
 //
 
 deviceHandler	*RadioInterface::setDevice (QSettings *fmSettings) {
+(void)fmSettings;
 deviceSelect	deviceSelect;
 deviceHandler	*theDevice	= nullptr;
 QStringList devices;
@@ -1055,11 +1055,14 @@ void	RadioInterface::AdjustFrequency (int n) {
 //	Whenever the mousewheel is changed, the frequency
 //	is adapted
 void	RadioInterface::wheelEvent (QWheelEvent *e) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+	if (e -> angleDelta	().y	() > 0)
+#else
 	if (e -> delta () > 0)
-	   IncrementFrequency (KHz (1));
+#endif
+		IncrementFrequency (KHz (1));
 	else
 	   IncrementFrequency (-KHz (1));
-
 }
 
 //
@@ -1663,9 +1666,8 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	   volumeSlider -> setValue (volumeSlider -> value () - 1);
 }
 //
-//	This signal will arrive once every "inputRate" samples
-void	RadioInterface::showDcComponents (float iRfDcComponent,
-	                                  float ifDemodDcComponent) {
+//	This signal will arrive once every half "inputRate" samples (500ms)
+void	RadioInterface::showMetaData (const fmProcessor::SMetaData *ipMD) {
 static std::array<char, 1024> s{};
 static int teller = 0;
 bool triggerLog = false;
@@ -1691,15 +1693,15 @@ bool triggerLog = false;
 
 	rf_dc_component -> display (QString ("%1").arg(lockStrength, 0, 'f', 3)); // allow one fix digit after decimal point
 
-	demod_dc_component -> display (QString("%1").arg(ifDemodDcComponent, 0, 'f', 2)); // allow tow fix digit after decimal point
+	demod_dc_component -> display (QString("%1").arg(ipMD	-> DcValIf, 0, 'f', 2)); // allow tow fix digit after decimal point
 
 	static const float w = 1.0f / std::log10(2.0f);
-	const float dcVal = (ifDemodDcComponent < 0.0f ? 1 : -1) * w * std::log10(std::abs(ifDemodDcComponent) + 1.0f);
+	const float dcVal = (ipMD	-> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD	-> DcValIf) + 1.0f);
 	thermoDcComponent -> setValue (dcVal);
 
 //	some kind of AFC
 	if (afcActive) {
-	   int32_t afcOffFreq = ifDemodDcComponent * 10000;
+		int32_t afcOffFreq = ipMD	-> DcValIf * 10000;
 // the_dcComponent is positive with too little frequency
 	   afcCurrOffFreq = (1 - afcAlpha) * afcCurrOffFreq +
 	                                           afcAlpha * afcOffFreq;
@@ -1721,7 +1723,7 @@ bool triggerLog = false;
 
 	   if (triggerLog) {
 	      fprintf (stderr, "AFC:  DC %f, NewFreq %d = CurrFreq %d + AfcOffFreq %d (unfiltered %d), AFC_Alpha %f\n",
-	                       ifDemodDcComponent, newFreq,
+			                 ipMD-> DcValIf, newFreq,
 	                       currentFreq, afcCurrOffFreq,
 	                       afcOffFreq, afcAlpha);
 	   }
@@ -1737,7 +1739,7 @@ bool triggerLog = false;
 	            "%s : Freq = %d,\n PI code = %4X, pilot = %f\n",
 	            currentTime.toString(QString("dd.MM.yy hh:mm:ss"))
 	                                      .toStdString() .c_str(),
-	           currentFreq, currentPIcode, iRfDcComponent);
+		        currentFreq, currentPIcode, ipMD	-> DcValRf);
 
 	   fputs (s. cbegin(), stderr);
 //	and into the logfile

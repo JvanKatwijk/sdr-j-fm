@@ -96,7 +96,6 @@ DSPFLOAT I, Q;
 float carrierAlpha = 0.0010f;
 //	DC filter after AM demodulator (carrier level)
 float fmDcAlpha    = 0.0001f;
-int32_t arcSineIdx;
 
 	DSPFLOAT zAbs = abs (z);
 	if (zAbs <= 0.001) {

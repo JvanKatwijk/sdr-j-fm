@@ -49,6 +49,7 @@ class audioSink;
 class newConverter;
 
 #define USE_EXTRACT_LEVELS
+
 template<typename T> class DelayLine {
 public:
 		DelayLine (const T & iDefault) : mDefault (iDefault) {
@@ -86,6 +87,17 @@ public:
 	enum Channels { S_STEREO, S_STEREO_SWAPPED, S_LEFT,
 		             S_RIGHT, S_LEFTplusRIGHT,
 		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
+	struct SMetaData
+	{
+		float DcValRf;
+		float DcValIf;  // used for AFC
+		float PssPhaseShiftDegree;
+		float PssPhaseChange;
+		bool  PssErrorMinimized;
+		float GuiPilotStrength; // only valid if GUI scope shows the "Demodulation" signal
+		float PilotPllLockStrength;
+		bool  PilotPllLocked;
+	};
 
 public:
 		fmProcessor (deviceHandler *,
@@ -179,11 +191,12 @@ private:
 	Oscillator	localOscillator;
 	Oscillator	rdsOscillator;
 	SinCos		mySinCos;
+	AGC			pssAGC;
 	DecimatingFIR	fmBand_1;
 	DecimatingFIR	fmBand_2;
+	fftFilter	fmAudioFilter;
 	fftFilter	fmFilter;
 	std::atomic<bool>	fmFilterOn;
-	fftFilter	fmAudioFilter;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
 
@@ -266,7 +279,6 @@ private:
 	fftFilter	*rdsBandFilter;
 	pilotRecovery	*pilotRecover;
 	PerfectStereoSeparation *pPSS;
-	AGC pssAGC;
 	fftFilterHilbert *rdsHilbertFilter;
 	fftFilterHilbert *stereoDiffHilbertFilter;
 	uint32_t	rdsSampleCntSrc;
@@ -315,14 +327,19 @@ private:
 	int32_t		spectrumSampleRate;
 	int32_t		zoomFactor;
 
+	SMetaData metaData {};
+
 signals:
 	void		setPLLisLocked		(bool);
 	void		hfBufferLoaded		();
 	void		lfBufferLoaded		(bool, int);
 	void		iqBufferLoaded		();
-	void		showDcComponents(float, float);
+	void		showMetaData(const SMetaData *);
 	void		scanresult		();
 	void		showPeakLevel		(const float, const float);
 };
 
+//Q_DECLARE_METATYPE(fmProcessor::SMetaData)
+
 #endif
+

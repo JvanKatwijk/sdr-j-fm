@@ -235,8 +235,8 @@
 	         myRadioInterface, SLOT (iqBufferLoaded ()));
 	connect (this, SIGNAL (showPeakLevel (float, float)),
 	         myRadioInterface, SLOT (showPeakLevel (float, float)));
-	connect (this, SIGNAL (showDcComponents (float,float)),
-	         myRadioInterface, SLOT (showDcComponents (float,float)));
+	connect (this, &fmProcessor::showMetaData,
+	         myRadioInterface, &RadioInterface::showMetaData);  // the macro version is not working here!?
 	connect (this, SIGNAL (scanresult ()),
 	         myRadioInterface,SLOT(scanresult()));
 
@@ -802,7 +802,7 @@ int		iqCounter	= 0;
 	      }
 
 	      if (++lfCount > (fmRate / repeatRate)) {
-	         if (spectrumBuffer_lf. size () >= spectrumSize) {
+				if (spectrumBuffer_lf. size () >= (unsigned)spectrumSize) {
 	            processLfSpectrum (spectrumBuffer_lf);
 	            spectrumBuffer_lf. resize (0);
 	         }
@@ -810,12 +810,17 @@ int		iqCounter	= 0;
 	      }
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
-#ifdef USE_EXTRACT_LEVELS
-				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), pilotDelayPSS / M_PI * 180.0f/*get_demodDcComponent()*/);
-#else
-				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.9), get_demodDcComponent());
-#endif
-	         myCount = 0;
+
+				metaData.	GuiPilotStrength = get_pilotStrength	();
+				metaData.	PilotPllLocked = isPilotLocked	(metaData.PilotPllLockStrength);
+				metaData.	DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : 0);
+				metaData.	DcValIf = get_demodDcComponent	();
+				metaData.   PssPhaseShiftDegree = pilotDelayPSS / M_PI * 180.0f;
+				metaData.	PssPhaseChange = pPSS->get_mean_error() * 1000;
+				metaData.	PssErrorMinimized = pPSS->is_error_minimized();
+
+				emit showMetaData (&metaData);
+				myCount = 0;
 	      }
 	   }
 	}
@@ -998,14 +1003,6 @@ void	fmProcessor::set_localOscillator (int32_t lo) {
 }
 
 bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
-	oLockStrength = pPSS->get_mean_error()*1000;
-	return pPSS->is_error_minimized();
-
-
-	// test
-
-
-
 	if (fmModus != FM_Mode::Mono && pilotRecover) {
 	   oLockStrength = pilotRecover -> getLockedStrength ();
 	   return pilotRecover -> isLocked ();
