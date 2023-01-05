@@ -20,14 +20,7 @@
   <property name="windowIconText">
    <string>QUIT</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_13">
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
+  <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,6">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
@@ -957,7 +950,7 @@
       <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
+          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <widget class="QLabel" name="label_4">
@@ -1013,14 +1006,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QwtPlot" name="lfscope">
-         <property name="maximumSize">
-          <size>
-           <width>371</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
+        <widget class="QwtPlot" name="lfscope"/>
        </item>
        <item>
         <widget class="QSlider" name="spectrumAmplitudeSlider_hf">
@@ -1086,12 +1072,6 @@
        </item>
        <item>
         <widget class="QwtPlot" name="hfscope">
-         <property name="maximumSize">
-          <size>
-           <width>511</width>
-           <height>16777215</height>
-          </size>
-         </property>
          <property name="autoFillBackground">
           <bool>false</bool>
          </property>
