@@ -413,8 +413,14 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                             spectrumAmplitudeSlider_lf -> value ());
 	s	-> setValue ("IQbalanceSlider",
 	                             IQbalanceSlider	-> value());
-	s	-> setValue ("afc", cbAfc -> checkState ());
-
+	s	-> setValue ("afc",
+	                             cbAfc -> checkState ());
+	s	-> setValue ("dcRemove",
+	                             cbDCRemove -> checkState ());
+	s	-> setValue ("autoMono",
+	                             cbAutoMono -> checkState ());
+	s	-> setValue ("pss",
+	                             cbPSS -> checkState ());
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
 	                             fmFilterSelect	-> currentText ());
@@ -506,6 +512,24 @@ bool r = false;
 	   setfmDecoder (fmDecoder -> currentText ());
 	}
 
+	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
+
+	k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
+	cbDCRemove	-> setCheckState (k ? Qt::CheckState::Checked :
+	                                  Qt::CheckState::Unchecked);
+
+	k	= fmSettings -> value ("autoMono", Qt::CheckState::Checked).toInt ();
+	cbAutoMono -> setCheckState (k ? Qt::CheckState::Checked :
+	                                 Qt::CheckState::Unchecked);
+
+	k	= fmSettings -> value ("pss", Qt::CheckState::Checked).toInt ();
+	cbPSS-> setCheckState (k ? Qt::CheckState::Checked :
+	                           Qt::CheckState::Unchecked);
+
+	myFMprocessor -> setDCRemove	(cbDCRemove -> checkState());
+	myFMprocessor -> setAutoMonoMode	(cbAutoMono -> checkState());
+	myFMprocessor -> setPSSMode	(cbPSS -> checkState());
+
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmDecoder (const QString &)));
 
@@ -525,8 +549,6 @@ bool r = false;
 	         this,  SLOT (set_display_delay (int)));
 	connect (btnRestartPSS, &QAbstractButton::clicked,
 	         this, [this](){myFMprocessor -> restartPssAnalyzer(); });
-
-	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
 
 	runMode. store (ERunStates::RUNNING);
 }
@@ -2049,7 +2071,7 @@ int     k;
 	   fmDeemphasisSelector -> setCurrentIndex (k);
 
 
-	k	= s -> value ("afc", afcActive).toInt ();
+	k	= s -> value ("afc", Qt::CheckState::Unchecked).toInt ();
 	cbAfc	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                 Qt::CheckState::Unchecked);
 	afcActive = (k != 0);
