@@ -129,6 +129,7 @@ public:
 
 	bool		isPilotLocked		(float &oLockStrength) const;
 	void		setAutoMonoMode		(const bool iAutoMonoMode);
+	void		setPSSMode		(const bool iPSSMode);
 	void		setDCRemove		(const bool iDCREnabled);
 	void		triggerDrawNewHfSpectrum ();
 	void		triggerDrawNewLfSpectrum ();
@@ -222,6 +223,7 @@ private:
 	int32_t		fmFilterDegree;
 	std::atomic<bool>	newFilter;
 	bool		autoMono;
+	bool		pssActive;
 
 	int16_t		oldSquelchValue;
 	int16_t		squelchValue;

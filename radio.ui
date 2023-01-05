@@ -1180,14 +1180,27 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1,2,2">
            <item>
             <widget class="QCheckBox" name="cbAutoMono">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force audio to mono if no pilot is detected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Auto Mono&lt;/p&gt;&lt;p&gt;Force audio to mono if no pilot is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Auto mono</string>
+              <string>AM</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbPSS">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perfect Stereo Separation&lt;/p&gt;&lt;p&gt;The Stereo L/R difference signal is analyzed to calculate the best mixing phase to get best stereo L/R separation. It works best if the signal contains big differences between L and R.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>PSS</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -1293,12 +1306,12 @@
              </item>
              <item>
               <property name="text">
-               <string>25us</string>
+               <string>25us (Dolby FM)</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>50us  (EU)</string>
+               <string>50us  (Europe, non-USA)</string>
               </property>
              </item>
              <item>

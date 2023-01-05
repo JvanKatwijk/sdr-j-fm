@@ -108,6 +108,7 @@
 	this	-> fillAveragelfBuffer	= true;
 	this	-> displayBuffer_lf	= nullptr;
 	this	-> autoMono		= true;
+	this	-> pssActive	= true;
 	this	-> peakLevelCurSampleCnt	= 0;
 	this	-> peakLevelSampleMax	= 0x7FFFFFF;
 	this	-> absPeakLeft		= 0.0f;
@@ -848,9 +849,17 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay) - pilotDelayPSS;
 #endif
 
-		pilotDelayPSS = this	->	pPSS->	process_sample(demodDelayed, PhaseforLRDiff); // perform perfect stereo separation
-		*LRDiffCplx = this	->	pPSS->	get_cur_mixer_result	();
-		*LRDiffCplx = pssAGC.	process_sample(*LRDiffCplx);
+		if (pssActive)
+		{
+			pilotDelayPSS = this	->	pPSS->	process_sample(demodDelayed, PhaseforLRDiff); // perform perfect stereo separation
+			*LRDiffCplx = this	->	pPSS->	get_cur_mixer_result	();
+			*LRDiffCplx = pssAGC.	process_sample(*LRDiffCplx);  // AGC only that it looks nicer in the IQ scope
+		}
+		else
+		{
+			pilotDelayPSS = 0;
+			*LRDiffCplx = 0;
+		}
 
 		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ? mySinCos. getSin (PhaseforLRDiff) // we look for minimum correlation so mix with PI/2 phase shift
 		                                                                : mySinCos. getCos (PhaseforLRDiff))
@@ -1207,6 +1216,10 @@ float	rdsAvg	= 0;
 
 void	fmProcessor::setAutoMonoMode		(const bool iAutoMonoMode) {
 	autoMono = iAutoMonoMode;
+}
+
+void	fmProcessor::setPSSMode		(const bool iPSSMode) {
+	pssActive = iPSSMode;
 }
 
 void	fmProcessor::setDCRemove		(const bool iDCREnabled) {

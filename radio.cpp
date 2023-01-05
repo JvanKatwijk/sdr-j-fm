@@ -511,6 +511,8 @@ bool r = false;
 
 	connect (cbAutoMono, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor -> setAutoMonoMode(isChecked); });
+	connect (cbPSS, &QCheckBox::clicked,
+	         this, [this](bool isChecked){myFMprocessor -> setPSSMode(isChecked); });
 	connect (cbDCRemove, &QCheckBox::clicked,
 	         this, [this](bool isChecked){ myFMprocessor->setDCRemove(isChecked); });
 	connect (volumeSlider, &QSlider::valueChanged,
@@ -2076,7 +2078,7 @@ int     k;
 	   fmChannelSelect -> setCurrentIndex (k);
 
 	h	= s -> value ("fmDeemphasisSelector",
-	                             "50us  (EU)"). toString ();
+	                             "50us  (Europe, non-USA)"). toString ();
 	k	= fmDeemphasisSelector -> findText(h);
 	if (k != -1)
 	   fmDeemphasisSelector -> setCurrentIndex (k);
