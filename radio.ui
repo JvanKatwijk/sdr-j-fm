@@ -950,7 +950,7 @@
       <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <widget class="QLabel" name="label_4">
@@ -1106,11 +1106,6 @@
            </property>
            <item>
             <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
              <string>9kHz (AM)</string>
             </property>
            </item>
@@ -1172,6 +1167,11 @@
            <item>
             <property name="text">
              <string>190kHz</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Off</string>
             </property>
            </item>
           </widget>
