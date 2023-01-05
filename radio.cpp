@@ -996,22 +996,29 @@ int16_t bl, br;
 	currAttSliderValue	= 2 * n;
 	attValueL	= currAttSliderValue * (float)bl / 100;
 	attValueR	= currAttSliderValue * (float)br / 100;
+#ifndef DO_STEREO_SEPARATION_TEST
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
+#endif
 }
 /*
- *  the balance slider runs between -30 .. 30
+ *  the balance slider runs between -100 .. 100
  */
 void	RadioInterface::setIQBalance (int n) {
 int16_t bl, br;
 
 	IQBalanceDisplay->display(n);
+#ifdef DO_STEREO_SEPARATION_TEST
+	if (myFMprocessor != nullptr)
+		myFMprocessor	-> setAttenuation ((float)n, 0);
+#else
 	bl		= 100 - n;
 	br		= 100 + n;
 	attValueL = currAttSliderValue * (float)bl / 100;
 	attValueR = currAttSliderValue * (float)br / 100;
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
+#endif
 }
 //
 //	Increment frequency: with amount N, depending

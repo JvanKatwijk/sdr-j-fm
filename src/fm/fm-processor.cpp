@@ -182,6 +182,9 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
+#ifdef DO_STEREO_SEPARATION_TEST
+	pilotDelay2 = 0;
+#endif
 	fmAudioFilterActive . store (false);
 //
 //	the constant K_FM is still subject to many questions
@@ -435,8 +438,12 @@ void	fmProcessor::stopDumping () {
 }
 
 void	fmProcessor::setAttenuation (DSPFLOAT l, DSPFLOAT r) {
+#ifdef DO_STEREO_SEPARATION_TEST
+	pilotDelay2 = l / 180.0f * M_PI;
+#else
 	Lgain = l;
 	Rgain = r;
+#endif
 }
 
 void	fmProcessor::startScanning () {
@@ -792,11 +799,16 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	if (fmModus != FM_Mode::Mono &&
 	         (pilotRecover -> isLocked () || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
+#ifdef DO_STEREO_SEPARATION_TEST
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2);
+		DSPFLOAT LRDiff = 2.0 * mySinCos. getSin (PhaseforLRDiff) * demod; // we look for minimum correlation so mix with PI/2 phase shift
+#else
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
 //	Due to filtering the real amplitude of the LRDiff might have
 //	to be adjusted, we guess
 	   DSPFLOAT LRDiff = 2.0 * mySinCos. getCos (PhaseforLRDiff) * demod;
-	   DSPFLOAT LRPlus = demod;
+#endif
+		DSPFLOAT LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {

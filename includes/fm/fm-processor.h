@@ -264,6 +264,9 @@ private:
 	uint32_t	rdsSampleCntDst;
 //	newConverter	*rdsDecimator;
 	DSPFLOAT	pilotDelay;
+#ifdef DO_STEREO_SEPARATION_TEST
+	DSPFLOAT	pilotDelay2;
+#endif
 	DSPCOMPLEX	audioGainCorrection (DSPCOMPLEX);
 //
 //	Volume
