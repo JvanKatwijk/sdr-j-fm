@@ -57,3 +57,61 @@ float alpha = 1.0f / 3000.0f;
 
 	return currentPhase;
 }
+
+
+
+
+PerfectStereoSeparation::PerfectStereoSeparation(int32_t iRate, float iAlpha, SinCos * ipSinCos)
+{
+	this	-> Rate_in	= iRate;
+	this	-> mySinCos	= ipSinCos;
+	this	-> alpha = iAlpha;
+	this	->	accPhaseShift = 0;
+
+	stereoLPImageFilterSin = new fftFilter (2 *16384, 295);  // TODO: check sizes
+	stereoLPImageFilterCos = new fftFilter (2 *16384, 295);
+	stereoLPImageFilterSin -> setLowPass (15000, Rate_in);
+	stereoLPImageFilterCos -> setLowPass (15000, Rate_in);
+}
+
+PerfectStereoSeparation::~PerfectStereoSeparation()
+{
+	delete stereoLPImageFilterCos;
+	delete stereoLPImageFilterSin;
+}
+
+
+float	PerfectStereoSeparation::process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase)
+{
+	const DSPFLOAT sinPath = mySinCos -> getSin (iCurMixPhase) * iMuxSignal;
+	const DSPFLOAT cosPath = mySinCos -> getCos (iCurMixPhase) * iMuxSignal;
+
+	const DSPFLOAT sinPathFlt = stereoLPImageFilterSin -> Pass(sinPath);
+	const DSPFLOAT cosPathFlt = stereoLPImageFilterCos -> Pass(cosPath);
+
+	this ->	curMixResult = DSPCOMPLEX(cosPathFlt, sinPathFlt);
+
+	//const DSPFLOAT error = (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1); // hard decision version
+	const DSPFLOAT error = cosPathFlt * sinPathFlt;
+
+	this	->	accPhaseShift += alpha * error;
+
+	// do some limitation
+	if (this	->	accPhaseShift < -M_PI_4)
+		this	->	accPhaseShift = -M_PI_4;
+	else if (this	->	accPhaseShift > M_PI_4)
+		this	->	accPhaseShift = M_PI_4;
+
+	return this	->	accPhaseShift;
+}
+
+bool	PerfectStereoSeparation::is_locked	() const
+{
+	return true;
+}
+
+void PerfectStereoSeparation::reset	()
+{
+	this ->	curMixResult = { 0, 0 };
+	this	->	accPhaseShift = 0;
+}

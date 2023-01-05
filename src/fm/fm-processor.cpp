@@ -75,8 +75,7 @@
 	                             pilotBandFilter (FFT_SIZE,
 	                                              PILOTFILTER_SIZE),
 #endif
-	                             fmFilter	   (2 * 32768, 251),
-	                             my_Costas    (fmRate, 1.0f, 0.02f, 25) {
+	                             fmFilter	   (2 * 32768, 251) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
 	this	-> myRadioInterface = RI;
@@ -183,16 +182,10 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
-	//pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE/2 - 1) * OMEGA_PILOT;
-//#define DELAY_STEPS (FFT_SIZE - PILOTFILTER_SIZE/2 - 1)
-//#define DELAY_STEPS (FFT_SIZE - PILOTFILTER_SIZE + 1)
-	//pilotDelayLine. set_delay_steps (DELAY_STEPS);
-
-	stereoLPImageFilterSin = new fftFilter (FFT_SIZE, RDSBANDFILTER_SIZE);
-	stereoLPImageFilterCos = new fftFilter (FFT_SIZE, RDSBANDFILTER_SIZE);
-	stereoLPImageFilterSin -> setLowPass (15000, fmRate);
-	stereoLPImageFilterCos -> setLowPass (15000, fmRate);
-
+	pPSS	= new PerfectStereoSeparation(fmRate,
+	                                    10.0f / fmRate,
+	                                    &mySinCos);
+	pilotDelayPSS = 0;
 #ifdef DO_STEREO_SEPARATION_TEST
 	pilotDelay2 = 0;
 #endif
@@ -256,11 +249,20 @@
 	myCount = 0;
 }
 
-	fmProcessor::~fmProcessor() {
-	   stop();
+fmProcessor::~fmProcessor() {
+	stop();
 
-	delete[] displayBuffer_lf;
-	delete mySquelch;
+	delete	this	->	spectrum_fft_hf;
+	delete	this	->	spectrumBuffer_hf;
+	delete	this	->	spectrum_fft_lf;
+	delete	this	->	rdsHilbertFilter;
+	delete	this	->	rdsBandFilter;
+	delete	this	->	stereoDiffHilbertFilter;
+	delete	this	->	pilotRecover;
+	delete	this	->	theConverter;
+	delete	this	->	pPSS;
+	delete[] this	->	displayBuffer_lf;
+	delete	this	->	mySquelch;
 }
 
 void	fmProcessor::stop () {
@@ -805,7 +807,7 @@ int		iqCounter	= 0;
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
 #ifdef USE_EXTRACT_LEVELS
-				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), pilotDelayCostas / M_PI * 180.0f/*get_demodDcComponent()*/);
+				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), pilotDelayPSS / M_PI * 180.0f/*get_demodDcComponent()*/);
 #else
 				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.9), get_demodDcComponent());
 #endif
@@ -824,56 +826,30 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	const float demodDelayed = demodDirect;
 	//	Get the phase for the "carrier to be inserted" right.
 //	Do this alwas to be able to check of a locked pilot PLL.
-(??)DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demod);
-(??)DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+(??)	DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demodDirect);
+(??)	DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+(??)
+(??)	const bool pilotLocked = pilotRecover -> isLocked();
+(??)
+(??)	if (pilotLocked == false)
+(??)		pilotDelayCostas = 0;
 
 	if (fmModus != FM_Mode::Mono &&
 (??)	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayCostas;
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayPSS;
 
-		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT ? mySinCos. getSin (PhaseforLRDiff)
+		pilotDelayPSS = this	->	pPSS->	process_sample(demodDelayed, PhaseforLRDiff); // perform perfect stereo separation
+		*LRDiffCplx = this	->	pPSS->	get_cur_mixer_result	();
+
+		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT ? mySinCos. getSin (PhaseforLRDiff) // we look for minimum correlation so mix with PI/2 phase shift
 		                                                           : mySinCos. getCos (PhaseforLRDiff))
-		                      * demodDelayed; // we look for minimum correlation so mix with PI/2 phase shift
-
-		{
-			DSPFLOAT sinPath = mySinCos. getSin (PhaseforLRDiff) * demodDelayed;
-			DSPFLOAT cosPath = mySinCos. getCos (PhaseforLRDiff) * demodDelayed;
-
-			//DSPFLOAT PhaseforLRDiffCostas = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - 0*pilotDelayCostas;
-			const DSPFLOAT sinPathFlt = stereoLPImageFilterSin -> Pass(sinPath);
-			const DSPFLOAT cosPathFlt = stereoLPImageFilterCos -> Pass(cosPath);
-			//const DSPFLOAT sinCosPath = (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1);
-			const DSPFLOAT sinCosPath = cosPathFlt * sinPathFlt;
-
-			*LRDiffCplx = DSPCOMPLEX(cosPathFlt, sinPathFlt);
-
-			const float alpha = 10.0f / fmRate;
-			pilotDelayCostas += alpha * sinCosPath; // + (1.0f - alpha) * pilotDelayCostas;
-			if (pilotDelayCostas < -M_PI_4)
-				pilotDelayCostas = -M_PI_4;
-			else if (pilotDelayCostas > M_PI_4)
-				pilotDelayCostas = M_PI_4;
-
-			//const DSPCOMPLEX stereoDiffHilb = stereoDiffHilbertFilter -> Pass (stereoDiff);
-			//	Due to filtering the real amplitude of the LRDiff might have
-			//	to be adjusted, we guess
-
-			//*LRDiffCplx = conj(mySinCos. getComplex(PhaseforLRDiffCostas)) * stereoDiffHilb;
-			// /**LRDiffCplx =*/  my_Costas. process_sample(*LRDiffCplx);
-
-			//pilotDelayCostas = alpha * my_Costas.get_cur_phase_limited() + (1.0f - alpha) * pilotDelayCostas;
-
-			//*LRDiffCplx = LRDiff;
-			//LRDiff = real(2.0f * *LRDiffCplx);
-		}
-
+		                      * demodDelayed;
 		DSPFLOAT LRPlus = demodDelayed;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
 		*audioOut = DSPCOMPLEX (demodDelayed, 0);
-		//pilotDelayCostas = 0;
 	}
 
 //	process RDS
@@ -994,7 +970,8 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 
 void	fmProcessor::resetRds	() {
 	myRdsDecoder. reset ();
-	pilotDelayCostas = 0;
+	pilotDelayPSS = 0;
+	pPSS	->	reset	();
 }
 
 void	fmProcessor::set_localOscillator (int32_t lo) {

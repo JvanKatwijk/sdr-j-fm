@@ -40,7 +40,7 @@
 #include	"rds-decoder.h"
 #include	"newconverter.h"
 #include	"squelchClass.h"
-#include	"sdr/costas.h"
+
 
 class deviceHandler;
 class RadioInterface;
@@ -260,9 +260,8 @@ private:
 	BandPassFIR	pilotBandFilter;
 #endif
 	fftFilter	*rdsBandFilter;
-	fftFilter	*stereoLPImageFilterSin;
-	fftFilter	*stereoLPImageFilterCos;
 	pilotRecovery	*pilotRecover;
+	PerfectStereoSeparation *pPSS;
 	fftFilterHilbert *rdsHilbertFilter;
 	fftFilterHilbert *stereoDiffHilbertFilter;
 	uint32_t	rdsSampleCntSrc;
@@ -270,7 +269,7 @@ private:
 //	newConverter	*rdsDecimator;
 	//DelayLine<float> pilotDelayLine { 0.0f };
 	DSPFLOAT	pilotDelay;
-	DSPFLOAT	pilotDelayCostas = 0;
+	DSPFLOAT	pilotDelayPSS;
 #ifdef DO_STEREO_SEPARATION_TEST
 	DSPFLOAT	pilotDelay2;
 #endif
@@ -292,7 +291,6 @@ private:
 	DSPFLOAT	rightChannel;   // (balance + 50.0) / 100.0;;
 	FM_Mode		fmModus;
 	uint8_t		soundSelector;
-	Costas		my_Costas;
 
 	fm_Demodulator	*theDemodulator;
 	rdsDecoder::ERdsMode rdsModus;
