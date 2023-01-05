@@ -693,7 +693,11 @@
           </layout>
          </item>
          <item>
-          <widget class="QwtPlot" name="iqscope"/>
+          <widget class="QwtPlot" name="iqscope">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If RDS is ON this shows the RDS constellation (two different ways).&lt;/p&gt;&lt;p&gt;If RDS is OFF the PSS quality is shown: For best Stereo qualität a almost horizontal line must be shown. A slope shows the phase offset while Stereo difference signal demodulation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_3">
@@ -1155,7 +1159,7 @@
          <item>
           <widget class="QPushButton" name="btnRestartPSS">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;&lt;br/&gt;This could be important when the anaylzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a new report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;This could be important when the analyzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a new report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Restart PSS analyzer</string>
