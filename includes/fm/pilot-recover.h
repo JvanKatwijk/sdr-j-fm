@@ -43,8 +43,7 @@ public:
 	DSPFLOAT	process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase);
 
 private:
-	fftFilter	*lpFilterSin;
-	fftFilter	*lpFilterCos;
+	fftFilter	*lpFilter;
 	int32_t	rate;
 	int32_t	sampleLockStableCnt;
 	int32_t	sampleUnlockStableCnt;

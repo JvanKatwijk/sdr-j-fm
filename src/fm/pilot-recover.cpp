@@ -71,16 +71,15 @@ PerfectStereoSeparation::PerfectStereoSeparation(int32_t iRate, float iAlpha, Si
 
 	reset	();
 
-	lpFilterSin = new fftFilter (1024, 295);  // TODO: check sizes
-	lpFilterCos = new fftFilter (1024, 295);
-	lpFilterSin -> setLowPass (15000, rate);
-	lpFilterCos -> setLowPass (15000, rate);
+	lpFilter = new fftFilter (1024, 295);  // TODO: check sizes
+	//lpFilterCos = new fftFilter (1024, 295);
+	lpFilter -> setLowPass (15000, rate);
+	//lpFilterCos -> setLowPass (15000, rate);
 }
 
 PerfectStereoSeparation::~PerfectStereoSeparation()
 {
-	delete lpFilterCos;
-	delete lpFilterSin;
+	delete lpFilter;
 }
 
 
@@ -97,16 +96,10 @@ void PerfectStereoSeparation::reset	()
 
 float	PerfectStereoSeparation::process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase)
 {
-	const DSPFLOAT sinPath = mySinCos -> getSin (iCurMixPhase) * iMuxSignal;
-	const DSPFLOAT cosPath = mySinCos -> getCos (iCurMixPhase) * iMuxSignal;
-
-	const DSPFLOAT sinPathFlt = lpFilterSin -> Pass(sinPath);
-	const DSPFLOAT cosPathFlt = lpFilterCos -> Pass(cosPath);
-
-	curMixResult = DSPCOMPLEX(cosPathFlt, sinPathFlt);
-
-	//const DSPFLOAT error = 0.01f * (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1); // hard decision version
-	DSPFLOAT error = cosPathFlt * sinPathFlt;
+	const DSPCOMPLEX sinCosPath = mySinCos -> getComplex	(iCurMixPhase) * iMuxSignal;
+	curMixResult = lpFilter -> Pass(sinCosPath);
+	DSPFLOAT error = real(curMixResult) * imag(curMixResult);
+	//DSPFLOAT error = (real(curMixResult) > 0 ? +1 : -1) * (imag(curMixResult) > 0 ? +1 : -1) / 100.0f;
 
 	// make swing-in faster when error is not minimized yet
 	if (!error_minimized)
@@ -115,7 +108,7 @@ float	PerfectStereoSeparation::process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCur
 	accPhaseShift += alpha * error;
 
 	mean_error = lockAlpha * error + mean_error * (1.0f - lockAlpha);
-	bool error_minimized_temp = (abs(mean_error) < 0.001f);
+	const bool error_minimized_temp = (abs(mean_error) < 0.001f);
 
 	if (error_minimized_temp) {
 		if (error_minimized || ++sampleLockStableCnt > 3 * rate) {
