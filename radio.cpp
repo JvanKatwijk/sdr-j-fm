@@ -80,7 +80,7 @@
 #define	D_HACKRF	"hackrf"
 #define	D_LIME		"lime"
 #define	D_AIRSPY	"airspy"
-#define	D_RTLSDR	"rtlsdr"
+#define	D_RTLSDR	"dabstick"
 #define	D_PLUTO		"pluto"
 #define	D_EXTIO		"extio"
 static 

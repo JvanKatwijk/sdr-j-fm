@@ -2,3 +2,4 @@ Makefile
 linux-bin
 
 /CMakeLists.txt.user
+/fmreceiver.pro.user

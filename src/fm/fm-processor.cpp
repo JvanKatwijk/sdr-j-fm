@@ -804,7 +804,7 @@ DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 	}
 
 //	process RDS
-#define	__TOMNEDA__
+//#define	__TOMNEDA__
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 	   DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demod);
 #ifndef	__TOMNEDA__
