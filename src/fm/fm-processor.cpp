@@ -832,7 +832,9 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 (??)	const bool pilotLocked = pilotRecover -> isLocked();
 (??)
 (??)	if (pilotLocked == false)
-(??)		pilotDelayCostas = 0;
+(??)		pilotDelayPSS = 0;
+		pPSS	->	reset	();
+	}
 
 	if (fmModus != FM_Mode::Mono &&
 (??)	         (pilotRecover -> isLocked() || autoMono == false)) {
@@ -971,7 +973,7 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 void	fmProcessor::resetRds	() {
 	myRdsDecoder. reset ();
 	pilotDelayPSS = 0;
-	pPSS	->	reset	();
+	pPSS	->	reset	(); // TODO shift this as it is called while RDS switch, too
 }
 
 void	fmProcessor::set_localOscillator (int32_t lo) {
@@ -979,6 +981,13 @@ void	fmProcessor::set_localOscillator (int32_t lo) {
 }
 
 bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
+	oLockStrength = pPSS->get_mean_error()*1000;
+	return pPSS->is_error_minimized();
+
+
+	// test
+
+
 
 	if (fmModus != FM_Mode::Mono && pilotRecover) {
 	   oLockStrength = pilotRecover -> getLockedStrength ();

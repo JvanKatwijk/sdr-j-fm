@@ -13,8 +13,8 @@
 	this	-> LockStable	= false;
 	this	-> pilot_Lock	= 0;
 	this	-> pilot_oldValue = 0;
-	pilot_OscillatorPhase	= 0;
-	SampleLockStableCnt	= 0;
+	this	-> pilot_OscillatorPhase	= 0;
+	this	-> SampleLockStableCnt	= 0;
 }
 
 	pilotRecovery::~pilotRecovery () {}
@@ -30,7 +30,7 @@ float	pilotRecovery::getLockedStrength () const {
 DSPFLOAT pilotRecovery::getPilotPhase (const DSPFLOAT pilot) {
 DSPFLOAT OscillatorValue = mySinCos -> getCos (pilot_OscillatorPhase);
 DSPFLOAT PhaseError	= pilot * OscillatorValue;
-float alpha = 1.0f / 3000.0f;
+constexpr float alpha = 1.0f / 3000.0f;
 
 	pilot_OscillatorPhase += PhaseError * gain;
 	const DSPFLOAT currentPhase = PI_Constrain (pilot_OscillatorPhase);
@@ -63,55 +63,80 @@ float alpha = 1.0f / 3000.0f;
 
 PerfectStereoSeparation::PerfectStereoSeparation(int32_t iRate, float iAlpha, SinCos * ipSinCos)
 {
-	this	-> Rate_in	= iRate;
-	this	-> mySinCos	= ipSinCos;
-	this	-> alpha = iAlpha;
-	this	->	accPhaseShift = 0;
+	lockAlpha = 1.0f / iRate;
 
-	stereoLPImageFilterSin = new fftFilter (2 *16384, 295);  // TODO: check sizes
-	stereoLPImageFilterCos = new fftFilter (2 *16384, 295);
-	stereoLPImageFilterSin -> setLowPass (15000, Rate_in);
-	stereoLPImageFilterCos -> setLowPass (15000, Rate_in);
+	rate = iRate;
+	mySinCos	= ipSinCos;
+	alpha = iAlpha;
+
+	reset	();
+
+	lpFilterSin = new fftFilter (1024, 295);  // TODO: check sizes
+	lpFilterCos = new fftFilter (1024, 295);
+	lpFilterSin -> setLowPass (15000, rate);
+	lpFilterCos -> setLowPass (15000, rate);
 }
 
 PerfectStereoSeparation::~PerfectStereoSeparation()
 {
-	delete stereoLPImageFilterCos;
-	delete stereoLPImageFilterSin;
+	delete lpFilterCos;
+	delete lpFilterSin;
 }
 
+
+void PerfectStereoSeparation::reset	()
+{
+	// keep this part fast as it could be called each sample
+	curMixResult = { 0, 0 };
+	accPhaseShift = 0;
+	error_minimized = false;
+	mean_error = 0;
+	sampleLockStableCnt = 0;
+	sampleUnlockStableCnt = 0;
+}
 
 float	PerfectStereoSeparation::process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase)
 {
 	const DSPFLOAT sinPath = mySinCos -> getSin (iCurMixPhase) * iMuxSignal;
 	const DSPFLOAT cosPath = mySinCos -> getCos (iCurMixPhase) * iMuxSignal;
 
-	const DSPFLOAT sinPathFlt = stereoLPImageFilterSin -> Pass(sinPath);
-	const DSPFLOAT cosPathFlt = stereoLPImageFilterCos -> Pass(cosPath);
+	const DSPFLOAT sinPathFlt = lpFilterSin -> Pass(sinPath);
+	const DSPFLOAT cosPathFlt = lpFilterCos -> Pass(cosPath);
 
-	this ->	curMixResult = DSPCOMPLEX(cosPathFlt, sinPathFlt);
+	curMixResult = DSPCOMPLEX(cosPathFlt, sinPathFlt);
 
-	//const DSPFLOAT error = (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1); // hard decision version
-	const DSPFLOAT error = cosPathFlt * sinPathFlt;
+	//const DSPFLOAT error = 0.01f * (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1); // hard decision version
+	DSPFLOAT error = cosPathFlt * sinPathFlt;
 
-	this	->	accPhaseShift += alpha * error;
+	// make swing-in faster when error is not minimized yet
+	if (!error_minimized)
+		error *= 10.0f;
+
+	accPhaseShift += alpha * error;
+
+	mean_error = lockAlpha * error + mean_error * (1.0f - lockAlpha);
+	bool error_minimized_temp = (abs(mean_error) < 0.001f);
+
+	if (error_minimized_temp) {
+		if (error_minimized || ++sampleLockStableCnt > 3 * rate) {
+			error_minimized = true;
+		}
+		sampleUnlockStableCnt = 0;
+	}
+	else  { // not locked -> reset stable counter
+		if (!error_minimized || ++sampleUnlockStableCnt > 3 * rate) {
+			error_minimized = false;
+		}
+		sampleLockStableCnt = 0;
+	}
 
 	// do some limitation
-	if (this	->	accPhaseShift < -M_PI_4)
-		this	->	accPhaseShift = -M_PI_4;
-	else if (this	->	accPhaseShift > M_PI_4)
-		this	->	accPhaseShift = M_PI_4;
+	if (accPhaseShift < -M_PI_4)
+		accPhaseShift = -M_PI_4;
+	else if (accPhaseShift > M_PI_4)
+		accPhaseShift = M_PI_4;
 
-	return this	->	accPhaseShift;
+	return accPhaseShift;
 }
 
-bool	PerfectStereoSeparation::is_locked	() const
-{
-	return true;
-}
 
-void PerfectStereoSeparation::reset	()
-{
-	this ->	curMixResult = { 0, 0 };
-	this	->	accPhaseShift = 0;
-}

@@ -35,29 +35,26 @@ public:
 	PerfectStereoSeparation(int32_t iRate, float iAlpha, SinCos * ipSinCos);
 	~PerfectStereoSeparation();
 
-	bool	is_locked	() const;
 	void	reset	();
-	DSPCOMPLEX get_cur_mixer_result() const { return curMixResult; }
-	DSPFLOAT process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase);
+	bool	is_error_minimized	() const { return error_minimized; };
+	float	get_mean_error() const {  return mean_error; }
+
+	DSPCOMPLEX	get_cur_mixer_result() const { return curMixResult; }
+	DSPFLOAT	process_sample(DSPFLOAT iMuxSignal, DSPFLOAT iCurMixPhase);
 
 private:
-	fftFilter	*stereoLPImageFilterSin;
-	fftFilter	*stereoLPImageFilterCos;
-
-	int32_t	Rate_in;
-	int32_t SampleLockStableCnt;
-	DSPFLOAT accPhaseShift;
-	DSPFLOAT pilot_OscillatorPhase;
-	DSPFLOAT pilot_oldValue;
-	DSPFLOAT omega;
-	DSPFLOAT gain;
+	fftFilter	*lpFilterSin;
+	fftFilter	*lpFilterCos;
+	int32_t	rate;
+	int32_t	sampleLockStableCnt;
+	int32_t	sampleUnlockStableCnt;
+	DSPFLOAT	accPhaseShift;
 	SinCos	*mySinCos;
-	DSPFLOAT pilot_Lock;
-	DSPFLOAT quadRef;
-	bool	pll_isLocked;
-	bool	LockStable;
+	DSPFLOAT	mean_error;
+	bool	error_minimized;
 	float alpha;
-	DSPCOMPLEX curMixResult;
+	float lockAlpha;
+	DSPCOMPLEX	curMixResult;
 };
 
 #endif
