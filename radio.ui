@@ -825,6 +825,9 @@
          <height>37</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select region to choose the suitable RDS PTY code.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <item>
         <property name="text">
          <string>Europe</string>
@@ -1460,12 +1463,12 @@
              </item>
              <item>
               <property name="text">
-               <string>RDS ON_1</string>
+               <string>RDS 1</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>RDS ON_2</string>
+               <string>RDS 2</string>
               </property>
              </item>
             </widget>

@@ -980,6 +980,9 @@ void	RadioInterface::setfmChannelSelector (const QString &s) {
 	else
 	if (s == "S | S")
 	   channelSelector = fmProcessor::S_LEFTminusRIGHT;
+	else
+	if (s == "T | T")
+		channelSelector = fmProcessor::S_LEFTminusRIGHT_Test;
 	else		// the default
 	   channelSelector = fmProcessor::S_STEREO;
 	if (myFMprocessor != nullptr)
@@ -1581,9 +1584,9 @@ void	RadioInterface::setfmRdsSelector (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
-	rdsModus = (s == "RDS ON_1" ?
+	rdsModus = (s == "RDS 1" ?
 	            rdsDecoder::ERdsMode::RDS_ON_1: 
-	         s == "RDS ON_2" ?
+	         s == "RDS 2" ?
 	            rdsDecoder::ERdsMode::RDS_ON_2: 
 	            rdsDecoder::ERdsMode::RDS_OFF);
 
@@ -1684,7 +1687,7 @@ bool triggerLog = false;
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 
-	rf_dc_component -> display (QString ("%1").arg(iRfDcComponent, 0, 'f', 1)); // allow one fix digit after decimal point
+	rf_dc_component -> display (QString ("%1").arg(lockStrength, 0, 'f', 3)); // allow one fix digit after decimal point
 
 	demod_dc_component -> display (QString("%1").arg(ifDemodDcComponent, 0, 'f', 2)); // allow tow fix digit after decimal point
 
