@@ -1696,13 +1696,19 @@ bool triggerLog = false;
 
 	thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
 
-	if (ipMD -> PssErrorMinimized) {
-		pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
-		pss_state -> setText("PSS established");
-	}
-	else {
+	switch (ipMD -> PssState) {
+	case fmProcessor::SMetaData::EPssState::OFF:
+		pss_state -> setStyleSheet ("QLabel {background-color:grey} QLabel {color:black}");
+		pss_state -> setText("PSS off");
+		break;
+	case fmProcessor::SMetaData::EPssState::ANALYZING:
 		pss_state -> setStyleSheet ("QLabel {background-color:yellow} QLabel {color:black}");
 		pss_state -> setText("PSS analyzing ... ");
+		break;
+	case fmProcessor::SMetaData::EPssState::ESTABLISHED:
+		pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
+		pss_state -> setText("PSS established");
+		break;
 	}
 
 	pss_phase_corr -> display (QString("%1").arg(ipMD -> PssPhaseShiftDegree, 0, 'f', 2));

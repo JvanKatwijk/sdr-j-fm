@@ -811,13 +811,17 @@ int		iqCounter	= 0;
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
 
-				metaData.	GuiPilotStrength = get_pilotStrength	();
-				metaData.	PilotPllLocked = isPilotLocked	(metaData.PilotPllLockStrength);
-				metaData.	DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.99);
-				metaData.	DcValIf = get_demodDcComponent	();
-				metaData.   PssPhaseShiftDegree = pilotDelayPSS / M_PI * 180.0f;
-				metaData.	PssPhaseChange = pPSS->get_mean_error() * 1000;
-				metaData.	PssErrorMinimized = pPSS->is_error_minimized();
+				metaData. GuiPilotStrength = get_pilotStrength	();
+				metaData. PilotPllLocked = isPilotLocked	(metaData.PilotPllLockStrength);
+				metaData. DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.99);
+				metaData. DcValIf = get_demodDcComponent	();
+				metaData. PssPhaseShiftDegree = pilotDelayPSS / M_PI * 180.0f;
+				metaData. PssPhaseChange = pPSS->get_mean_error() * 1000;
+				metaData. PssState = (pssActive && metaData. PilotPllLocked
+				                      ? (pPSS->is_error_minimized()
+				                         ? SMetaData::EPssState::ESTABLISHED
+				                         : SMetaData::EPssState::ANALYZING)
+				                      : SMetaData::EPssState::OFF);
 
 				emit showMetaData (&metaData);
 				myCount = 0;

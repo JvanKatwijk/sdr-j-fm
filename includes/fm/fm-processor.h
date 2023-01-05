@@ -89,11 +89,12 @@ public:
 		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
 	struct SMetaData
 	{
+		enum class EPssState { OFF, ANALYZING, ESTABLISHED };
 		float DcValRf;
 		float DcValIf;  // used for AFC
 		float PssPhaseShiftDegree;
 		float PssPhaseChange;
-		bool  PssErrorMinimized;
+		EPssState PssState;
 		float GuiPilotStrength; // only valid if GUI scope shows the "Demodulation" signal
 		float PilotPllLockStrength;
 		bool  PilotPllLocked;
