@@ -253,17 +253,18 @@
 fmProcessor::~fmProcessor() {
 	stop();
 
-	delete	this	->	spectrum_fft_hf;
-	delete	this	->	spectrumBuffer_hf;
-	delete	this	->	spectrum_fft_lf;
-	delete	this	->	rdsHilbertFilter;
-	delete	this	->	rdsBandFilter;
-	delete	this	->	stereoDiffHilbertFilter;
-	delete	this	->	pilotRecover;
-	delete	this	->	theConverter;
-	delete	this	->	pPSS;
-	delete[] this	->	displayBuffer_lf;
-	delete	this	->	mySquelch;
+	delete theConverter;
+	delete theDemodulator;
+	delete spectrum_fft_hf;
+	delete spectrum_fft_lf;
+	delete rdsHilbertFilter;
+	delete rdsBandFilter;
+	delete stereoDiffHilbertFilter;
+	delete pilotRecover;
+	delete theConverter;
+	delete pPSS;
+	delete mySquelch;
+	delete[] displayBuffer_lf;
 }
 
 void	fmProcessor::stop () {
