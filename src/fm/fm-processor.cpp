@@ -67,16 +67,16 @@
 	                                           IRate,
 	                                           IRate / fmRate),
 	                             fmAudioFilter (4096, 756),
+	                             fmFilter	   (2 * 32768, 251),
 #ifdef	__PILOT_FIR__
 	                             pilotBandFilter (PILOTFILTER_SIZE,
 	                                             PILOT_FREQUENCY - PILOT_WIDTH / 2,
 	                                             PILOT_FREQUENCY + PILOT_WIDTH / 2,
-	                                             fmRate),
+	                                             fmRate) {
 #else
 	                             pilotBandFilter (FFT_SIZE,
-	                                              PILOTFILTER_SIZE),
+	                                              PILOTFILTER_SIZE) {
 #endif
-	                             fmFilter	   (2 * 32768, 251) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
 	this	-> myRadioInterface = RI;
@@ -211,8 +211,6 @@
 //	                                         RDSBANDFILTER_SIZE);
 	rdsBandFilter	-> setBand (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                            RDS_FREQUENCY + RDS_WIDTH / 2, fmRate);
-	stereoDiffHilbertFilter	= new fftFilterHilbert (FFT_SIZE,
-	                                           RDSBANDFILTER_SIZE);
 
 // for the deemphasis we use an in-line filter with
 	lastAudioSample = 0;
@@ -260,7 +258,6 @@ fmProcessor::~fmProcessor() {
 	delete spectrum_fft_lf;
 	delete rdsHilbertFilter;
 	delete rdsBandFilter;
-	delete stereoDiffHilbertFilter;
 	delete pilotRecover;
 	delete theConverter;
 	delete pPSS;
@@ -839,18 +836,18 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	const float demodDelayed = demodDirect;
 	//	Get the phase for the "carrier to be inserted" right.
 //	Do this alwas to be able to check of a locked pilot PLL.
-(??)	DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demodDirect);
-(??)	DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
-(??)
-(??)	const bool pilotLocked = pilotRecover -> isLocked();
-(??)
-(??)	if (pilotLocked == false)
-(??)		pilotDelayPSS = 0;
+	DSPFLOAT pilot = pilotBandFilter.  Pass(5 * demodDirect);
+	DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+
+	const bool pilotLocked = pilotRecover -> isLocked();
+
+	if (pilotLocked == false) {
+		pilotDelayPSS = 0;
 		pPSS	->	reset	();
 	}
 
 	if (fmModus != FM_Mode::Mono &&
-(??)	         (pilotRecover -> isLocked() || autoMono == false)) {
+	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
 #ifdef DO_STEREO_SEPARATION_TEST
 		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayPSS;
