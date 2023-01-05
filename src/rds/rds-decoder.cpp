@@ -68,7 +68,7 @@ DSPFLOAT	synchronizerSamples;
 	my_matchedFltBufSize	= my_matchedFltKernelVec. size ();
 	assert (my_matchedFltBufSize & 1); // is it odd?
 	my_matchedFltBuf. resize (my_matchedFltBufSize);
-	memset (my_matchedFltBuf. data (), 0,
+	memset ((void*)my_matchedFltBuf. data (), 0,
 	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
 	my_matchedFltBufIdx	= 0;
 	previousBit		= false;
@@ -87,7 +87,7 @@ DSPFLOAT	synchronizerSamples;
         symbolCeiling           = ceil (synchronizerSamples); 
         symbolFloor             = floor (synchronizerSamples);
         syncBuffer. resize (symbolCeiling);
-	memset (syncBuffer. data (), 0,
+	memset ((void*)syncBuffer. data (), 0,
 	                   symbolCeiling * sizeof (DSPCOMPLEX));
 
         p                       = 0;
@@ -138,7 +138,6 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 	                      ERdsMode  mode, int ptyLocale) {
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
-DSPFLOAT	res;
 
 	if (mode	==  rdsDecoder::ERdsMode::RDS_ON_2) {
 	   doDecode2 (v, m, ptyLocale);
