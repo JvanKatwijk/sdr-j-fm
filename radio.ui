@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>1681</width>
-    <height>801</height>
+    <height>919</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2294,13 +2294,10 @@
                 <bool>false</bool>
                </property>
                <property name="frameShape">
-                <enum>QFrame::Box</enum>
+                <enum>QFrame::NoFrame</enum>
                </property>
                <property name="frameShadow">
                 <enum>QFrame::Raised</enum>
-               </property>
-               <property name="lineWidth">
-                <number>2</number>
                </property>
                <property name="digitCount">
                 <number>6</number>

@@ -1675,7 +1675,7 @@ bool triggerLog = false;
 	if (runMode. load () != ERunStates::RUNNING)
 	   return;
 
-	static const float w = 1.0f / std::log10(2.0f);
+	//static const float w = 1.0f / std::log10(2.0f);
 
 	if ((logTime > 0) && (++teller == logTime)) {
 	   triggerLog = true;
@@ -1694,7 +1694,8 @@ bool triggerLog = false;
 	rf_dc_component -> display (QString ("%1").arg(ipMD -> DcValRf, 0, 'f', 2));
 	demod_dc_component -> display (QString("%1").arg(ipMD -> DcValIf, 0, 'f', 2));
 
-	thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
+	//thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
+	thermoDcComponent -> setValue (-ipMD -> DcValIf);
 
 	switch (ipMD -> PssState) {
 	case fmProcessor::SMetaData::EPssState::OFF:
