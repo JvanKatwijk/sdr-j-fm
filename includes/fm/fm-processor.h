@@ -40,6 +40,7 @@
 #include	"rds-decoder.h"
 #include	"newconverter.h"
 #include	"squelchClass.h"
+#include "sdr/agc.h"
 
 
 class deviceHandler;
@@ -83,7 +84,8 @@ public:
 	                     AF_RIGHT_FILTERED, RDS_INPUT, RDS_DEMOD };
 	enum class ESqMode { OFF, NSQ, LSQ };
 	enum Channels { S_STEREO, S_STEREO_SWAPPED, S_LEFT,
-	                S_RIGHT, S_LEFTplusRIGHT, S_LEFTminusRIGHT };
+		             S_RIGHT, S_LEFTplusRIGHT,
+		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
 
 public:
 		fmProcessor (deviceHandler *,
@@ -262,6 +264,7 @@ private:
 	fftFilter	*rdsBandFilter;
 	pilotRecovery	*pilotRecover;
 	PerfectStereoSeparation *pPSS;
+	AGC pssAGC;
 	fftFilterHilbert *rdsHilbertFilter;
 	fftFilterHilbert *stereoDiffHilbertFilter;
 	uint32_t	rdsSampleCntSrc;

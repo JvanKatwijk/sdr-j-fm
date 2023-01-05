@@ -57,6 +57,7 @@
 	                             localOscillator (inputRate),
 	                             rdsOscillator (fmRate),
 	                             mySinCos (fmRate),
+	                             pssAGC (100.0f/fmRate, 0.3f, 2.0f),
 	                             fmBand_1     (4 * inputRate / IRate + 1,
 	                                           fmRate / 2,
 	                                           inputRate,
@@ -682,7 +683,8 @@ int		iqCounter	= 0;
 	            audio = std::complex<float> (sumLR, sumLR);
 	            break;
 	         case S_LEFTminusRIGHT:
-	            audio = std::complex<float> (diffLRWeightend,
+			   case S_LEFTminusRIGHT_Test:
+				   audio = std::complex<float> (diffLRWeightend,
 	                                         diffLRWeightend);
 	            break;
 	      }
@@ -839,13 +841,18 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	if (fmModus != FM_Mode::Mono &&
 (??)	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
+#ifdef DO_STEREO_SEPARATION_TEST
 		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayPSS;
+#else
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay) - pilotDelayPSS;
+#endif
 
 		pilotDelayPSS = this	->	pPSS->	process_sample(demodDelayed, PhaseforLRDiff); // perform perfect stereo separation
 		*LRDiffCplx = this	->	pPSS->	get_cur_mixer_result	();
+		*LRDiffCplx = pssAGC.	process_sample(*LRDiffCplx);
 
-		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT ? mySinCos. getSin (PhaseforLRDiff) // we look for minimum correlation so mix with PI/2 phase shift
-		                                                           : mySinCos. getCos (PhaseforLRDiff))
+		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ? mySinCos. getSin (PhaseforLRDiff) // we look for minimum correlation so mix with PI/2 phase shift
+		                                                                : mySinCos. getCos (PhaseforLRDiff))
 		                      * demodDelayed;
 		DSPFLOAT LRPlus = demodDelayed;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);

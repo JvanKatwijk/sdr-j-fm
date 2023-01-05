@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>0</width>
-    <height>700</height>
+    <width>1681</width>
+    <height>801</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1216,7 +1216,7 @@
            <item>
             <widget class="QComboBox" name="fmChannelSelect">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the source combinations of the two audio channels:&lt;/p&gt;&lt;p&gt;L = Left&lt;br/&gt;R = Right&lt;br/&gt;M = Mono (L+R)&lt;br/&gt;S = Side (L-R)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the source combinations of the two audio channels:&lt;/p&gt;&lt;p&gt;L = Left&lt;br/&gt;R = Right&lt;br/&gt;M = Mono (L+R)&lt;br/&gt;S = Side (L-R)&lt;br/&gt;T = Test Side (L-R), 90° mix correlation, sound level must be minimized at best stereo decoding&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">
@@ -1236,6 +1236,11 @@
              <item>
               <property name="text">
                <string>S | S</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>T | T</string>
               </property>
              </item>
              <item>
