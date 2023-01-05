@@ -205,10 +205,8 @@
 //	to be available. We borrow the approach from CuteSDR
 	rdsHilbertFilter	= new fftFilterHilbert (FFT_SIZE,
 	                                                PILOTFILTER_SIZE);
-//	                                                RDSBANDFILTER_SIZE);
 	rdsBandFilter		= new fftFilter (FFT_SIZE,
 	                                         PILOTFILTER_SIZE);
-//	                                         RDSBANDFILTER_SIZE);
 	rdsBandFilter	-> setBand (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                            RDS_FREQUENCY + RDS_WIDTH / 2, fmRate);
 
@@ -835,7 +833,7 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	//const float demodDelayed = pilotDelayLine.get_set_value(demodDirect);
 	const float demodDelayed = demodDirect;
 	//	Get the phase for the "carrier to be inserted" right.
-//	Do this alwas to be able to check of a locked pilot PLL.
+//	Do this always to be able to check of a locked pilot PLL.
 	DSPFLOAT pilot = pilotBandFilter.  Pass(5 * demodDirect);
 	DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 
@@ -847,7 +845,7 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	}
 
 	if (fmModus != FM_Mode::Mono &&
-	         (pilotRecover -> isLocked() || autoMono == false)) {
+	         (pilotLocked || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
 #ifdef DO_STEREO_SEPARATION_TEST
 		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayPSS;
@@ -878,28 +876,22 @@ void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	}
 
 //	process RDS
-//#define	__TOMNEDA__
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
-		DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demodDelayed);
-#ifndef	__TOMNEDA__
+		float rdsSample = rdsBandFilter -> Pass (5 * demodDelayed);
+		float thePhase	= 3 * currentPilotPhase; // currentPilotPhase shifts also about 19kHz without pilot signal (not synched of course)
+
 //	Downshift the signal with the phase of the pilot. Note that the
 //	amount of delay for the pilotPhase and the rdsSample are the same.
 //	Maybe we need an additional lowpass filter here
-	   float thePhase	= 3 * currentPilotPhase;
-	   rdsSample		*= - mySinCos. getSin (thePhase);
-	   *rdsValueCmpl	= rdsHilbertFilter -> Pass (rdsSample);
-#else
-// the oscillator shifts the signal down (== -57000 Hz shift)
-	   std::complex<float> rdsComplex =  rdsHilbertFilter -> Pass (rdsSample);
-	   float thePhase = 3 * (currentPilotPhase + pilotDelay);
 
-	   std::complex<float> OscVal =
-	                          std::complex<float> (cos (thePhase),
-	                                               - sin (thePhase));
-//	   rdsComplex	= rdsComplex * OscVal;
-	   rdsComplex = rdsComplex * rdsOscillator. nextValue (RDS_FREQUENCY);
-	   *rdsValueCmpl	= rdsComplex;
-#endif
+		if (rdsModus == rdsDecoder::ERdsMode::RDS_2) {
+			rdsSample		*= - mySinCos. getSin (thePhase);
+			*rdsValueCmpl	= rdsHilbertFilter -> Pass (rdsSample);
+		} else { // RDS_1
+			std::complex<float> rdsComplex =  rdsHilbertFilter -> Pass (rdsSample);
+			rdsComplex	*= - mySinCos. getComplex (-thePhase);
+			*rdsValueCmpl	= rdsComplex;
+		}
 	}
 }
 //
