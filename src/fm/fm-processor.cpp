@@ -75,7 +75,8 @@
 	                             pilotBandFilter (FFT_SIZE,
 	                                              PILOTFILTER_SIZE),
 #endif
-	                             fmFilter	   (2 * 32768, 251) {
+	                             fmFilter	   (2 * 32768, 251),
+	                             my_Costas    (fmRate, 1.0f, 0.02f, 25) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
 	this	-> myRadioInterface = RI;
@@ -182,6 +183,16 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
+	//pilotDelay	= (FFT_SIZE - PILOTFILTER_SIZE/2 - 1) * OMEGA_PILOT;
+//#define DELAY_STEPS (FFT_SIZE - PILOTFILTER_SIZE/2 - 1)
+//#define DELAY_STEPS (FFT_SIZE - PILOTFILTER_SIZE + 1)
+	//pilotDelayLine. set_delay_steps (DELAY_STEPS);
+
+	stereoLPImageFilterSin = new fftFilter (FFT_SIZE, RDSBANDFILTER_SIZE);
+	stereoLPImageFilterCos = new fftFilter (FFT_SIZE, RDSBANDFILTER_SIZE);
+	stereoLPImageFilterSin -> setLowPass (15000, fmRate);
+	stereoLPImageFilterCos -> setLowPass (15000, fmRate);
+
 #ifdef DO_STEREO_SEPARATION_TEST
 	pilotDelay2 = 0;
 #endif
@@ -205,6 +216,8 @@
 //	                                         RDSBANDFILTER_SIZE);
 	rdsBandFilter	-> setBand (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                            RDS_FREQUENCY + RDS_WIDTH / 2, fmRate);
+	stereoDiffHilbertFilter	= new fftFilterHilbert (FFT_SIZE,
+	                                           RDSBANDFILTER_SIZE);
 
 // for the deemphasis we use an in-line filter with
 	lastAudioSample = 0;
@@ -328,6 +341,9 @@ void	fmProcessor::setlfPlotType (ELfPlot m) {
 
 	showFullSpectrum	= true;
 	switch (m) {
+	   case ELfPlot::AF_DIFF:
+		   spectrumSampleRate = fmRate;
+		   break;
 	   case ELfPlot::IF_FILTERED:
 	      spectrumSampleRate = fmRate;
 	      break;
@@ -440,6 +456,7 @@ void	fmProcessor::stopDumping () {
 void	fmProcessor::setAttenuation (DSPFLOAT l, DSPFLOAT r) {
 #ifdef DO_STEREO_SEPARATION_TEST
 	pilotDelay2 = l / 180.0f * M_PI;
+	//pilotDelayLine. set_delay_steps ((DELAY_STEPS) + (int)l);
 #else
 	Lgain = l;
 	Rgain = r;
@@ -631,8 +648,9 @@ int		iqCounter	= 0;
 
 	      std::complex<float> audio;
 	      std::complex<float> rdsDataCplx;
+			std::complex<float> LRDiffCplx;
 
-	      process_signal_with_rds (demod, &audio, &rdsDataCplx);
+			process_signal_with_rds (demod, &audio, &rdsDataCplx, &LRDiffCplx);
 
 	      const DSPFLOAT sumLR  = real (audio);
 	      const DSPFLOAT diffLR = imag (audio);
@@ -683,7 +701,8 @@ int		iqCounter	= 0;
 	                                           rdsModus, ptyLocale)) {
 	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
 	                  iqCounter ++;
-	                  if (iqCounter > 100) {
+							if (iqCounter > 100)
+							{
 	                     emit iqBufferLoaded ();
 	                     iqCounter = 0;
 	                  }
@@ -712,6 +731,14 @@ int		iqCounter	= 0;
 	               break;
 	            default:;
 	         }
+
+				iqBuffer -> putDataIntoBuffer (&LRDiffCplx, 1);
+				iqCounter ++;
+				if (iqCounter > 100)
+				{
+					emit iqBufferLoaded ();
+					iqCounter = 0;
+				}
 	      }
 
 	      if (fmAudioFilterActive. load ()) {
@@ -736,7 +763,7 @@ int		iqCounter	= 0;
 	            spectrumBuffer_lf. push_back (sumLR);
 	            break;
 	         case ELfPlot::AF_DIFF:
-	            spectrumBuffer_lf. push_back (diffLR);
+				   spectrumBuffer_lf. push_back (LRDiffCplx);
 	            break;
 	         case ELfPlot::AF_MONO_FILTERED:
 	            spectrumBuffer_lf. push_back (std::complex<float> (audio.real () + audio.imag (), 0));
@@ -778,9 +805,9 @@ int		iqCounter	= 0;
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
 #ifdef USE_EXTRACT_LEVELS
-	         emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), get_demodDcComponent());
+				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), pilotDelayCostas / M_PI * 180.0f/*get_demodDcComponent()*/);
 #else
-	         emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.9), get_demodDcComponent());
+				emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.9), get_demodDcComponent());
 #endif
 	         myCount = 0;
 	      }
@@ -788,37 +815,71 @@ int		iqCounter	= 0;
 	}
 }
 
-void	fmProcessor::process_signal_with_rds (const float demod,
+void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	                                      std::complex<float> *audioOut,
-	                                      std::complex<float> *rdsValueCmpl){
-//	Get the phase for the "carrier to be inserted" right.
+                                         std::complex<float> *rdsValueCmpl,
+                                         DSPCOMPLEX *LRDiffCplx) {
+
+	//const float demodDelayed = pilotDelayLine.get_set_value(demodDirect);
+	const float demodDelayed = demodDirect;
+	//	Get the phase for the "carrier to be inserted" right.
 //	Do this alwas to be able to check of a locked pilot PLL.
-DSPFLOAT pilot = pilotBandFilter. Pass (5 * demod);
-DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+(??)DSPFLOAT pilot = pilotBandFilter -> Pass(5 * demod);
+(??)DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
 
 	if (fmModus != FM_Mode::Mono &&
-	         (pilotRecover -> isLocked () || autoMono == false)) {
+(??)	         (pilotRecover -> isLocked() || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-#ifdef DO_STEREO_SEPARATION_TEST
-		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2);
-		DSPFLOAT LRDiff = 2.0 * mySinCos. getSin (PhaseforLRDiff) * demod; // we look for minimum correlation so mix with PI/2 phase shift
-#else
-		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
-//	Due to filtering the real amplitude of the LRDiff might have
-//	to be adjusted, we guess
-	   DSPFLOAT LRDiff = 2.0 * mySinCos. getCos (PhaseforLRDiff) * demod;
-#endif
-		DSPFLOAT LRPlus = demod;
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayCostas;
+
+		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT ? mySinCos. getSin (PhaseforLRDiff)
+		                                                           : mySinCos. getCos (PhaseforLRDiff))
+		                      * demodDelayed; // we look for minimum correlation so mix with PI/2 phase shift
+
+		{
+			DSPFLOAT sinPath = mySinCos. getSin (PhaseforLRDiff) * demodDelayed;
+			DSPFLOAT cosPath = mySinCos. getCos (PhaseforLRDiff) * demodDelayed;
+
+			//DSPFLOAT PhaseforLRDiffCostas = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - 0*pilotDelayCostas;
+			const DSPFLOAT sinPathFlt = stereoLPImageFilterSin -> Pass(sinPath);
+			const DSPFLOAT cosPathFlt = stereoLPImageFilterCos -> Pass(cosPath);
+			//const DSPFLOAT sinCosPath = (cosPathFlt > 0 ? 1 : -1) * (sinPathFlt > 0 ? 1 : -1);
+			const DSPFLOAT sinCosPath = cosPathFlt * sinPathFlt;
+
+			*LRDiffCplx = DSPCOMPLEX(cosPathFlt, sinPathFlt);
+
+			const float alpha = 10.0f / fmRate;
+			pilotDelayCostas += alpha * sinCosPath; // + (1.0f - alpha) * pilotDelayCostas;
+			if (pilotDelayCostas < -M_PI_4)
+				pilotDelayCostas = -M_PI_4;
+			else if (pilotDelayCostas > M_PI_4)
+				pilotDelayCostas = M_PI_4;
+
+			//const DSPCOMPLEX stereoDiffHilb = stereoDiffHilbertFilter -> Pass (stereoDiff);
+			//	Due to filtering the real amplitude of the LRDiff might have
+			//	to be adjusted, we guess
+
+			//*LRDiffCplx = conj(mySinCos. getComplex(PhaseforLRDiffCostas)) * stereoDiffHilb;
+			// /**LRDiffCplx =*/  my_Costas. process_sample(*LRDiffCplx);
+
+			//pilotDelayCostas = alpha * my_Costas.get_cur_phase_limited() + (1.0f - alpha) * pilotDelayCostas;
+
+			//*LRDiffCplx = LRDiff;
+			//LRDiff = real(2.0f * *LRDiffCplx);
+		}
+
+		DSPFLOAT LRPlus = demodDelayed;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
-	   *audioOut = DSPCOMPLEX (demod, 0);
+		*audioOut = DSPCOMPLEX (demodDelayed, 0);
+		//pilotDelayCostas = 0;
 	}
 
 //	process RDS
 //#define	__TOMNEDA__
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
-	   DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demod);
+		DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demodDelayed);
 #ifndef	__TOMNEDA__
 //	Downshift the signal with the phase of the pilot. Note that the
 //	amount of delay for the pilotPhase and the rdsSample are the same.
@@ -933,6 +994,7 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 
 void	fmProcessor::resetRds	() {
 	myRdsDecoder. reset ();
+	pilotDelayCostas = 0;
 }
 
 void	fmProcessor::set_localOscillator (int32_t lo) {
