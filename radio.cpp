@@ -512,8 +512,6 @@ bool r = false;
 	   setfmDecoder (fmDecoder -> currentText ());
 	}
 
-	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
-
 	k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
 	cbDCRemove	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                  Qt::CheckState::Unchecked);
@@ -529,6 +527,10 @@ bool r = false;
 	myFMprocessor -> setDCRemove	(cbDCRemove -> checkState());
 	myFMprocessor -> setAutoMonoMode	(cbAutoMono -> checkState());
 	myFMprocessor -> setPSSMode	(cbPSS -> checkState());
+
+	int vol = fmSettings -> value ("volumeHalfDb", -12).toInt();
+	volumeSlider -> setValue (vol);
+	setAudioGainSlider(vol);
 
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmDecoder (const QString &)));
