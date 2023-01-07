@@ -174,9 +174,9 @@
 	pilotBandFilter. setBand (PILOT_FREQUENCY - PILOT_WIDTH / 2,
 	                          PILOT_FREQUENCY + PILOT_WIDTH / 2,
 	                          fmRate);
-//	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE - 1) * OMEGA_PILOT;
-	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE + 1) / fmRate;
-	pilotDelay	= fmod (pilotDelay * PILOT_FREQUENCY, fmRate) /  fmRate * 2 * M_PI;
+	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE - 1) * OMEGA_PILOT;
+//	pilotDelay	= (float)(FFT_SIZE - PILOTFILTER_SIZE + 1) / fmRate;
+//	pilotDelay	= fmod (pilotDelay * PILOT_FREQUENCY, fmRate) /  fmRate * 2 * M_PI;
 #endif
 	pilotRecover	= new pilotRecovery (fmRate,
 	                                     OMEGA_PILOT,

@@ -10,12 +10,12 @@ QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++14
-#QMAKE_CFLAGS	+= -lfto -ffast-math
-#QMAKE_CXXFLAGS	+= -lfto -ffast-math
-#QMAKE_LFLAGS	+= -lfto -ffast-math
-QMAKE_CXXFLAGS	+= -g
-QMAKE_CFLAGS	+= -g
-QMAKE_LFLAGS	+= -g
+QMAKE_CFLAGS	+= -flto -ffast-math
+QMAKE_CXXFLAGS	+= -flto -ffast-math
+QMAKE_LFLAGS	+= -flto -ffast-math
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_CFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -188,7 +188,7 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
-DEFINES		+= __PILOT_FIR__
+//DEFINES		+= __PILOT_FIR__
 #CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay

@@ -44,6 +44,44 @@ Nww: appImage (july 2021)
 An appImage was create for use with common devices, like DABstick,
 SDRplay etc
 
+------------------------------------------------------------------------
+Buiding an executable
+------------------------------------------------------------------------
+
+While there is an installer for Windows, and an appImage for Linux64,
+it is of course possible  to generate an executable.
+
+For compiling and linking some libraries need to be installed
+
+   sudo apt-get update
+   sudo apt-get install git cmake
+   sudo apt-get install qt5-qmake build-essential g++
+   sudo apt-get install pkg-config
+   sudo apt-get install libsndfile1-dev qt5-default
+   sudo apt-get install libfftw3-dev portaudio19-dev 
+   sudo apt-get install zlib1g-dev rtl-sdr
+   sudo apt-get install libusb-1.0-0-dev mesa-common-dev
+   sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
+   sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
+   sudo apt-get install qtbase5-dev
+
+- It turns out that in rfecent versions of Debian (and related)
+distributions the lib qt50default does not exist as a separate
+library
+
+- Be ware that different distributions store qt (related) files om
+different locations. Please adaptm the INCLUDEPATH settingss on the '.pro'
+file if needed.
+
+- Aadapt the configuration (the "CONFIG += XXX" elements in the
+".pro" file, most likely comment out devices that you do not want
+to include
+
+- run 'qmake' (variants of the name are qt5-qmake and qmake-qt5)
+which generates a Makefile
+
+- if all libraries are installed run "Make",
+
 -----------------------------------------------------------------------
 New: resizable widgets
 -----------------------------------------------------------------------
