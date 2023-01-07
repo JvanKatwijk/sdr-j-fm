@@ -33,6 +33,13 @@
 
 #define	QT_STATIC_CONST
 
+/*
+Stereo sideband test (after activating compile switch DO_STEREO_SEPARATION_TEST)
+  1) Select "S|S" to hear only the sideband signal
+  2) Check different station with the IQ balance slider whether the signal get minimal at center "0" position
+*/
+//#define	DO_STEREO_SEPARATION_TEST
+
 #ifndef __FREEBSD__
 #include	<malloc.h>
 #endif
@@ -93,7 +100,19 @@ using namespace std;
 #define	PILOTFILTER_SIZE	(2 * 384)
 #define	FFT_SIZE		(2 * 16384)
 #define	PILOT_WIDTH		(1200)
-#define	RDS_WIDTH		(2600)
+
+/* tomneda: there is a gap of 4 KHz between the stereo diff. signal
+*  38+15 = 53kHz and 57kHz RDS signal
+*  As I understand the RDS standard the 2400 Hz filter is seen on the
+*  downmix side (base band). We use the filter on the MUX signal
+*  (around 57 KHz) so the bandwidth has to be seen double.
+*  But the Feilen RDS is working a bit more worse with that but it
+*  needs also a correct decoding phase (so I provided the PSS
+*  for stereo decoding)
+*  My RDS is not working well with only 2600/2 bandwith.
+*/
+#define	RDS_WIDTH		(2 * 2400)
+//#define	RDS_WIDTH		(2600)
 //
 //	common functions
 static inline

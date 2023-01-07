@@ -261,7 +261,7 @@ uint16_t textPart1, textPart2;
 
 //	print only radio text if all data from begin are
 //	collected until now (but there may come more...)
-	if (textSegmentRegister + 1 == (1 << (currentSegment + 1))) {
+	if (textSegmentRegister + 1 == (1U << (currentSegment + 1))) {
 	   prepareText (textBuffer, currentSegment * NUM_CHARS_PER_RTXT_SEGMENT);
 	}
 

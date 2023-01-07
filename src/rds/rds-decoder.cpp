@@ -68,7 +68,7 @@ DSPFLOAT	synchronizerSamples;
 	my_matchedFltBufSize	= my_matchedFltKernelVec. size ();
 	assert (my_matchedFltBufSize & 1); // is it odd?
 	my_matchedFltBuf. resize (my_matchedFltBufSize);
-	memset (my_matchedFltBuf. data (), 0,
+	memset ((void*)my_matchedFltBuf. data (), 0,
 	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
 	my_matchedFltBufIdx	= 0;
 	previousBit		= false;
@@ -87,7 +87,7 @@ DSPFLOAT	synchronizerSamples;
         symbolCeiling           = ceil (synchronizerSamples); 
         symbolFloor             = floor (synchronizerSamples);
         syncBuffer. resize (symbolCeiling);
-	memset (syncBuffer. data (), 0,
+	memset ((void*)syncBuffer. data (), 0,
 	                   symbolCeiling * sizeof (DSPCOMPLEX));
 
         p                       = 0;
@@ -138,9 +138,8 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 	                      ERdsMode  mode, int ptyLocale) {
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
-DSPFLOAT	res;
 
-	if (mode	==  rdsDecoder::ERdsMode::RDS_ON_2) {
+   if (mode	==  rdsDecoder::ERdsMode::RDS_2) {
 	   doDecode2 (v, m, ptyLocale);
 	   return true;
 	}
@@ -151,7 +150,7 @@ DSPFLOAT	res;
 
 	if (my_timeSync. process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
-	   r = my_Costas. process_sample (r);
+		r = my_Costas. process_sample (r);
 	   bool bit	= (real (r) >= 0);
 	   processBit	(bit ^ previousBit, ptyLocale);
 	   previousBit	= bit;
@@ -195,7 +194,9 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag, int ptyLocale) {
 DSPFLOAT clkState;
 std::complex<float> tt;
-	
+
+   v = my_AGC. process_sample(v);
+
 	*mag		= syncBuffer [p];
 	syncBuffer [p]	= v;
 	p		= (p + 1) % symbolCeiling;

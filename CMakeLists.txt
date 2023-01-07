@@ -53,7 +53,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #
 #	if you want support for any of these devices, uncomment the line
 #	set(PMSDR true)
-	set(SDRPLAY true)
+#	set(SDRPLAY true)
 #	set(SDRPLAY_V3 true)
 #	set(AIRSPY true)
 	set(DABSTICK true)
@@ -205,6 +205,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/sdr/time_sync.h  
 	     ./includes/sdr/shaping_filter.h  
 	     ./devices/device-handler.h 
+		  ./devices/deviceselect.h
 	     ./devices/filereader/filereader.h 
 	     ./devices/filereader/filehulp.h
 	)
@@ -236,8 +237,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/rds/rds-blocksynchronizer.cpp 
 	      ./src/rds/rds-group.cpp 
 	      ./src/rds/rds-groupdecoder.cpp 
-	      ./src/sdr/shaping_filter.cpp 
-	      ./devices/device-handler.cpp 
+			./src/sdr/shaping_filter.cpp
+			./devices/device-handler.cpp
+			./devices/deviceselect.cpp
 	      ./devices/filereader/filereader.cpp 
 	      ./devices/filereader/filehulp.cpp
 	)
@@ -519,7 +521,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 	QT5_WRAP_CPP (MOCS ${${objectName}_MOCS})
 
-	include_directories (${QWT_INCLUDE_DIRS}
+	include_directories (SYSTEM
+		                  ${QWT_INCLUDE_DIRS}
 	                     ${FFTW_INCLUDE_DIRS}
 	                     ${SAMPLERATE_INCLUDE_DIRS}
 	                     ${PORTAUDIO_INCLUDE_DIRS}

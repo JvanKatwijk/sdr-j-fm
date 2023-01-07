@@ -40,6 +40,8 @@
 #include	"rds-decoder.h"
 #include	"newconverter.h"
 #include	"squelchClass.h"
+#include "sdr/agc.h"
+
 
 class deviceHandler;
 class RadioInterface;
@@ -47,6 +49,7 @@ class audioSink;
 class newConverter;
 
 #define USE_EXTRACT_LEVELS
+
 template<typename T> class DelayLine {
 public:
 		DelayLine (const T & iDefault) : mDefault (iDefault) {
@@ -82,7 +85,20 @@ public:
 	                     AF_RIGHT_FILTERED, RDS_INPUT, RDS_DEMOD };
 	enum class ESqMode { OFF, NSQ, LSQ };
 	enum Channels { S_STEREO, S_STEREO_SWAPPED, S_LEFT,
-	                S_RIGHT, S_LEFTplusRIGHT, S_LEFTminusRIGHT };
+		             S_RIGHT, S_LEFTplusRIGHT,
+		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
+	struct SMetaData
+	{
+		enum class EPssState { OFF, ANALYZING, ESTABLISHED };
+		float DcValRf;
+		float DcValIf;  // used for AFC
+		float PssPhaseShiftDegree;
+		float PssPhaseChange;
+		EPssState PssState;
+		float GuiPilotStrength; // only valid if GUI scope shows the "Demodulation" signal
+		float PilotPllLockStrength;
+		bool  PilotPllLocked;
+	};
 
 public:
 		fmProcessor (deviceHandler *,
@@ -117,6 +133,7 @@ public:
 	void		setBandwidth		(const QString &);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
 	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
+	void		restartPssAnalyzer	();
 	void		resetRds		();
 	void		set_localOscillator	(int32_t);
 	void		set_squelchMode		(ESqMode iSqMode);
@@ -126,6 +143,7 @@ public:
 
 	bool		isPilotLocked		(float &oLockStrength) const;
 	void		setAutoMonoMode		(const bool iAutoMonoMode);
+	void		setPSSMode		(const bool iPSSMode);
 	void		setDCRemove		(const bool iDCREnabled);
 	void		triggerDrawNewHfSpectrum ();
 	void		triggerDrawNewLfSpectrum ();
@@ -175,11 +193,12 @@ private:
 	Oscillator	localOscillator;
 	Oscillator	rdsOscillator;
 	SinCos		mySinCos;
+	AGC			pssAGC;
 	DecimatingFIR	fmBand_1;
 	DecimatingFIR	fmBand_2;
+	fftFilter	fmAudioFilter;
 	fftFilter	fmFilter;
 	std::atomic<bool>	fmFilterOn;
-	fftFilter	fmAudioFilter;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
 
@@ -219,6 +238,7 @@ private:
 	int32_t		fmFilterDegree;
 	std::atomic<bool>	newFilter;
 	bool		autoMono;
+	bool		pssActive;
 
 	int16_t		oldSquelchValue;
 	int16_t		squelchValue;
@@ -250,6 +270,7 @@ private:
 
 	void	process_signal_with_rds (const float,
 	                                 std::complex<float> *,
+	                                 std::complex<float> *,
 	                                 std::complex<float> *);
 //	RDS
 #ifndef	__PILOT_FIR__
@@ -259,11 +280,18 @@ private:
 #endif
 	fftFilter	*rdsBandFilter;
 	pilotRecovery	*pilotRecover;
+	PerfectStereoSeparation *pPSS;
 	fftFilterHilbert *rdsHilbertFilter;
+	fftFilterHilbert *stereoDiffHilbertFilter;
 	uint32_t	rdsSampleCntSrc;
 	uint32_t	rdsSampleCntDst;
 //	newConverter	*rdsDecimator;
+	//DelayLine<float> pilotDelayLine { 0.0f };
 	DSPFLOAT	pilotDelay;
+	DSPFLOAT	pilotDelayPSS;
+#ifdef DO_STEREO_SEPARATION_TEST
+	DSPFLOAT	pilotDelay2;
+#endif
 	DSPCOMPLEX	audioGainCorrection (DSPCOMPLEX);
 //
 //	Volume
@@ -282,6 +310,7 @@ private:
 	DSPFLOAT	rightChannel;   // (balance + 50.0) / 100.0;;
 	FM_Mode		fmModus;
 	uint8_t		soundSelector;
+
 	fm_Demodulator	*theDemodulator;
 	rdsDecoder::ERdsMode rdsModus;
 
@@ -300,14 +329,19 @@ private:
 	int32_t		spectrumSampleRate;
 	int32_t		zoomFactor;
 
+	SMetaData metaData {};
+
 signals:
 	void		setPLLisLocked		(bool);
 	void		hfBufferLoaded		();
 	void		lfBufferLoaded		(bool, int);
 	void		iqBufferLoaded		();
-	void		showDcComponents(float, float);
+	void		showMetaData(const SMetaData *);
 	void		scanresult		();
 	void		showPeakLevel		(const float, const float);
 };
 
+//Q_DECLARE_METATYPE(fmProcessor::SMetaData)
+
 #endif
+

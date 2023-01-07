@@ -187,9 +187,9 @@ exists ("./.git") {
 isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
-
-//DEFINES		+= __PILOT_FIR__
-#CONFIG		+= console
+include ( $$(QWT_ROOT)/features/qwt.prf )
+DEFINES		+= __PILOT_FIR__
+CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3
@@ -200,12 +200,15 @@ CONFIG		+= hackrf
 CONFIG		+= lime
 CONFIG		+= pluto
 #CONFIG		+= colibri
-INCLUDEPATH 	+= /usr/include/qt5/qwt
+CONFIG		+= qwt
+#INCLUDEPATH 	+= /usr/include/qt5/qwt
+#INCLUDEPATH 	+= /usr/local/qwt-6.2.0/include
 #for ubuntu the first line
 #LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
 #for fedora 21
-LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
+LIBS += -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
 LIBS += -lsamplerate
+QMAKE_CXXFLAGS += -Wno-hicpp-signed-bitwise
 }
 
 #	the devices

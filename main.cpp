@@ -99,7 +99,9 @@ QString stationList     = QDir::homePath ();
         MyRadioInterface = new RadioInterface (ISettings,
 	                                       stationList, outputRate);
         MyRadioInterface -> show ();
-        a. exec ();
+
+		  a.setWindowIcon(QIcon(":fm-icon.ico"));
+		  a. exec ();
 
 	fprintf (stderr, "Terug van de exec\n");
 /*
