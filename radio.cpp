@@ -32,7 +32,6 @@
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
-#include	"fm-processor.h"
 #include	"popup-keypad.h"
 #include	"rds-decoder.h"
 
@@ -79,10 +78,13 @@
 #define	D_RTL_TCP	"rtl_tcp"
 #define	D_HACKRF	"hackrf"
 #define	D_LIME		"lime"
+#define	D_COLIBRI		"colibri"
 #define	D_AIRSPY	"airspy"
-#define	D_RTLSDR	"rtlsdr"
+#define	D_RTLSDR	"dabstick"
 #define	D_PLUTO		"pluto"
+#define	D_ELAD_S1		"elad-s1"
 #define	D_EXTIO		"extio"
+#define	D_PMSDR		"pmsdr"
 static 
 const char *deviceTable [] = {
 #ifdef	HAVE_SDRPLAY
@@ -329,8 +331,6 @@ int     k;
 	         this, SLOT (set_freqSave ()));
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
 	         this,  SLOT (check_afc (int)));
-//	connect (cbAfc, &QAbstractButton::clicked,
-//	         this, [this](bool checked){ afcActive = checked; reset_afc(); } );
 
 	QString country	= 
 	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
@@ -413,8 +413,14 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                             spectrumAmplitudeSlider_lf -> value ());
 	s	-> setValue ("IQbalanceSlider",
 	                             IQbalanceSlider	-> value());
-	s	-> setValue ("afc", cbAfc -> checkState ());
-
+	s	-> setValue ("afc",
+	                             cbAfc -> checkState ());
+	s	-> setValue ("dcRemove",
+	                             cbDCRemove -> checkState ());
+	s	-> setValue ("autoMono",
+	                             cbAutoMono -> checkState ());
+	s	-> setValue ("pss",
+	                             cbPSS -> checkState ());
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
 	                             fmFilterSelect	-> currentText ());
@@ -506,11 +512,33 @@ bool r = false;
 	   setfmDecoder (fmDecoder -> currentText ());
 	}
 
+	k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
+	cbDCRemove	-> setCheckState (k ? Qt::CheckState::Checked :
+	                                  Qt::CheckState::Unchecked);
+
+	k	= fmSettings -> value ("autoMono", Qt::CheckState::Checked).toInt ();
+	cbAutoMono -> setCheckState (k ? Qt::CheckState::Checked :
+	                                 Qt::CheckState::Unchecked);
+
+	k	= fmSettings -> value ("pss", Qt::CheckState::Checked).toInt ();
+	cbPSS-> setCheckState (k ? Qt::CheckState::Checked :
+	                           Qt::CheckState::Unchecked);
+
+	myFMprocessor -> setDCRemove	(cbDCRemove -> checkState());
+	myFMprocessor -> setAutoMonoMode	(cbAutoMono -> checkState());
+	myFMprocessor -> setPSSMode	(cbPSS -> checkState());
+
+	int vol = fmSettings -> value ("volumeHalfDb", -12).toInt();
+	volumeSlider -> setValue (vol);
+	setAudioGainSlider(vol);
+
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmDecoder (const QString &)));
 
 	connect (cbAutoMono, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor -> setAutoMonoMode(isChecked); });
+	connect (cbPSS, &QCheckBox::clicked,
+	         this, [this](bool isChecked){myFMprocessor -> setPSSMode(isChecked); });
 	connect (cbDCRemove, &QCheckBox::clicked,
 	         this, [this](bool isChecked){ myFMprocessor->setDCRemove(isChecked); });
 	connect (volumeSlider, &QSlider::valueChanged,
@@ -521,8 +549,8 @@ bool r = false;
 //	         this, &RadioInterface::set_display_delay);
 	connect (sbDispDelay, SIGNAL (valueChanged (int)),
 	         this,  SLOT (set_display_delay (int)));
-
-	volumeSlider -> setValue (fmSettings -> value ("volumeHalfDb", -12).toInt());
+	connect (btnRestartPSS, &QAbstractButton::clicked,
+	         this, [this](){myFMprocessor -> restartPssAnalyzer(); });
 
 	runMode. store (ERunStates::RUNNING);
 }
@@ -613,6 +641,7 @@ int32_t vfo	= myRig -> getVFOFrequency ();
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	-> set_localOscillator (LOFrequency);
 	   myFMprocessor	-> resetRds ();
+		myFMprocessor	-> restartPssAnalyzer();
 	}
 }
 //
@@ -702,7 +731,7 @@ bool    success;
 	delete myRig;
 	success		= true;		// default for now
 #ifdef HAVE_SDRPLAY
-	if (s == "sdrplay") {
+	if (s == D_SDRPLAY) {
 	   try {
 	      success = true;
 	      myRig = new sdrplayHandler (fmSettings);
@@ -713,7 +742,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_SDRPLAY_V3
-	if (s == "sdrplay-v3") {
+	if (s == D_SDRPLAY_V3) {
 	   try {
 	      success = true;
 	      myRig = new sdrplayHandler_v3 (fmSettings);
@@ -724,7 +753,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_AIRSPY
-	if (s == "airspy") {
+	if (s == D_AIRSPY) {
 	   try {
 	      success	= true;
 	      myRig = new airspyHandler (fmSettings);
@@ -735,7 +764,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_HACKRF
-	if (s == "hackrf") {
+	if (s == D_HACKRF) {
 	   try {
 	      success = true;
 	      myRig = new hackrfHandler (fmSettings);
@@ -746,7 +775,7 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_LIME
-	if (s == "lime") {
+	if (s == D_LIME) {
 	   try {
 	      success = true;
 	      myRig = new limeHandler (fmSettings);
@@ -757,10 +786,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_COLIBRI
-	if (s == "colibri") {
-	   success = true;
+	if (s == D_COLIBRI) {
 	   try {
-	      myRig = new colibriHandler (fmSettings);
+			success = true;
+			myRig = new colibriHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -768,10 +797,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_PLUTO
-	if (s == "pluto") {
-	   success = true;
+	if (s == D_PLUTO) {
 	   try {
-	      myRig = new plutoHandler (fmSettings);
+			success = true;
+			myRig = new plutoHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -779,10 +808,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_ELAD_S1
-	if (s == "elad-s1") {
-	   success = true;
+	if (s == D_ELAD_S1) {
 	   try {
-	      myRig = new eladHandler (fmSettings, true, &success);
+			success = true;
+			myRig = new eladHandler (fmSettings, true, &success);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -790,10 +819,10 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_DABSTICK
-	if (s == "rtlsdr") {
-	   success = true;
+	if (s == D_RTLSDR) {
 	   try {
-	      myRig = new rtlsdrHandler (fmSettings);
+			success = true;
+			myRig = new rtlsdrHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -801,21 +830,21 @@ bool    success;
 	else
 #endif
 #ifdef HAVE_EXTIO
-	if (s == "extio") {
+	if (s == D_EXTIO) {
 	   myRig = new ExtioHandler(fmSettings, theSelector, &success);
 	}
 	else
 #endif
 #ifdef HAVE_PMSDR
-	if (s == "pmsdr") {
+	if (s == D_PMSDR) {
 	   myRig = new pmsdrHandler (fmSettings, &success);
 	}
 	else
 #endif
 	if (s == "filereader") {
-	   success = true;
 	   try {
-	      myRig = new fileReader (fmSettings);
+			success = true;
+			myRig = new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -854,7 +883,7 @@ bool    success;
 
 #ifdef __MINGW32__
 //	communication from the dll to the main program is through signals
-	if (s == "extio") {
+	if (s == D_EXTIO) {
 //	and for the extio:
 //	The following signals originate from the Winrad Extio interface
 	   connect (myRig, SIGNAL (set_ExtFrequency (int)),
@@ -879,6 +908,7 @@ bool    success;
 //
 
 deviceHandler	*RadioInterface::setDevice (QSettings *fmSettings) {
+(void)fmSettings;
 deviceSelect	deviceSelect;
 deviceHandler	*theDevice	= nullptr;
 QStringList devices;
@@ -980,6 +1010,9 @@ void	RadioInterface::setfmChannelSelector (const QString &s) {
 	else
 	if (s == "S | S")
 	   channelSelector = fmProcessor::S_LEFTminusRIGHT;
+	else
+	if (s == "T | T")
+		channelSelector = fmProcessor::S_LEFTminusRIGHT_Test;
 	else		// the default
 	   channelSelector = fmProcessor::S_STEREO;
 	if (myFMprocessor != nullptr)
@@ -996,22 +1029,29 @@ int16_t bl, br;
 	currAttSliderValue	= 2 * n;
 	attValueL	= currAttSliderValue * (float)bl / 100;
 	attValueR	= currAttSliderValue * (float)br / 100;
+#ifndef DO_STEREO_SEPARATION_TEST
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
+#endif
 }
 /*
- *  the balance slider runs between -30 .. 30
+ *  the balance slider runs between -100 .. 100
  */
 void	RadioInterface::setIQBalance (int n) {
 int16_t bl, br;
 
 	IQBalanceDisplay->display(n);
+#ifdef DO_STEREO_SEPARATION_TEST
+	if (myFMprocessor != nullptr)
+		myFMprocessor	-> setAttenuation ((float)n, 0);
+#else
 	bl		= 100 - n;
 	br		= 100 + n;
 	attValueL = currAttSliderValue * (float)bl / 100;
 	attValueR = currAttSliderValue * (float)br / 100;
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
+#endif
 }
 //
 //	Increment frequency: with amount N, depending
@@ -1043,11 +1083,14 @@ void	RadioInterface::AdjustFrequency (int n) {
 //	Whenever the mousewheel is changed, the frequency
 //	is adapted
 void	RadioInterface::wheelEvent (QWheelEvent *e) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+	if (e -> angleDelta	().y	() > 0)
+#else
 	if (e -> delta () > 0)
-	   IncrementFrequency (KHz (1));
+#endif
+		IncrementFrequency (KHz (1));
 	else
 	   IncrementFrequency (-KHz (1));
-
 }
 
 //
@@ -1093,6 +1136,7 @@ int32_t	vfo;
 //	AFC will trigger this too
 	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100)) {
 	      myFMprocessor -> resetRds ();
+			myFMprocessor -> restartPssAnalyzer();
 //	      on a change in frequency. draw new LF spectrum immediately
 //	      without averaging
 	      myFMprocessor -> triggerDrawNewLfSpectrum (); //
@@ -1574,10 +1618,10 @@ void	RadioInterface::setfmRdsSelector (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
-	rdsModus = (s == "RDS ON_1" ?
-	            rdsDecoder::ERdsMode::RDS_ON_1: 
-	         s == "RDS ON_2" ?
-	            rdsDecoder::ERdsMode::RDS_ON_2: 
+	rdsModus = (s == "RDS 1" ?
+	            rdsDecoder::ERdsMode::RDS_1:
+	         s == "RDS 2" ?
+	            rdsDecoder::ERdsMode::RDS_2:
 	            rdsDecoder::ERdsMode::RDS_OFF);
 
 	myFMprocessor	-> setfmRdsSelector (rdsModus);
@@ -1651,9 +1695,8 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	   volumeSlider -> setValue (volumeSlider -> value () - 1);
 }
 //
-//	This signal will arrive once every "inputRate" samples
-void	RadioInterface::showDcComponents (float iRfDcComponent,
-	                                  float ifDemodDcComponent) {
+//	This signal will arrive once every half "inputRate" samples (500ms)
+void	RadioInterface::showMetaData (const fmProcessor::SMetaData *ipMD) {
 static std::array<char, 1024> s{};
 static int teller = 0;
 bool triggerLog = false;
@@ -1661,14 +1704,14 @@ bool triggerLog = false;
 	if (runMode. load () != ERunStates::RUNNING)
 	   return;
 
+	//static const float w = 1.0f / std::log10(2.0f);
+
 	if ((logTime > 0) && (++teller == logTime)) {
 	   triggerLog = true;
 	   teller = 0;
 	}
 
-	float lockStrength;
-
-	if (myFMprocessor -> isPilotLocked (lockStrength)) {
+	if (ipMD -> PilotPllLocked) {
 	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green}");
 	   pll_isLocked -> setText("Pilot PLL Locked");
 	}
@@ -1677,17 +1720,36 @@ bool triggerLog = false;
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 
-	rf_dc_component -> display (QString ("%1").arg(iRfDcComponent, 0, 'f', 1)); // allow one fix digit after decimal point
+	rf_dc_component -> display (QString ("%1").arg(ipMD -> DcValRf, 0, 'f', 2));
+	demod_dc_component -> display (QString("%1").arg(ipMD -> DcValIf, 0, 'f', 2));
 
-	demod_dc_component -> display (QString("%1").arg(ifDemodDcComponent, 0, 'f', 2)); // allow tow fix digit after decimal point
+	//thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
+	thermoDcComponent -> setValue (-ipMD -> DcValIf);
 
-	static const float w = 1.0f / std::log10(2.0f);
-	const float dcVal = (ifDemodDcComponent < 0.0f ? 1 : -1) * w * std::log10(std::abs(ifDemodDcComponent) + 1.0f);
-	thermoDcComponent -> setValue (dcVal);
+	switch (ipMD -> PssState) {
+	case fmProcessor::SMetaData::EPssState::OFF:
+		pss_state -> setStyleSheet ("QLabel {background-color:grey} QLabel {color:black}");
+		pss_state -> setText("PSS off");
+		break;
+	case fmProcessor::SMetaData::EPssState::ANALYZING:
+		pss_state -> setStyleSheet ("QLabel {background-color:yellow} QLabel {color:black}");
+		pss_state -> setText("PSS analyzing ... ");
+		break;
+	case fmProcessor::SMetaData::EPssState::ESTABLISHED:
+		pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
+		pss_state -> setText("PSS established");
+		break;
+	}
+
+	pss_phase_corr -> display (QString("%1").arg(ipMD -> PssPhaseShiftDegree, 0, 'f', 2));
+	pss_phase_error -> display (QString("%1").arg(ipMD -> PssPhaseChange, 0, 'f', 2));
+
+	//thermoPSSCorr -> setValue ((ipMD -> PssPhaseChange < 0.0f ? -1 : 1) * w * std::log10(std::abs(ipMD -> PssPhaseChange) + 1.0f));
+	thermoPSSCorr -> setValue (ipMD -> PssPhaseChange);
 
 //	some kind of AFC
 	if (afcActive) {
-	   int32_t afcOffFreq = ifDemodDcComponent * 10000;
+		int32_t afcOffFreq = ipMD -> DcValIf * 10000;
 // the_dcComponent is positive with too little frequency
 	   afcCurrOffFreq = (1 - afcAlpha) * afcCurrOffFreq +
 	                                           afcAlpha * afcOffFreq;
@@ -1709,7 +1771,7 @@ bool triggerLog = false;
 
 	   if (triggerLog) {
 	      fprintf (stderr, "AFC:  DC %f, NewFreq %d = CurrFreq %d + AfcOffFreq %d (unfiltered %d), AFC_Alpha %f\n",
-	                       ifDemodDcComponent, newFreq,
+			                 ipMD-> DcValIf, newFreq,
 	                       currentFreq, afcCurrOffFreq,
 	                       afcOffFreq, afcAlpha);
 	   }
@@ -1725,7 +1787,7 @@ bool triggerLog = false;
 	            "%s : Freq = %d,\n PI code = %4X, pilot = %f\n",
 	            currentTime.toString(QString("dd.MM.yy hh:mm:ss"))
 	                                      .toStdString() .c_str(),
-	           currentFreq, currentPIcode, iRfDcComponent);
+		        currentFreq, currentPIcode, ipMD	-> DcValRf);
 
 	   fputs (s. cbegin(), stderr);
 //	and into the logfile
@@ -2011,7 +2073,7 @@ int     k;
 	   fmDeemphasisSelector -> setCurrentIndex (k);
 
 
-	k	= s -> value ("afc", afcActive).toInt ();
+	k	= s -> value ("afc", Qt::CheckState::Unchecked).toInt ();
 	cbAfc	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                 Qt::CheckState::Unchecked);
 	afcActive = (k != 0);
@@ -2066,7 +2128,7 @@ int     k;
 	   fmChannelSelect -> setCurrentIndex (k);
 
 	h	= s -> value ("fmDeemphasisSelector",
-	                             "50us  (EU)"). toString ();
+	                             "50us  (Europe, non-USA)"). toString ();
 	k	= fmDeemphasisSelector -> findText(h);
 	if (k != -1)
 	   fmDeemphasisSelector -> setCurrentIndex (k);
@@ -2143,7 +2205,7 @@ void	RadioInterface::reset_afc () {
 #include <QCloseEvent>
 void	RadioInterface::closeEvent (QCloseEvent *event) {
 	QMessageBox::StandardButton resultButton =
-	        QMessageBox::question (this, "fmRadio",
+	        QMessageBox::question (this, "Quitting fmreceiver?",
 	                               tr("Are you sure?\n"),
 	                               QMessageBox::No | QMessageBox::Yes,
 	                                               QMessageBox::Yes);

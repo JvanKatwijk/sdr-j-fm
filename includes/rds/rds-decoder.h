@@ -62,8 +62,8 @@ public:
 
 	enum class ERdsMode {
 	   RDS_OFF,
-	   RDS_ON_1,
-	   RDS_ON_2,
+		RDS_1,
+		RDS_2,
 	};
 
 	bool	doDecode	(const DSPCOMPLEX,

@@ -90,7 +90,7 @@ void	programList::removeRow (int row, int column) {
 	(void)column;
 
 	QMessageBox::StandardButton resultButton =
-		QMessageBox::question (myParent, tr ("fmRadio"),
+	   QMessageBox::question (myParent, tr ("Delete entry?"),
 	                                     tr ("Are you sure?\n"),
 	                                     QMessageBox::No | QMessageBox::Yes,
 	                                         QMessageBox::Yes);

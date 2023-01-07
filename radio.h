@@ -35,8 +35,8 @@
 #include	<qwt.h>
 #include	<sndfile.h>
 #include	"fft.h"
-#include	"fir-filters.h"
 #include	"fm-constants.h"
+#include	"fm-processor.h"
 #include	"iqdisplay.h"
 #include	"ringbuffer.h"
 #include	"iqdisplay.h"
@@ -286,7 +286,7 @@ public slots:
 //	void	showStrength		(float, float);
 
 	void	showPeakLevel		(const float, const float);
-	void	showDcComponents	(float, float);
+	void	showMetaData	(const fmProcessor::SMetaData *);
   //
   //	and for the extio handling
 	void	set_ExtFrequency	(int);

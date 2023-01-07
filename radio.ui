@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>0</width>
-    <height>700</height>
+    <width>1681</width>
+    <height>919</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,14 +20,7 @@
   <property name="windowIconText">
    <string>QUIT</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_13">
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
+  <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,6">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
@@ -244,276 +237,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_8">
-       <item>
-        <widget class="QCheckBox" name="cbDCRemove">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove DC component from input samples&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>DCR</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="pll_isLocked">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>23</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Green means that the pilot signal recovery PLL has locked&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Panel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <property name="lineWidth">
-          <number>2</number>
-         </property>
-         <property name="text">
-          <string>Pilot</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLCDNumber" name="demod_dc_component">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>23</height>
-          </size>
-         </property>
-         <property name="palette">
-          <palette>
-           <active>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </active>
-           <inactive>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </inactive>
-           <disabled>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </disabled>
-          </palette>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Estimate of the DC offset after the demodulator. Small is good.&lt;/p&gt;&lt;p&gt;This also works with the AM demodulator (a FM PLL works in the background to maintain AFC also for AM)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>true</bool>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::Flat</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLCDNumber" name="rf_dc_component">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>23</height>
-          </size>
-         </property>
-         <property name="palette">
-          <palette>
-           <active>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </active>
-           <inactive>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </inactive>
-           <disabled>
-            <colorrole role="Window">
-             <brush brushstyle="SolidPattern">
-              <color alpha="255">
-               <red>255</red>
-               <green>255</green>
-               <blue>0</blue>
-              </color>
-             </brush>
-            </colorrole>
-           </disabled>
-          </palette>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The uncompensated absolute DC level of the input signal in dBFS.&lt;/p&gt;&lt;p&gt;This works only correctly with DCR enabled (-99.9 dBFS is shown else)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="lineWidth">
-          <number>2</number>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>true</bool>
-         </property>
-         <property name="digitCount">
-          <number>5</number>
-         </property>
-         <property name="segmentStyle">
-          <enum>QLCDNumber::Flat</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QwtThermo" name="thermoDcComponent">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>15</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates the relative carrier position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="lowerBound">
-          <double>-1.000000000000000</double>
-         </property>
-         <property name="upperBound">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="scaleMaxMajor">
-          <number>5</number>
-         </property>
-         <property name="scaleStepSize">
-          <double>0.000000000000000</double>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="scalePosition">
-          <enum>QwtThermo::NoScale</enum>
-         </property>
-         <property name="originMode">
-          <enum>QwtThermo::OriginCustom</enum>
-         </property>
-         <property name="alarmEnabled">
-          <bool>false</bool>
-         </property>
-         <property name="borderWidth">
-          <number>1</number>
-         </property>
-         <property name="pipeWidth">
-          <number>13</number>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="cbAfc">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable AFC (Automatic Frequency Control).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>AFC</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QHBoxLayout" name="horizontalLayout_8"/>
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -824,26 +548,6 @@
        </item>
       </widget>
      </item>
-     <item>
-      <widget class="QComboBox" name="countrySelector">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>37</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string>Europe</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>USA</string>
-        </property>
-       </item>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>
@@ -989,7 +693,491 @@
           </layout>
          </item>
          <item>
-          <widget class="QwtPlot" name="iqscope"/>
+          <widget class="QwtPlot" name="iqscope">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If RDS is ON this shows the RDS constellation (two different ways).&lt;/p&gt;&lt;p&gt;If RDS is OFF the PSS quality is shown: For best Stereo qualität a almost horizontal line must be shown. A slope shows the phase offset while Stereo difference signal demodulation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="pll_isLocked">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Green means that the pilot signal recovery PLL has locked&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <property name="lineWidth">
+            <number>2</number>
+           </property>
+           <property name="text">
+            <string>Pilot</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLCDNumber" name="demod_dc_component">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Estimate of the DC offset after the demodulator. Small is good.&lt;/p&gt;&lt;p&gt;This also works with the AM demodulator (a FM PLL works in the background to maintain AFC also for AM)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="smallDecimalPoint">
+              <bool>true</bool>
+             </property>
+             <property name="segmentStyle">
+              <enum>QLCDNumber::Flat</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLCDNumber" name="rf_dc_component">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The uncompensated absolute DC level of the input signal in dBFS.&lt;/p&gt;&lt;p&gt;This works only with DCR enabled (-99.99 dBFS is shown else)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>2</number>
+             </property>
+             <property name="smallDecimalPoint">
+              <bool>true</bool>
+             </property>
+             <property name="digitCount">
+              <number>5</number>
+             </property>
+             <property name="segmentStyle">
+              <enum>QLCDNumber::Flat</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QwtThermo" name="thermoDcComponent">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>15</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates the relative carrier position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="lowerBound">
+            <double>-1.000000000000000</double>
+           </property>
+           <property name="upperBound">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="scaleMaxMajor">
+            <number>5</number>
+           </property>
+           <property name="scaleStepSize">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="scalePosition">
+            <enum>QwtThermo::NoScale</enum>
+           </property>
+           <property name="originMode">
+            <enum>QwtThermo::OriginCustom</enum>
+           </property>
+           <property name="alarmEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="borderWidth">
+            <number>1</number>
+           </property>
+           <property name="pipeWidth">
+            <number>13</number>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="pss_state">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Green: PSS has (nearly) reach best performance&lt;/p&gt;&lt;p&gt;Yellow: PSS current analyze the L/R difference signal, can take several seconds.&lt;/p&gt;&lt;p&gt;Grey: PSS is inactive &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <property name="lineWidth">
+            <number>2</number>
+           </property>
+           <property name="text">
+            <string>PSS state</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <widget class="QLCDNumber" name="pss_phase_corr">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS phase correction in degree of the 38 kHz L/R stereo sub carrier&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="smallDecimalPoint">
+              <bool>true</bool>
+             </property>
+             <property name="segmentStyle">
+              <enum>QLCDNumber::Flat</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLCDNumber" name="pss_phase_error">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
+             <property name="palette">
+              <palette>
+               <active>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </active>
+               <inactive>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </inactive>
+               <disabled>
+                <colorrole role="Window">
+                 <brush brushstyle="SolidPattern">
+                  <color alpha="255">
+                   <red>255</red>
+                   <green>255</green>
+                   <blue>0</blue>
+                  </color>
+                 </brush>
+                </colorrole>
+               </disabled>
+              </palette>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PSS current measured mean error&lt;/p&gt;&lt;p&gt;Best results can be expected with values around zero.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="lineWidth">
+              <number>2</number>
+             </property>
+             <property name="smallDecimalPoint">
+              <bool>true</bool>
+             </property>
+             <property name="digitCount">
+              <number>5</number>
+             </property>
+             <property name="segmentStyle">
+              <enum>QLCDNumber::Flat</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QwtThermo" name="thermoPSSCorr">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>15</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the mean PSS phase error (between -1 and 1).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="lowerBound">
+            <double>-1.000000000000000</double>
+           </property>
+           <property name="upperBound">
+            <double>1.000000000000000</double>
+           </property>
+           <property name="scaleStepSize">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="scalePosition">
+            <enum>QwtThermo::NoScale</enum>
+           </property>
+           <property name="originMode">
+            <enum>QwtThermo::OriginCustom</enum>
+           </property>
+           <property name="alarmEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="borderWidth">
+            <number>1</number>
+           </property>
+           <property name="pipeWidth">
+            <number>13</number>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnRestartPSS">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;This could be important when the analyzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a new report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Restart PSS analyzer</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -1013,14 +1201,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QwtPlot" name="lfscope">
-         <property name="maximumSize">
-          <size>
-           <width>371</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
+        <widget class="QwtPlot" name="lfscope"/>
        </item>
        <item>
         <widget class="QSlider" name="spectrumAmplitudeSlider_hf">
@@ -1086,12 +1267,6 @@
        </item>
        <item>
         <widget class="QwtPlot" name="hfscope">
-         <property name="maximumSize">
-          <size>
-           <width>511</width>
-           <height>16777215</height>
-          </size>
-         </property>
          <property name="autoFillBackground">
           <bool>false</bool>
          </property>
@@ -1120,95 +1295,135 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="fmFilterSelect">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter, applied to the incoming raw data to isolate the FM signal from the noise around it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
-            <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>9kHz (AM)</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>15kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>25kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>35kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>45kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>55kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>65kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>75kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>90kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>115kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>140kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>165kHz</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>190kHz</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_12">
-           <item>
-            <widget class="QCheckBox" name="cbAutoMono">
+            <widget class="QCheckBox" name="cbAfc">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force audio to mono if no pilot is detected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Automatic Frequency Control&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Auto mono</string>
+              <string>AFC</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbDCRemove">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;DC Removal&lt;/p&gt;&lt;p&gt;Remove DC component from input samples.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>DCR</string>
              </property>
              <property name="checked">
               <bool>true</bool>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbAutoMono">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Auto Mono&lt;/p&gt;&lt;p&gt;Force stereo decoder to mono if no pilot is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>AMO</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cbPSS">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perfect Stereo Separation&lt;/p&gt;&lt;p&gt;The Stereo L/R difference signal is analyzed to calculate the best mixing phase to get best stereo L/R separation. It works best if the signal contains big differences between L and R.&lt;/p&gt;&lt;p&gt;Check with &amp;quot;T | T&amp;quot; for minimal audio level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>PSS</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,0,0">
+           <item>
+            <widget class="QComboBox" name="fmFilterSelect">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter, applied to the incoming raw data to isolate the FM signal from the noise around it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>9kHz (AM)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>15kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>25kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>35kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>45kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>55kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>65kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>75kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>90kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>115kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>140kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>165kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>190kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Off</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
@@ -1236,7 +1451,7 @@
            <item>
             <widget class="QComboBox" name="fmChannelSelect">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the source combinations of the two audio channels:&lt;/p&gt;&lt;p&gt;L = Left&lt;br/&gt;R = Right&lt;br/&gt;M = Mono (L+R)&lt;br/&gt;S = Side (L-R)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the source combinations of the two audio channels:&lt;/p&gt;&lt;p&gt;L = Left&lt;br/&gt;R = Right&lt;br/&gt;M = Mono (L+R)&lt;br/&gt;S = Side (L-R)&lt;br/&gt;T = Test Side (L-R), 90° mix correlation, sound level must be minimized at best stereo decoding&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">
@@ -1256,6 +1471,11 @@
              <item>
               <property name="text">
                <string>S | S</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>T | T</string>
               </property>
              </item>
              <item>
@@ -1305,12 +1525,12 @@
              </item>
              <item>
               <property name="text">
-               <string>25us</string>
+               <string>25us (Dolby FM)</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>50us  (EU)</string>
+               <string>50us  (Europe, non-USA)</string>
               </property>
              </item>
              <item>
@@ -1421,7 +1641,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="4,1,4,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="4,1,4,4,1">
            <item>
             <widget class="QComboBox" name="squelchSelector">
              <property name="toolTip">
@@ -1446,6 +1666,12 @@
            </item>
            <item>
             <widget class="QLabel" name="sqlStatusLabel">
+             <property name="maximumSize">
+              <size>
+               <width>23</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;GREY: Squelch is OFF&lt;br/&gt;GREEN: No squelch active, audio is on&lt;br/&gt;RED: Squelch active, audio is muted&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1464,6 +1690,23 @@
             </widget>
            </item>
            <item>
+            <widget class="QComboBox" name="countrySelector">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select region to choose the suitable RDS PTY code.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Europe</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>USA</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
             <widget class="QComboBox" name="fmRdsSelector">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select RDS decoding on or off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1475,18 +1718,24 @@
              </item>
              <item>
               <property name="text">
-               <string>RDS ON_1</string>
+               <string>RDS 1</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>RDS ON_2</string>
+               <string>RDS 2</string>
               </property>
              </item>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="rdsSyncLabel">
+             <property name="maximumSize">
+              <size>
+               <width>23</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Green means a more or less decent rds signal can be decoded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -1510,13 +1759,6 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-          </widget>
-         </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="0,7,2">
            <item>
@@ -1867,13 +2109,10 @@
                 <bool>false</bool>
                </property>
                <property name="frameShape">
-                <enum>QFrame::Box</enum>
+                <enum>QFrame::NoFrame</enum>
                </property>
                <property name="frameShadow">
                 <enum>QFrame::Raised</enum>
-               </property>
-               <property name="lineWidth">
-                <number>2</number>
                </property>
                <property name="digitCount">
                 <number>6</number>

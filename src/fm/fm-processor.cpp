@@ -57,6 +57,7 @@
 	                             localOscillator (inputRate),
 	                             rdsOscillator (fmRate),
 	                             mySinCos (fmRate),
+	                             pssAGC (100.0f/fmRate, 0.3f, 2.0f),
 	                             fmBand_1     (4 * inputRate / IRate + 1,
 	                                           fmRate / 2,
 	                                           inputRate,
@@ -66,16 +67,16 @@
 	                                           IRate,
 	                                           IRate / fmRate),
 	                             fmAudioFilter (4096, 756),
+	                             fmFilter	   (2 * 32768, 251),
 #ifdef	__PILOT_FIR__
 	                             pilotBandFilter (PILOTFILTER_SIZE,
 	                                             PILOT_FREQUENCY - PILOT_WIDTH / 2,
 	                                             PILOT_FREQUENCY + PILOT_WIDTH / 2,
-	                                             fmRate),
+	                                             fmRate) {
 #else
 	                             pilotBandFilter (FFT_SIZE,
-	                                              PILOTFILTER_SIZE),
+	                                              PILOTFILTER_SIZE) {
 #endif
-	                             fmFilter	   (2 * 32768, 251) {
 	this	-> running. store (false);
 	this	-> myRig	= theDevice;
 	this	-> myRadioInterface = RI;
@@ -107,6 +108,7 @@
 	this	-> fillAveragelfBuffer	= true;
 	this	-> displayBuffer_lf	= nullptr;
 	this	-> autoMono		= true;
+	this	-> pssActive	= true;
 	this	-> peakLevelCurSampleCnt	= 0;
 	this	-> peakLevelSampleMax	= 0x7FFFFFF;
 	this	-> absPeakLeft		= 0.0f;
@@ -182,6 +184,13 @@
 	                                     OMEGA_PILOT,
 	                                     25 * omegaDemod,
 	                                     &mySinCos);
+	pPSS	= new PerfectStereoSeparation(fmRate,
+	                                    10.0f / fmRate,
+	                                    &mySinCos);
+	pilotDelayPSS = 0;
+#ifdef DO_STEREO_SEPARATION_TEST
+	pilotDelay2 = 0;
+#endif
 	fmAudioFilterActive . store (false);
 //
 //	the constant K_FM is still subject to many questions
@@ -196,10 +205,8 @@
 //	to be available. We borrow the approach from CuteSDR
 	rdsHilbertFilter	= new fftFilterHilbert (FFT_SIZE,
 	                                                PILOTFILTER_SIZE);
-//	                                                RDSBANDFILTER_SIZE);
 	rdsBandFilter		= new fftFilter (FFT_SIZE,
 	                                         PILOTFILTER_SIZE);
-//	                                         RDSBANDFILTER_SIZE);
 	rdsBandFilter	-> setBand (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                            RDS_FREQUENCY + RDS_WIDTH / 2, fmRate);
 
@@ -224,8 +231,8 @@
 	         myRadioInterface, SLOT (iqBufferLoaded ()));
 	connect (this, SIGNAL (showPeakLevel (float, float)),
 	         myRadioInterface, SLOT (showPeakLevel (float, float)));
-	connect (this, SIGNAL (showDcComponents (float,float)),
-	         myRadioInterface, SLOT (showDcComponents (float,float)));
+	connect (this, &fmProcessor::showMetaData,
+	         myRadioInterface, &RadioInterface::showMetaData);  // the macro version is not working here!?
 	connect (this, SIGNAL (scanresult ()),
 	         myRadioInterface,SLOT(scanresult()));
 
@@ -240,11 +247,20 @@
 	myCount = 0;
 }
 
-	fmProcessor::~fmProcessor() {
-	   stop();
+fmProcessor::~fmProcessor() {
+	stop();
 
-	delete[] displayBuffer_lf;
+	delete theConverter;
+	delete theDemodulator;
+	delete spectrum_fft_hf;
+	delete spectrum_fft_lf;
+	delete rdsHilbertFilter;
+	delete rdsBandFilter;
+	delete pilotRecover;
+	delete theConverter;
+	delete pPSS;
 	delete mySquelch;
+	delete[] displayBuffer_lf;
 }
 
 void	fmProcessor::stop () {
@@ -325,6 +341,9 @@ void	fmProcessor::setlfPlotType (ELfPlot m) {
 
 	showFullSpectrum	= true;
 	switch (m) {
+	   case ELfPlot::AF_DIFF:
+		   spectrumSampleRate = fmRate;
+		   break;
 	   case ELfPlot::IF_FILTERED:
 	      spectrumSampleRate = fmRate;
 	      break;
@@ -435,8 +454,13 @@ void	fmProcessor::stopDumping () {
 }
 
 void	fmProcessor::setAttenuation (DSPFLOAT l, DSPFLOAT r) {
+#ifdef DO_STEREO_SEPARATION_TEST
+	pilotDelay2 = l / 180.0f * M_PI;
+	//pilotDelayLine. set_delay_steps ((DELAY_STEPS) + (int)l);
+#else
 	Lgain = l;
 	Rgain = r;
+#endif
 }
 
 void	fmProcessor::startScanning () {
@@ -624,8 +648,9 @@ int		iqCounter	= 0;
 
 	      std::complex<float> audio;
 	      std::complex<float> rdsDataCplx;
+			std::complex<float> LRDiffCplx;
 
-	      process_signal_with_rds (demod, &audio, &rdsDataCplx);
+			process_signal_with_rds (demod, &audio, &rdsDataCplx, &LRDiffCplx);
 
 	      const DSPFLOAT sumLR  = real (audio);
 	      const DSPFLOAT diffLR = imag (audio);
@@ -655,7 +680,8 @@ int		iqCounter	= 0;
 	            audio = std::complex<float> (sumLR, sumLR);
 	            break;
 	         case S_LEFTminusRIGHT:
-	            audio = std::complex<float> (diffLRWeightend,
+			   case S_LEFTminusRIGHT_Test:
+				   audio = std::complex<float> (diffLRWeightend,
 	                                         diffLRWeightend);
 	            break;
 	      }
@@ -676,7 +702,8 @@ int		iqCounter	= 0;
 	                                           rdsModus, ptyLocale)) {
 	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
 	                  iqCounter ++;
-	                  if (iqCounter > 100) {
+							if (iqCounter > 100)
+							{
 	                     emit iqBufferLoaded ();
 	                     iqCounter = 0;
 	                  }
@@ -705,6 +732,14 @@ int		iqCounter	= 0;
 	               break;
 	            default:;
 	         }
+
+				iqBuffer -> putDataIntoBuffer (&LRDiffCplx, 1);
+				iqCounter ++;
+				if (iqCounter > 100)
+				{
+					emit iqBufferLoaded ();
+					iqCounter = 0;
+				}
 	      }
 
 	      if (fmAudioFilterActive. load ()) {
@@ -729,7 +764,7 @@ int		iqCounter	= 0;
 	            spectrumBuffer_lf. push_back (sumLR);
 	            break;
 	         case ELfPlot::AF_DIFF:
-	            spectrumBuffer_lf. push_back (diffLR);
+				   spectrumBuffer_lf. push_back (LRDiffCplx);
 	            break;
 	         case ELfPlot::AF_MONO_FILTERED:
 	            spectrumBuffer_lf. push_back (std::complex<float> (audio.real () + audio.imag (), 0));
@@ -762,7 +797,7 @@ int		iqCounter	= 0;
 	      }
 
 	      if (++lfCount > (fmRate / repeatRate)) {
-	         if (spectrumBuffer_lf. size () >= spectrumSize) {
+				if (spectrumBuffer_lf. size () >= (unsigned)spectrumSize) {
 	            processLfSpectrum (spectrumBuffer_lf);
 	            spectrumBuffer_lf. resize (0);
 	         }
@@ -770,62 +805,93 @@ int		iqCounter	= 0;
 	      }
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
-#ifdef USE_EXTRACT_LEVELS
-	         emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : get_pilotStrength()), get_demodDcComponent());
-#else
-	         emit showDcComponents ((DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.9), get_demodDcComponent());
-#endif
-	         myCount = 0;
+
+				metaData. GuiPilotStrength = get_pilotStrength	();
+				metaData. PilotPllLocked = isPilotLocked	(metaData.PilotPllLockStrength);
+				metaData. DcValRf = (DCREnabled ? 20 * log10 (abs(RfDC) + 1.0f/32768) : -99.99);
+				metaData. DcValIf = get_demodDcComponent	();
+				metaData. PssPhaseShiftDegree = pilotDelayPSS / M_PI * 180.0f;
+				metaData. PssPhaseChange = pPSS->get_mean_error() * 1000;
+				metaData. PssState = (pssActive && metaData. PilotPllLocked
+				                      ? (pPSS->is_error_minimized()
+				                         ? SMetaData::EPssState::ESTABLISHED
+				                         : SMetaData::EPssState::ANALYZING)
+				                      : SMetaData::EPssState::OFF);
+
+				emit showMetaData (&metaData);
+				myCount = 0;
 	      }
 	   }
 	}
 }
 
-void	fmProcessor::process_signal_with_rds (const float demod,
+void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	                                      std::complex<float> *audioOut,
-	                                      std::complex<float> *rdsValueCmpl){
-//	Get the phase for the "carrier to be inserted" right.
-//	Do this alwas to be able to check of a locked pilot PLL.
-DSPFLOAT pilot = pilotBandFilter. Pass (5 * demod);
-DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+                                         std::complex<float> *rdsValueCmpl,
+                                         DSPCOMPLEX *LRDiffCplx) {
+
+	//const float demodDelayed = pilotDelayLine.get_set_value(demodDirect);
+	const float demodDelayed = demodDirect;
+	//	Get the phase for the "carrier to be inserted" right.
+//	Do this always to be able to check of a locked pilot PLL.
+	DSPFLOAT pilot = pilotBandFilter.  Pass(5 * demodDirect);
+	DSPFLOAT currentPilotPhase = pilotRecover -> getPilotPhase (5 * pilot);
+
+	const bool pilotLocked = pilotRecover -> isLocked();
+
+	if (pilotLocked == false) {
+		pilotDelayPSS = 0;
+		pPSS	->	reset	();
+	}
 
 	if (fmModus != FM_Mode::Mono &&
-	         (pilotRecover -> isLocked () || autoMono == false)) {
+	         (pilotLocked || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay);
-//	Due to filtering the real amplitude of the LRDiff might have
-//	to be adjusted, we guess
-	   DSPFLOAT LRDiff = 2.0 * mySinCos. getCos (PhaseforLRDiff) * demod;
-	   DSPFLOAT LRPlus = demod;
+#ifdef DO_STEREO_SEPARATION_TEST
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay + pilotDelay2) - pilotDelayPSS;
+#else
+		DSPFLOAT PhaseforLRDiff = 2 * (currentPilotPhase + pilotDelay) - pilotDelayPSS;
+#endif
+
+		if (pssActive)
+		{
+			pilotDelayPSS = this	->	pPSS->	process_sample(demodDelayed, PhaseforLRDiff); // perform perfect stereo separation
+			*LRDiffCplx = this	->	pPSS->	get_cur_mixer_result	();
+			*LRDiffCplx = pssAGC.	process_sample(*LRDiffCplx);  // AGC only that it looks nicer in the IQ scope
+		}
+		else
+		{
+			pilotDelayPSS = 0;
+			*LRDiffCplx = 0;
+		}
+
+		DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ? mySinCos. getSin (PhaseforLRDiff) // we look for minimum correlation so mix with PI/2 phase shift
+		                                                                : mySinCos. getCos (PhaseforLRDiff))
+		                      * demodDelayed;
+		DSPFLOAT LRPlus = demodDelayed;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
-	   *audioOut = DSPCOMPLEX (demod, 0);
+		*audioOut = DSPCOMPLEX (demodDelayed, 0);
 	}
 
 //	process RDS
-#define	__TOMNEDA__
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
-	   DSPFLOAT rdsSample		= rdsBandFilter -> Pass (5 * demod);
-#ifndef	__TOMNEDA__
+		float rdsSample = rdsBandFilter -> Pass (5 * demodDelayed);
+		float thePhase	= 3 * currentPilotPhase; // currentPilotPhase shifts also about 19kHz without pilot signal (not synched of course)
+
 //	Downshift the signal with the phase of the pilot. Note that the
 //	amount of delay for the pilotPhase and the rdsSample are the same.
 //	Maybe we need an additional lowpass filter here
-	   float thePhase	= 3 * currentPilotPhase;
-	   rdsSample		*= - mySinCos. getSin (thePhase);
-	   *rdsValueCmpl	= rdsHilbertFilter -> Pass (rdsSample);
-#else
-// the oscillator shifts the signal down (== -57000 Hz shift)
-	   std::complex<float> rdsComplex =  rdsHilbertFilter -> Pass (rdsSample);
-	   float thePhase = 3 * (currentPilotPhase + pilotDelay);
 
-	   std::complex<float> OscVal =
-	                          std::complex<float> (cos (thePhase),
-	                                               - sin (thePhase));
-//	   rdsComplex	= rdsComplex * OscVal;
-	   rdsComplex = rdsComplex * rdsOscillator. nextValue (RDS_FREQUENCY);
-	   *rdsValueCmpl	= rdsComplex;
-#endif
+		if (rdsModus == rdsDecoder::ERdsMode::RDS_2) {
+			rdsSample		*= - mySinCos. getSin (thePhase);
+			*rdsValueCmpl	= rdsHilbertFilter -> Pass (rdsSample);
+		} else { // RDS_1
+			std::complex<float> rdsComplex =  rdsHilbertFilter -> Pass (rdsSample);
+			rdsComplex	*= - mySinCos. getComplex (-thePhase);
+			*rdsValueCmpl	= rdsComplex;
+		}
 	}
 }
 //
@@ -919,6 +985,11 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 	}
 }
 
+void	fmProcessor::restartPssAnalyzer	() {
+	pilotDelayPSS = 0;
+	pPSS	->	reset	(); // TODO shift this as it is called while RDS switch, too
+}
+
 void	fmProcessor::resetRds	() {
 	myRdsDecoder. reset ();
 }
@@ -928,7 +999,6 @@ void	fmProcessor::set_localOscillator (int32_t lo) {
 }
 
 bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
-
 	if (fmModus != FM_Mode::Mono && pilotRecover) {
 	   oLockStrength = pilotRecover -> getLockedStrength ();
 	   return pilotRecover -> isLocked ();
@@ -1139,6 +1209,10 @@ float	rdsAvg	= 0;
 
 void	fmProcessor::setAutoMonoMode		(const bool iAutoMonoMode) {
 	autoMono = iAutoMonoMode;
+}
+
+void	fmProcessor::setPSSMode		(const bool iPSSMode) {
+	pssActive = iPSSMode;
 }
 
 void	fmProcessor::setDCRemove		(const bool iDCREnabled) {
