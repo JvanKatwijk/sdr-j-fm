@@ -310,9 +310,6 @@ int     k;
 	myRig			= new deviceHandler ();
 	currentFreq		= setTuner (Khz (94700));
 	inputRate		= myRig -> getRate ();
-//	fmRate			= mapRates (inputRate);
-//	fmRate			= mapRates (inputRate);
-	fprintf (stderr, "fmrate = %d\n", fmRate);
 
 	hfScope		-> setBitDepth (myRig -> bitDepth ());
 	lfScope		-> setBitDepth (myRig -> bitDepth ());
@@ -365,7 +362,8 @@ int     k;
 	else {
 //	   deviceSelector	-> setCurrentIndex (0);
 	   startKnop	= 0;
-	   setDevice (fmSettings);
+	   if (setDevice (fmSettings) == nullptr)
+	      TerminateProcess ();
 	}
 }
 
@@ -375,7 +373,8 @@ void	RadioInterface::quickStart () {
 	fprintf (stderr, "going for quickStart\n");
 	delete starter;
 	if (getDevice (deviceTable [startKnop]) ==  nullptr)
-	   setDevice (fmSettings);
+	   if (setDevice (fmSettings) == nullptr)
+	      TerminateProcess ();
 }
 
 //
@@ -558,7 +557,8 @@ bool r = false;
 //	always tricky to kill tasks
 void	RadioInterface::TerminateProcess () {
 	runMode. store (ERunStates::STOPPING);
-
+	if (myFMprocessor == nullptr)
+	   exit (1);
 	if (sourceDumping && (myFMprocessor != nullptr)) {
 	   myFMprocessor -> stopDumping ();
 	   sf_close (dumpfilePointer);
@@ -907,8 +907,10 @@ deviceHandler	*RadioInterface::setDevice (QSettings *fmSettings) {
 deviceSelect	deviceSelect;
 deviceHandler	*theDevice	= nullptr;
 QStringList devices;
+
 	for (int i = 0; deviceTable [i] != nullptr; i ++)
 	   devices += deviceTable [i];
+	devices	+= "quit";
 	deviceSelect. addList (devices);
 	int theIndex = -1;
 	while (theDevice == nullptr) {
@@ -916,6 +918,8 @@ QStringList devices;
 	   if (theIndex < 0)
 	      continue;
 	   QString s = devices. at (theIndex);
+	   if (s == "quit")
+	      return nullptr;
 	   theDevice	= getDevice (s);
 	}
 	return theDevice;
