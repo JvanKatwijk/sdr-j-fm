@@ -150,7 +150,7 @@ DSPCOMPLEX r;
 
 	if (my_timeSync. process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
-		r = my_Costas. process_sample (r);
+		//r = my_Costas. process_sample (r);
 	   bool bit	= (real (r) >= 0);
 	   processBit	(bit ^ previousBit, ptyLocale);
 	   previousBit	= bit;
