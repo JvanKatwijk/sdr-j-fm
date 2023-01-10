@@ -45,9 +45,7 @@ public:
 	                                             DSPFLOAT iCurMixPhase);
 
 private:
-	fftFilterHilbert	phaseFilter;
 	fftFilter	lpFilter;
-//	fftFilter	lp1Filter;
 	int32_t		rate;
 	int32_t		sampleLockStableCnt;
 	int32_t		sampleUnlockStableCnt;
