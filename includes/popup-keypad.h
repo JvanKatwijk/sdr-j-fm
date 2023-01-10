@@ -28,10 +28,11 @@
 
 class	RadioInterface;
 
-class	keyPad:QObject {
+class	keyPad: public QObject {
 Q_OBJECT
 public:
-		keyPad		(RadioInterface *);
+		keyPad		();
+//		keyPad		(RadioInterface *);
 		~keyPad		();
 	void	showPad		();
 	void	hidePad		();
@@ -39,7 +40,7 @@ public:
 private slots:
 	void	collectData	(int);
 private:
-	RadioInterface	*myRadio;
+//	RadioInterface	*myRadio;
 	QWidget		*theFrame;
 	QGridLayout	*theLayout;
 	QButtonGroup	*thePad;

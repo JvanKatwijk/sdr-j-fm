@@ -32,7 +32,7 @@
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
-#include	"popup-keypad.h"
+//#include	"popup-keypad.h"
 #include	"rds-decoder.h"
 
 #include	"program-list.h"
@@ -139,7 +139,8 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	                                int32_t outputRate,
 	                                QWidget *parent):
 	                                        QDialog (parent),
-	                                        iqBuffer (IQ_SCOPE_SIZE) {
+	                                        iqBuffer (IQ_SCOPE_SIZE),
+	                                        mykeyPad () {
 
 int16_t i;
 QString h;
@@ -205,8 +206,7 @@ int     k;
 
 	myFMprocessor	= nullptr;
 	our_audioSink	= new audioSink (this -> audioRate, 16384);
-	outTable	= new int16_t
-	                   [our_audioSink -> numberofDevices () + 1];
+	outTable. resize (our_audioSink -> numberofDevices () + 1);
 	for (i = 0; i < our_audioSink -> numberofDevices (); i++) 
 	   outTable [i] = -1;
 
@@ -269,23 +269,25 @@ int     k;
 //	he does the connections from the gui buttons, sliders etc
 	localConnects		();
 
-	mykeyPad = new keyPad(this);
 	connect (freqButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_freqButton ()));
+	connect (&mykeyPad, SIGNAL (newFrequency (int)),
+                 this, SLOT (newFrequency (int)));
+
 
 //	Create a timer for autoincrement/decrement of the tuning
-	autoIncrementTimer	= new QTimer ();
-	autoIncrementTimer	-> setSingleShot (true);
-	autoIncrementTimer	-> setInterval (5000);
-	connect (autoIncrementTimer,
+//	autoIncrementTimer	= new QTimer ();
+	autoIncrementTimer. setSingleShot (true);
+	autoIncrementTimer. setInterval (5000);
+	connect (&autoIncrementTimer,
 	         SIGNAL (timeout()),
 	         this,
 	         SLOT (autoIncrement_timeout ()));
 
 //	create a timer for displaying the "real" time
-	displayTimer		= new QTimer ();
-	displayTimer		-> setInterval (1000);
-	connect (displayTimer,
+//	displayTimer		= new QTimer ();
+	displayTimer. setInterval (1000);
+	connect (&displayTimer,
 	         SIGNAL (timeout ()),
 	         this,
 	         SLOT (updateTimeDisplay ()));
@@ -321,7 +323,7 @@ int     k;
 	         this, SLOT (set_minimum (int)));
 	connect (maximumSelect, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_maximum (int)));
-	displayTimer		-> start (1000);
+	displayTimer. start (1000);
 
 	scrollStationList	-> setWidgetResizable (true);
 	myProgramList		= new programList (this, saveName, scrollStationList);
@@ -384,10 +386,7 @@ void	RadioInterface::quickStart () {
 //	delete		hfScope;
 //	delete		lfScope;
 	
-//	delete		autoIncrementTimer;
-//	delete		displayTimer;
 //	delete		our_audioSink;
-//	delete[]	outTable;
 //	delete		myProgramList;
 }
 //
@@ -592,11 +591,7 @@ void	RadioInterface::TerminateProcess () {
 
 	qDebug () << "Termination started";
 	delete myRig;
-	delete mykeyPad;
-	delete		autoIncrementTimer;
-	delete		displayTimer;
 	delete		our_audioSink;
-	delete[]	outTable;
 	delete		myProgramList;
 	delete		hfScope;
 	delete		lfScope;
@@ -1208,7 +1203,7 @@ int32_t	low, high;
 
 	currentFreq = setTuner (frequency);
 
-	autoIncrementTimer	-> start (IncrementInterval (IncrementIndex));
+	autoIncrementTimer. start (IncrementInterval (IncrementIndex));
 	if (myFMprocessor != nullptr)
 	   myFMprocessor -> startScanning ();
 }
@@ -1222,8 +1217,8 @@ void	RadioInterface::scanresult	() {
 void	RadioInterface::stopIncrementing	() {
 	set_incrementFlag (0);
 
-	if (autoIncrementTimer -> isActive ())
-	   autoIncrementTimer -> stop ();
+	if (autoIncrementTimer. isActive ())
+	   autoIncrementTimer. stop ();
 
 	IncrementIndex = 0;
 	if (myFMprocessor != nullptr)
@@ -1232,8 +1227,8 @@ void	RadioInterface::stopIncrementing	() {
 
 void	RadioInterface::autoIncrementButton	() {
 
-	if (autoIncrementTimer	-> isActive ())
-	   autoIncrementTimer -> stop ();
+	if (autoIncrementTimer. isActive ())
+	   autoIncrementTimer. stop ();
 
 	if (++IncrementIndex > delayTableSize)
 	   IncrementIndex = delayTableSize;
@@ -1243,14 +1238,14 @@ void	RadioInterface::autoIncrementButton	() {
 	   return;
 	}
   //
-	autoIncrementTimer	-> start (IncrementInterval (IncrementIndex));
+	autoIncrementTimer. start (IncrementInterval (IncrementIndex));
 	set_incrementFlag (IncrementIndex);
 }
 
 void	RadioInterface::autoDecrementButton () {
 
-	if (autoIncrementTimer -> isActive ())
-	   autoIncrementTimer -> stop ();
+	if (autoIncrementTimer. isActive ())
+	   autoIncrementTimer. stop ();
 
 	if (--IncrementIndex < - delayTableSize)
 	   IncrementIndex = - delayTableSize;
@@ -1260,7 +1255,7 @@ void	RadioInterface::autoDecrementButton () {
 	   return;
 	}
 //
-	autoIncrementTimer	-> start (IncrementInterval (IncrementIndex));
+	autoIncrementTimer. start (IncrementInterval (IncrementIndex));
 	set_incrementFlag (IncrementIndex);
 }
 
@@ -1539,7 +1534,6 @@ void	RadioInterface::setRadioText (const QString &s) {
 }
 
 void	RadioInterface::setRDSisSynchronized (bool syn) {
-
 	if (!syn)
 	   rdsSyncLabel -> setStyleSheet ("QLabel {background-color:red}");
 	else
@@ -1846,8 +1840,8 @@ void	RadioInterface::clickPause () {
 	   return;
 
 	if (runMode. load () == ERunStates::RUNNING) {
-	   if (autoIncrementTimer	-> isActive ())
-	      autoIncrementTimer	-> stop ();
+	   if (autoIncrementTimer. isActive ())
+	      autoIncrementTimer. stop ();
 
 	   myRig		-> stopReader	();
 	   our_audioSink	-> stop		();
@@ -1857,7 +1851,7 @@ void	RadioInterface::clickPause () {
 	else
 	if (runMode. load () == ERunStates::PAUSED) {
 	   if (IncrementIndex != 0)	// restart the incrementtimer if needed
-	      autoIncrementTimer	-> start (IncrementInterval (IncrementIndex));
+	      autoIncrementTimer. start (IncrementInterval (IncrementIndex));
 	   myRig		-> restartReader ();
 	   our_audioSink	-> restart ();
 	   pauseButton		-> setText (QString ("Pause"));
@@ -1870,7 +1864,7 @@ void	RadioInterface::clickPause () {
 bool	RadioInterface::setupSoundOut (QComboBox *streamOutSelector,
 	                               audioSink *our_audioSink,
 	                               int32_t cardRate,
-	                               int16_t *table) {
+	                               std::vector<int16_t> &table) {
 uint16_t ocnt = 1;
 
 	for (int i = 0; i < our_audioSink -> numberofDevices (); i++) {
@@ -2164,10 +2158,10 @@ int32_t res;
 }
 
 void	RadioInterface::handle_freqButton () {
-	if (mykeyPad -> isVisible ())
-	   mykeyPad -> hidePad ();
+	if (mykeyPad. isVisible ())
+	   mykeyPad. hidePad ();
 	else
-	   mykeyPad->showPad ();
+	   mykeyPad. showPad ();
 }
 
 void	RadioInterface::newFrequency	(int f) {

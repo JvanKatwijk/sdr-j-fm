@@ -188,7 +188,7 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 include ( $$(QWT_ROOT)/features/qwt.prf )
-DEFINES		+= __PILOT_FIR__
+//DEFINES	+= __PILOT_FIR__
 CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay

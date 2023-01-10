@@ -44,8 +44,9 @@
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
 #include	<atomic>
+#include	"popup-keypad.h"
 
-class	keyPad;
+//class	keyPad;
 class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
@@ -97,7 +98,9 @@ private:
 	Scope			*hfScope;
 	Scope			*lfScope;
 //
-	keyPad		*mykeyPad;
+	keyPad		mykeyPad;
+	QTimer		autoIncrementTimer;
+	QTimer		displayTimer;
 	QSettings	*fmSettings;
 	int32_t		inputRate;
 	int32_t		fmRate;
@@ -111,7 +114,7 @@ private:
 	audioSink	*our_audioSink;
 	int8_t		channelSelector;
 	deviceHandler	*myRig;
-	int16_t		*outTable;
+	std::vector<int16_t>	outTable;
 	int16_t		numberofDevices;
 
 	uint8_t		HFviewMode;
@@ -131,7 +134,6 @@ private:
 	int32_t		mapIncrement		(int32_t);
 	int32_t		IncrementInterval	(int16_t);
 	void		Display			(int32_t);
-	QTimer		*autoIncrementTimer;
 	int16_t		IncrementIndex;
 	int32_t		autoIncrement_amount;
 	int32_t		fmIncrement;
@@ -144,7 +146,6 @@ private:
 
 	void		stop_lcdTimer		();
 	int32_t		Panel;
-	QTimer		*displayTimer;
   /*
    *	dumping
    */
@@ -231,16 +232,11 @@ private slots:
 	void	DecrementButton		();
 
 	bool	setupSoundOut		(QComboBox *, audioSink *,
-	                                 int32_t, int16_t *);
+	                                 int32_t, std::vector<int16_t> &);
 	void	set_squelchValue	(int);
 	void	set_freqSave		();
 	void	handle_myLine		();
 
-//	added or changed
-//	station list
-//	void	tableSelect		(int, int);
-//	void	removeRow		(int, int);
-//
 //	void	setVolume		(int);
 	void	setfmStereoPanoramaSlider(int);
 	void	setfmStereoBalanceSlider(int);

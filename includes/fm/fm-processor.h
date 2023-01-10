@@ -40,7 +40,7 @@
 #include	"rds-decoder.h"
 #include	"newconverter.h"
 #include	"squelchClass.h"
-#include "sdr/agc.h"
+#include	"sdr/agc.h"
 
 
 class deviceHandler;
@@ -87,17 +87,16 @@ public:
 	enum Channels { S_STEREO, S_STEREO_SWAPPED, S_LEFT,
 		             S_RIGHT, S_LEFTplusRIGHT,
 		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
-	struct SMetaData
-	{
-		enum class EPssState { OFF, ANALYZING, ESTABLISHED };
-		float DcValRf;
-		float DcValIf;  // used for AFC
-		float PssPhaseShiftDegree;
-		float PssPhaseChange;
-		EPssState PssState;
-		float GuiPilotStrength; // only valid if GUI scope shows the "Demodulation" signal
-		float PilotPllLockStrength;
-		bool  PilotPllLocked;
+	struct SMetaData {
+	   enum class EPssState {OFF, ANALYZING, ESTABLISHED };
+	   float DcValRf;
+	   float DcValIf;  // used for AFC
+	   float PssPhaseShiftDegree;
+	   float PssPhaseChange;
+	   EPssState PssState;
+	   float GuiPilotStrength; // only valid if GUI scope shows the "Demodulation" signal
+	   float PilotPllLockStrength;
+	   bool  PilotPllLocked;
 	};
 
 public:
@@ -191,13 +190,17 @@ private:
 private:
 	rdsDecoder	myRdsDecoder;
 	Oscillator	localOscillator;
-	Oscillator	rdsOscillator;
 	SinCos		mySinCos;
-	AGC			pssAGC;
+	AGC		pssAGC;
 	DecimatingFIR	fmBand_1;
 	DecimatingFIR	fmBand_2;
 	fftFilter	fmAudioFilter;
 	fftFilter	fmFilter;
+	pilotRecovery	pilotRecover;
+	PerfectStereoSeparation pPSS;
+	fftFilter	rdsLowPassFilter;
+	fftFilterHilbert rdsHilbertFilter;
+
 	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
@@ -205,7 +208,7 @@ private:
 	deviceHandler	*myRig;
 	RadioInterface	*myRadioInterface;
 	audioSink	*theSink;
-	int32_t		inputRate;    // typ. 2112 kSpS
+	int32_t		inputRate;    // typ. 2304 kSpS
 	int32_t		fmRate;       // typ.  192 kSpS = InputRate / 12
 	int32_t		workingRate;  // typ.   48 kSpS
 	int32_t		audioRate;    // typ.   48 kSpS
@@ -228,7 +231,6 @@ private:
 	common_fft	*spectrum_fft_hf;
 	common_fft	*spectrum_fft_lf;
 	DSPCOMPLEX	*spectrumBuffer_hf;
-//	DataBufferCtrl<DSPCOMPLEX> spectrumBuffer_lf;
 	std::vector<std::complex<float>> spectrumBuffer_lf;
 	double		*displayBuffer_lf;
 	newConverter	*theConverter;
@@ -273,21 +275,6 @@ private:
 	                                 std::complex<float> *,
 	                                 std::complex<float> *);
 //	RDS
-#ifndef	__PILOT_FIR__
-	fftFilter	pilotBandFilter;
-#else
-	BandPassFIR	pilotBandFilter;
-#endif
-	fftFilter	*rdsBandFilter;
-	pilotRecovery	*pilotRecover;
-	PerfectStereoSeparation *pPSS;
-	fftFilterHilbert *rdsHilbertFilter;
-	fftFilterHilbert *stereoDiffHilbertFilter;
-	uint32_t	rdsSampleCntSrc;
-	uint32_t	rdsSampleCntDst;
-//	newConverter	*rdsDecimator;
-	//DelayLine<float> pilotDelayLine { 0.0f };
-	DSPFLOAT	pilotDelay;
 	DSPFLOAT	pilotDelayPSS;
 #ifdef DO_STEREO_SEPARATION_TEST
 	DSPFLOAT	pilotDelay2;
@@ -298,9 +285,6 @@ private:
 	DSPCOMPLEX	lastAudioSample;
 	DSPFLOAT	deemphAlpha;
 	DSPFLOAT	volumeFactor;
-	int32_t		maxFreqDeviation;
-	int32_t		normFreqDeviation;
-	DSPFLOAT	omegaDemod;
 	std::atomic<bool>	fmAudioFilterActive;
 
 

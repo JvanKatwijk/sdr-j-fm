@@ -44,7 +44,7 @@ int32_t	i;
 	   this	->	C	= Rate / (2 * M_PI);
 }
 
-	SinCos::~SinCos (void) {
+	SinCos::~SinCos () {
 	   if (localTable)
 	      delete [] Table;
 }

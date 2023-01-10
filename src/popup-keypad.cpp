@@ -24,8 +24,9 @@
 //
 //	A simple keypad for the FM receiver. 13 buttons and
 //	an LCD display
-	keyPad::keyPad (RadioInterface *mr) {
-	this	-> myRadio	= mr;
+	keyPad::keyPad () {
+//	keyPad::keyPad (RadioInterface *mr) {
+//	this	-> myRadio	= mr;
 	theFrame	= new QWidget;
 	theLayout	= new QGridLayout;
 	thePad		= new QButtonGroup;
@@ -80,8 +81,6 @@
 	theDisplay	-> display (0);
 	connect (thePad, SIGNAL (buttonClicked (int)),
 	         this, SLOT (collectData (int)));
-	connect (this, SIGNAL (newFrequency (int)),
-	         mr, SLOT (newFrequency (int)));
 //
 //	initially the keypad is not visible,
 	panel		= 0;
@@ -108,13 +107,13 @@
 	delete	theFrame;
 }
 //
-void	keyPad::showPad	(void) {
+void	keyPad::showPad	() {
 	theFrame	-> show ();
 	shown		= true;
 	panel		= 0;
 }
 
-void	keyPad::hidePad	(void) {
+void	keyPad::hidePad	() {
 	theFrame	-> hide ();
 	shown		= false;
 }

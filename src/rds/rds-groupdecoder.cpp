@@ -198,7 +198,7 @@ void	rdsGroupDecoder::addtoStationLabel (uint32_t index,
 
 //	check whether all segments are in
 	if ((int32_t)stationNameSegmentRegister + 1 ==
-		             (1 << NUMBER_OF_NAME_SEGMENTS)) {
+	                       (1 << NUMBER_OF_NAME_SEGMENTS)) {
 	   const QString stat2 = QString (stationLabel);
 	   setStationLabel (stat2);
 	   stationNameSegmentRegister = 0;

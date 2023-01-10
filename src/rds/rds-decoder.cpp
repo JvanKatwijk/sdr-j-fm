@@ -195,7 +195,7 @@ void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag, int ptyLocale) {
 DSPFLOAT clkState;
 std::complex<float> tt;
 
-   v = my_AGC. process_sample(v);
+	v = my_AGC. process_sample (v);
 
 	*mag		= syncBuffer [p];
 	syncBuffer [p]	= v;
