@@ -64,9 +64,7 @@ constexpr float alpha		= 1.0f / 3000.0f;
 	            PerfectStereoSeparation (int32_t	iRate,
 	                                     float	iAlpha,
 	                                     SinCos	*ipSinCos):
-	                                             lpFilter (2048, 295),
-//	                                             lp1Filter (2048, 295),
-	                                             phaseFilter (2048, 321) {
+	                                             lpFilter (2048, 295) {
 	lockAlpha	= 1.0f / iRate;
 	this	-> rate = iRate;
 	mySinCos	= ipSinCos;
@@ -97,15 +95,19 @@ void	PerfectStereoSeparation::reset	() {
 //	(corrected for the delay)
 //
 float	PerfectStereoSeparation::
-	                  process_sample (DSPFLOAT iMuxSignal,
+                     process_sample (DSPFLOAT iMuxSignal,
 	                                  DSPFLOAT iCurMixPhase) {
-float temp		= -mySinCos -> getSin (iCurMixPhase) * iMuxSignal;
-const DSPCOMPLEX sinCosPath = phaseFilter. Pass (temp);
-	curMixResult	= lpFilter. Pass (sinCosPath);
-	DSPFLOAT error	= real (curMixResult) * imag (curMixResult);
-//std::complex<float> xxx = mySinCos -> getComplex (iCurMixPhase) * iMuxSignal;
-//	xxx		= lp1Filter. Pass (xxx);
-//	DSPFLOAT error	= real (xxx) * imag (xxx);
+// complex oscillator signal * real iMuxSignal can be seen as a separted mix
+// of cos(iCurMixPhase) * iMuxSignal and sin(iCurMixPhase) * iMuxSignal
+std::complex<float> sinCosPath = mySinCos -> getComplex (iCurMixPhase) * iMuxSignal;
+
+// filter out only the L-R part (real (cos()) and imag (sin()) are filtered implicit separately),
+// keeping also the negative side is essential as the input phase (iCurMixPhase) in the loop
+// is changed until left and right side is (almost) (conjugate complex) symmetrical
+// (mixing with cos() would give the maximum level, with sin() the minimum level)
+// this is the priciples of a costas loop
+   sinCosPath	= lpFilter. Pass (sinCosPath);
+	DSPFLOAT error	= real (sinCosPath) * imag (sinCosPath); // real is cos() path, imag is sin() path
 
 //	make swing-in faster when error is not minimized yet
 	if (!error_minimized)
@@ -129,7 +131,7 @@ const DSPCOMPLEX sinCosPath = phaseFilter. Pass (temp);
 	   sampleLockStableCnt = 0;
 	}
 
-	// do some limitation
+	// do some limitation (should never happen)
 	if (accPhaseShift < -M_PI_4)
 	   accPhaseShift = -M_PI_4;
 	else if (accPhaseShift > M_PI_4)
