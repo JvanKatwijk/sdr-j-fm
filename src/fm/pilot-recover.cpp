@@ -1,6 +1,8 @@
 
 #include	"pilot-recover.h"
-
+#ifndef	M_PI_4
+#define M_PI_4 0.78539816339744830962 
+#endif
 	pilotRecovery::pilotRecovery	(int32_t Rate_in,
 	                                 DSPFLOAT omega,
 	                                 DSPFLOAT gain,
@@ -56,7 +58,7 @@ constexpr float alpha		= 1.0f / 3000.0f;
 	   SampleLockStableCnt = 0;
 	}
 
-	return currentPhase + M_PI / 4;
+	return currentPhase + M_PI_4;
 }
 
 
