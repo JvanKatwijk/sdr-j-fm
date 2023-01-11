@@ -305,9 +305,6 @@ void	fmProcessor::setlfPlotType (ELfPlot m) {
 
 	showFullSpectrum	= true;
 	switch (m) {
-	   case ELfPlot::AF_DIFF:
-	      spectrumSampleRate = fmRate;
-	      break;
 	   case ELfPlot::IF_FILTERED:
 	      spectrumSampleRate = fmRate;
 	      break;
@@ -612,10 +609,9 @@ int		iqCounter	= 0;
 
 	      std::complex<float> audio;
 	      std::complex<float> rdsDataCplx;
-	      std::complex<float> LRDiffCplx;
 
 	      process_signal_with_rds (demod, &audio,
-	                                 &rdsDataCplx, &LRDiffCplx);
+			                           &rdsDataCplx);
 
 	      const DSPFLOAT sumLR  = real (audio);
 	      const DSPFLOAT diffLR = imag (audio);
@@ -697,7 +693,6 @@ int		iqCounter	= 0;
 	            default:;
 	         }
 
-	         iqBuffer -> putDataIntoBuffer (&LRDiffCplx, 1);
 	         iqCounter ++;
 	         if (iqCounter > 100) {
 	            emit iqBufferLoaded ();
@@ -727,7 +722,7 @@ int		iqCounter	= 0;
 	            spectrumBuffer_lf. push_back (sumLR);
 	            break;
 	         case ELfPlot::AF_DIFF:
-	            spectrumBuffer_lf. push_back (LRDiffCplx);
+				   spectrumBuffer_lf. push_back (diffLR);
 	            break;
 	         case ELfPlot::AF_MONO_FILTERED:
 	            spectrumBuffer_lf. push_back (std::complex<float> (audio.real () + audio.imag (), 0));
@@ -794,8 +789,7 @@ int		iqCounter	= 0;
 
 void	fmProcessor::process_signal_with_rds (const float demodDirect,
 	                                      std::complex<float> *audioOut,
-	                                      std::complex<float> *rdsValueCmpl,
-	                                      DSPCOMPLEX *LRDiffCplx) {
+                                         std::complex<float> *rdsValueCmpl) {
 
 const float demodDelayed = demodDirect;
 
@@ -821,20 +815,10 @@ const float demodDelayed = demodDirect;
 	   DSPFLOAT PhaseforLRDiff =
 	              2 * (currentPilotPhase) - pilotDelayPSS;
 #endif
-
-	   if (pssActive) {
-//	perform perfect stereo separation
-	      pilotDelayPSS =
-	            this -> pPSS. process_sample (demodDelayed,
-	                                          PhaseforLRDiff);
-	      *LRDiffCplx = this -> pPSS. get_cur_mixer_result ();
- //	AGC only that it looks nicer in the IQ scope
-	      *LRDiffCplx = pssAGC. process_sample (*LRDiffCplx);
-	   }
-	   else {
-	      pilotDelayPSS = 0;
-	      *LRDiffCplx = 0;
-	   }
+//	perform perfect stereo separation (PSS)
+		pilotDelayPSS = pssActive ? this -> pPSS. process_sample (demodDelayed,
+		                                                          PhaseforLRDiff)
+		                          : 0;
 
 //	we look for minimum correlation so mix with PI/2 phase shift
 	   DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?

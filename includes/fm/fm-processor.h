@@ -272,7 +272,6 @@ private:
 
 	void	process_signal_with_rds (const float,
 	                                 std::complex<float> *,
-	                                 std::complex<float> *,
 	                                 std::complex<float> *);
 //	RDS
 	DSPFLOAT	pilotDelayPSS;
