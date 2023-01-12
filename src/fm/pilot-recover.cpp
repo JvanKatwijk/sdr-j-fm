@@ -99,17 +99,23 @@ void	PerfectStereoSeparation::reset	() {
 float	PerfectStereoSeparation::
                      process_sample (DSPFLOAT iMuxSignal,
 	                                  DSPFLOAT iCurMixPhase) {
-// complex oscillator signal * real iMuxSignal can be seen as a separted mix
-// of cos(iCurMixPhase) * iMuxSignal and sin(iCurMixPhase) * iMuxSignal
-std::complex<float> sinCosPath = mySinCos -> getComplex (iCurMixPhase) * iMuxSignal;
+//	complex oscillator signal * real iMuxSignal can be seen as
+//	a separated mix of
+//	cos (iCurMixPhase) * iMuxSignal and sin (iCurMixPhase) * iMuxSignal
+	std::complex<float> sinCosPath =
+	          mySinCos -> getComplex (iCurMixPhase) * iMuxSignal;
 
-// filter out only the L-R part (real (cos()) and imag (sin()) are filtered implicit separately),
-// keeping also the negative side is essential as the input phase (iCurMixPhase) in the loop
-// is changed until left and right side is (almost) (conjugate complex) symmetrical
-// (mixing with cos() would give the maximum level, with sin() the minimum level)
-// this is the priciples of a costas loop
-   sinCosPath	= lpFilter. Pass (sinCosPath);
-	DSPFLOAT error	= real (sinCosPath) * imag (sinCosPath); // real is cos() path, imag is sin() path
+//	filter out only the L-R part (real (cos()) and imag (sin())
+//	are filtered implicit separately),
+//	keeping also the negative side is essential as the input
+//	phase (iCurMixPhase) in the loop is changed
+//	until left and right side is (almost) (conjugate complex) symmetrical
+//	(mixing with cos() would give the maximum level,
+//	with sin() the minimum level)
+//	this is the priciples of a costas loop
+	sinCosPath	= lpFilter. Pass (sinCosPath);
+//	real is cos() path, imag is sin() path
+	DSPFLOAT error	= real (sinCosPath) * imag (sinCosPath);
 
 //	make swing-in faster when error is not minimized yet
 	if (!error_minimized)

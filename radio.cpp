@@ -78,13 +78,14 @@
 #define	D_RTL_TCP	"rtl_tcp"
 #define	D_HACKRF	"hackrf"
 #define	D_LIME		"lime"
-#define	D_COLIBRI		"colibri"
+#define	D_COLIBRI	"colibri"
 #define	D_AIRSPY	"airspy"
 #define	D_RTLSDR	"dabstick"
 #define	D_PLUTO		"pluto"
-#define	D_ELAD_S1		"elad-s1"
+#define	D_ELAD_S1	"elad-s1"
 #define	D_EXTIO		"extio"
 #define	D_PMSDR		"pmsdr"
+#define	D_FILEREADER	"filereader"
 static 
 const char *deviceTable [] = {
 #ifdef	HAVE_SDRPLAY
@@ -111,6 +112,7 @@ const char *deviceTable [] = {
 #ifdef	HAVE_RTL_TCP
 	D_RTL_TCP,
 #endif
+	D_FILEREADER,
 	nullptr
 };
 
@@ -838,8 +840,8 @@ bool    success;
 #endif
 	if (s == "filereader") {
 	   try {
-			success = true;
-			myRig = new fileReader (fmSettings);
+	      success = true;
+	      myRig = new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -1316,13 +1318,15 @@ SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	file = QDir::toNativeSeparators (file);
 	if (!file. endsWith (".wav", Qt::CaseInsensitive))
 	   file. append (".wav");
-	sf_info		-> samplerate = inputRate;
-	sf_info		-> channels   = 2;
-	sf_info		-> format     = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
+	sf_info		-> frames	= 0;
+	sf_info		-> samplerate	= inputRate;
+	sf_info		-> channels	= 2;
+	sf_info		-> format	= SF_FORMAT_WAV | SF_FORMAT_PCM_16;
 
-	dumpfilePointer = sf_open (file. toLatin1 () .data (),
+	dumpfilePointer = sf_open (file. toUtf8 (). data (),
 	                                   SFM_WRITE, sf_info);
 	if (dumpfilePointer == nullptr) {
+	   fprintf (stderr, "Openen mislukt %s\n", sf_strerror (dumpfilePointer));
 	   qDebug() << "Cannot open " << file. toLatin1 (). data ();
 	   return;
 	}

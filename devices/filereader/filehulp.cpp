@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -31,10 +28,10 @@
 #include	"fm-constants.h"
 #include	"filehulp.h"
 
-#define	__BUFFERSIZE	32768 * 8
+#define	__BUFFERSIZE	32768 * 16
 
 static inline
-int64_t		getMyTime	(void) {
+int64_t		getMyTime	() {
 struct timeval	tv;
 
 	gettimeofday (&tv, NULL);
@@ -55,10 +52,11 @@ SF_INFO	*sf_info;
 	filePointer		= sf_open (fileName. toLatin1 (). data (),
 	                                   SFM_READ, sf_info);
 	if (filePointer == NULL) {
-	   fprintf (stderr, "file %s no legitimate sound file\n",
-	                    f. toLatin1 (). data ());
+	   fprintf (stderr, "file %s no legitimate sound file (%d)\n",
+	                    f. toLatin1 (). data (), sf_error (filePointer));
 	   return;
 	}
+	fprintf (stderr, "file open\n");
 
 	samplesinFile	= sf_info	-> frames;
 	inputRate	= sf_info	-> samplerate;
@@ -68,11 +66,10 @@ SF_INFO	*sf_info;
 	readerPausing	= true;
 	
 	currPos		= 0;
-	fprintf (stderr, "file %s geopend\n", f. toLatin1 (). data ());
 	start ();
 }
 
-	fileHulp::~fileHulp (void) {
+	fileHulp::~fileHulp () {
 	ExitCondition = true;
 	if (readerOK) {
 	   while (isRunning ())
@@ -82,25 +79,25 @@ SF_INFO	*sf_info;
 	delete _I_Buffer;
 }
 
-bool	fileHulp::restartReader	(void) {
+bool	fileHulp::restartReader	() {
 	if (readerOK)
 	   readerPausing = false;
 	return readerOK;
 }
 
-void	fileHulp::stopReader	(void) {
+void	fileHulp::stopReader	() {
 	if (readerOK)
 	   readerPausing = true;
 }
 
-int32_t	fileHulp::Samples	(void) {
+int32_t	fileHulp::Samples	() {
 	if (ExitCondition)
 	   return 0;
 	return _I_Buffer -> GetRingBufferReadAvailable () / 2;
 }
 
 int32_t	fileHulp::getSamples	(DSPCOMPLEX *V, int32_t n,
-	                         uint8_t Mode, float attenuation) {
+	                         float attenuation) {
 float	*buf = (float *)alloca (2 * n * sizeof (float));
 int32_t	i;
 
@@ -113,28 +110,9 @@ int32_t	i;
 	   return 0;
 
 	_I_Buffer	-> getDataFromBuffer (buf, 2 * n);
-	for (i = 0; i < n; i ++) {
-	   switch (Mode) {
-	      default:
-	      case IandQ:
-	         V [i] = cmul (DSPCOMPLEX (buf [2 * i], buf [2 * i + 1]),
+	for (i = 0; i < n; i ++) 
+	   V [i] = cmul (DSPCOMPLEX (buf [2 * i], buf [2 * i + 1]),
 	                                                     attenuation);
-	         break;
-
-	      case QandI:
-	         V [i] = cmul (DSPCOMPLEX (buf [2 * i + 1], buf [2 * i]),
-	                                                     attenuation);
-	         break;
-
-	      case I_Only:
-	         V [i]= DSPCOMPLEX (attenuation * buf [2 * i], 0.0);
-	         break;
-
-	      case Q_Only:
-	         V [i]	= DSPCOMPLEX (attenuation * buf [2 * i + 1], 0.0);
-	         break;
-	   }
-	}
 
 	return n;
 }
@@ -167,11 +145,11 @@ float	*tempBuffer;
 	return	2 * n;
 }
 
-bool	fileHulp::isWorking	(void) {
+bool	fileHulp::isWorking	() {
 	return readerOK;
 }
 
-int32_t	fileHulp::getRate	(void) {
+int32_t	fileHulp::getRate	() {
 	return inputRate;
 }
 //

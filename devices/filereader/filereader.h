@@ -43,20 +43,20 @@ class	fileReader: public deviceHandler, public Ui_filereaderWidget {
 Q_OBJECT
 public:
 		fileReader		(QSettings *);
-		~fileReader		(void);
+		~fileReader		();
 	void	setVFOFrequency		(int32_t);
-	int32_t	getVFOFrequency		(void);
+	int32_t	getVFOFrequency		();
 	bool	legalFrequency		(int32_t);
-	int32_t	defaultFrequency	(void);
+	int32_t	defaultFrequency	();
 
-	bool	restartReader		(void);
-	void	stopReader		(void);
-	int32_t	Samples			(void);
-	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
-	int32_t	getRate			(void);
-	int16_t	bitDepth		(void);
+	bool	restartReader		();
+	void	stopReader		();
+	int32_t	Samples			();
+	int32_t	getSamples		(DSPCOMPLEX *, int32_t);
+	int32_t	getRate			();
+	int16_t	bitDepth		();
 protected:
-	void		setup_Device	(void);
+	void		setup_Device	();
 	QFrame		*myFrame;
 	fileHulp	*myReader;
 	QLabel		*indicator;

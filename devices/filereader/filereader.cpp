@@ -30,10 +30,10 @@
 
 	fileReader::fileReader	(QSettings *s) {
 	(void)s;
-	this	-> myFrame	= new QFrame (NULL);
+	this	-> myFrame	= new QFrame (nullptr);
 	setupUi		(this -> myFrame);
 	this	-> myFrame	-> show ();
-	inputRate	= 192000;		// it is a dummy
+	inputRate		= 192000;		// it is a dummy
 	nameofFile	-> setText (QString ("no file"));
 	setup_Device	();
 	this	-> lastFrequency	= Khz (94700);	
@@ -45,14 +45,14 @@
 }
 //
 
-	fileReader::~fileReader	(void) {
+	fileReader::~fileReader	() {
 	if (myReader != NULL)
 	   delete myReader;
 	myReader	= NULL;
 	delete	myFrame;
 }
 
-void	fileReader::setup_Device	(void) {
+void	fileReader::setup_Device	() {
 bool	success;
 	QString	replayFile
 	              = QFileDialog::
@@ -68,44 +68,43 @@ bool	success;
 	   nameofFile	-> setText (QString ("ERROR"));
 }
 
-void	fileReader::setVFOFrequency		(int32_t f) {
+void	fileReader::setVFOFrequency	(int32_t f) {
 	lastFrequency	= f;
 }
 
-int32_t	fileReader::getVFOFrequency		(void) {
+int32_t	fileReader::getVFOFrequency	() {
 	return lastFrequency;
 }
 
-bool	fileReader::legalFrequency		(int32_t f) {
+bool	fileReader::legalFrequency	(int32_t f) {
 	return f > 0;
 }
 
-int32_t	fileReader::defaultFrequency		(void) {
+int32_t	fileReader::defaultFrequency	() {
 	return Khz (94700);
 }
 //
-bool	fileReader::restartReader		(void) {
+bool	fileReader::restartReader	() {
 	return myReader -> restartReader ();
 }
 
-void	fileReader::stopReader			(void) {
+void	fileReader::stopReader		() {
 	myReader	-> stopReader ();
 }
 
-int32_t	fileReader::Samples			(void) {
+int32_t	fileReader::Samples		() {
 	return myReader	-> Samples ();
 }
 
-int32_t	fileReader::getSamples			(DSPCOMPLEX *v,
-	                                         int32_t a, uint8_t m) {
-	return	myReader -> getSamples (v, a, m, (float)attenuationLevel / 100.0);
+int32_t	fileReader::getSamples		(DSPCOMPLEX *v, int32_t a) {
+	return	myReader -> getSamples (v, a, (float)attenuationLevel / 100.0);
 }
 
-int32_t	fileReader::getRate			(void) {
+int32_t	fileReader::getRate		() {
 	return myReader -> getRate	();
 }
 
-int16_t	fileReader::bitDepth		(void) {
+int16_t	fileReader::bitDepth		() {
 	return 8;
 }
 

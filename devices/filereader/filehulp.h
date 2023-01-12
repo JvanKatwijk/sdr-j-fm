@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -37,19 +34,19 @@
 class	fileHulp: public QThread {
 Q_OBJECT
 public:
-	fileHulp	(QString, bool *);
-	~fileHulp	(void);
+		fileHulp	(QString, bool *);
+		~fileHulp	();
 //	
 //	functions really for this rig
-	bool		restartReader	(void);
-	void		stopReader	(void);
-	int32_t		Samples		(void);
-	int32_t		getSamples	(DSPCOMPLEX *, int32_t, uint8_t, float);
-	int32_t		getRate		(void);
+	bool		restartReader	();
+	void		stopReader	();
+	int32_t		Samples		();
+	int32_t		getSamples	(DSPCOMPLEX *, int32_t, float);
+	int32_t		getRate		();
 
-	bool		isWorking	(void);
+	bool		isWorking	();
 protected:
-virtual void		run		(void);
+virtual void		run		();
 	QString		f;
 	RingBuffer<float>	*_I_Buffer;
 	QString		fileName;
