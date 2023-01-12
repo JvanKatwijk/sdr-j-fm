@@ -810,10 +810,10 @@ const float demodDelayed = demodDirect;
 //	Now we have the right - i.e. synchronized - signal to work with
 #ifdef DO_STEREO_SEPARATION_TEST
 	   DSPFLOAT PhaseforLRDiff =
-	              2 * (currentPilotPhase + pilotDelay2) - pilotDelayPSS;
+	              2 * (currentPilotPhase + M_PI / 4 +  pilotDelay2) - pilotDelayPSS;
 #else
 	   DSPFLOAT PhaseforLRDiff =
-	              2 * (currentPilotPhase) - pilotDelayPSS;
+	              2 * (currentPilotPhase + M_PI / 4) - pilotDelayPSS;
 #endif
 //	perform perfect stereo separation (PSS)
 		pilotDelayPSS = pssActive ? this -> pPSS. process_sample (demodDelayed,
@@ -834,7 +834,10 @@ const float demodDelayed = demodDirect;
 //	process RDS
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 //	currentPilotPhase shifts also about 19kHz without
-	   float thePhase = 3 * currentPilotPhase;
+	   float thePhase = 3 * (currentPilotPhase);
+//	   float thePhase = 3 * (currentPilotPhase - M_PI / 4);
+	   if (thePhase < 0)
+	      thePhase += 2 * M_PI;
 	   float rdsSample = demodDelayed *  - mySinCos. getSin (thePhase);
 	   std::complex<float> rdsComplex =
 	                        rdsHilbertFilter. Pass (rdsSample);

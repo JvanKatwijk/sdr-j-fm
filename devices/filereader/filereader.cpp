@@ -28,11 +28,11 @@
 #include	"filereader.h"
 #include	"ui_filereader-widget.h"
 
-	fileReader::fileReader	(QSettings *s) {
+	fileReader::fileReader	(QSettings *s):
+	                                myFrame (nullptr) {
 	(void)s;
-	this	-> myFrame	= new QFrame (nullptr);
-	setupUi		(this -> myFrame);
-	this	-> myFrame	-> show ();
+	setupUi		(&myFrame);
+	myFrame. show ();
 	inputRate		= 192000;		// it is a dummy
 	nameofFile	-> setText (QString ("no file"));
 	setup_Device	();
@@ -46,17 +46,17 @@
 //
 
 	fileReader::~fileReader	() {
+	myFrame. hide ();
 	if (myReader != NULL)
 	   delete myReader;
-	myReader	= NULL;
-	delete	myFrame;
+	myReader	= nullptr;
 }
 
 void	fileReader::setup_Device	() {
 bool	success;
 	QString	replayFile
 	              = QFileDialog::
-	                 getOpenFileName (myFrame,
+	                 getOpenFileName (&myFrame,
 	                                  tr ("load file .."),
 	                                  QDir::homePath (),
 	                                  tr ("sound (*.wav)"));
@@ -65,7 +65,7 @@ bool	success;
 	if (success)
 	   nameofFile	-> setText (replayFile);
 	else
-	   nameofFile	-> setText (QString ("ERROR"));
+	   throw (24);
 }
 
 void	fileReader::setVFOFrequency	(int32_t f) {
@@ -96,7 +96,8 @@ int32_t	fileReader::Samples		() {
 	return myReader	-> Samples ();
 }
 
-int32_t	fileReader::getSamples		(DSPCOMPLEX *v, int32_t a) {
+int32_t	fileReader::getSamples		(DSPCOMPLEX *v, int32_t a, uint8_t d) {
+	(void)d;
 	return	myReader -> getSamples (v, a, (float)attenuationLevel / 100.0);
 }
 

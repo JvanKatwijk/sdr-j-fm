@@ -319,7 +319,7 @@ ULONG APIkeyValue_length = 255;
 	running. store (false);
 }
 
-	sdrplayHandler::~sdrplayHandler	(void) {
+	sdrplayHandler::~sdrplayHandler	() {
 	stopReader ();
 	sdrplaySettings	-> beginGroup ("sdrplaySettings");
         sdrplaySettings -> setValue ("sdrplay-ppm", ppmControl -> value ());
@@ -367,7 +367,7 @@ bool	sdrplayHandler::legalFrequency (int32_t f) {
 	return MHz (60) <= f && f <= MHz (250);
 }
 
-int32_t	sdrplayHandler::defaultFrequency	(void) {
+int32_t	sdrplayHandler::defaultFrequency	() {
 	return Khz (94700);
 }
 
@@ -408,7 +408,7 @@ int     lnaState        = lnaGainSetting	-> value ();
 	my_mir_sdr_SetPpm (float (ppmControl -> value ()));
 }
 
-int32_t	sdrplayHandler::getVFOFrequency	(void) {
+int32_t	sdrplayHandler::getVFOFrequency	() {
 	return vfoFrequency;
 }
 

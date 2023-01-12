@@ -38,7 +38,7 @@ Stereo sideband test (after activating compile switch DO_STEREO_SEPARATION_TEST)
   1) Select "S|S" to hear only the sideband signal
   2) Check different station with the IQ balance slider whether the signal get minimal at center "0" position
 */
-#define	DO_STEREO_SEPARATION_TEST
+//#define	DO_STEREO_SEPARATION_TEST
 
 #ifndef __FREEBSD__
 #include	<malloc.h>

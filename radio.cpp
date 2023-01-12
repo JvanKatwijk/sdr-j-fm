@@ -841,7 +841,7 @@ bool    success;
 	if (s == "filereader") {
 	   try {
 	      success = true;
-	      myRig = new fileReader (fmSettings);
+	      myRig	= new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }

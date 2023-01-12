@@ -52,12 +52,12 @@ public:
 	bool	restartReader		();
 	void	stopReader		();
 	int32_t	Samples			();
-	int32_t	getSamples		(DSPCOMPLEX *, int32_t);
+	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
 	int32_t	getRate			();
 	int16_t	bitDepth		();
 protected:
+	QFrame		myFrame;
 	void		setup_Device	();
-	QFrame		*myFrame;
 	fileHulp	*myReader;
 	QLabel		*indicator;
 	QLabel		*fileDisplay;

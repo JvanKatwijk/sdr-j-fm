@@ -58,6 +58,7 @@ constexpr float alpha		= 1.0f / 3000.0f;
 	   SampleLockStableCnt = 0;
 	}
 
+	return currentPhase;
 	return currentPhase + M_PI_4;
 }
 

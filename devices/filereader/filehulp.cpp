@@ -28,7 +28,7 @@
 #include	"fm-constants.h"
 #include	"filehulp.h"
 
-#define	__BUFFERSIZE	32768 * 16
+#define	__BUFFERSIZE	32768 * 32
 
 static inline
 int64_t		getMyTime	() {
@@ -71,6 +71,7 @@ SF_INFO	*sf_info;
 
 	fileHulp::~fileHulp () {
 	ExitCondition = true;
+	fprintf (stderr, "filehulp closing down\n");
 	if (readerOK) {
 	   while (isRunning ())
 	      usleep (100);
@@ -97,7 +98,7 @@ int32_t	fileHulp::Samples	() {
 }
 
 int32_t	fileHulp::getSamples	(DSPCOMPLEX *V, int32_t n,
-	                         float attenuation) {
+	                                         float attenuation) {
 float	*buf = (float *)alloca (2 * n * sizeof (float));
 int32_t	i;
 

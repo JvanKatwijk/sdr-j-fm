@@ -70,7 +70,7 @@ public:
 	start ();
 	}
 
-	~dll_driver (void) {
+	~dll_driver () {
 	}
 
 private:
@@ -222,7 +222,7 @@ void	rtlsdrHandler::setVFOFrequency	(int32_t f) {
 	(void)(this -> rtlsdr_set_center_freq (device, f + vfoOffset));
 }
 
-int32_t	rtlsdrHandler::getVFOFrequency	(void) {
+int32_t	rtlsdrHandler::getVFOFrequency	() {
 	return (int32_t)(this -> rtlsdr_get_center_freq (device)) - vfoOffset;
 }
 
@@ -230,11 +230,11 @@ bool	rtlsdrHandler::legalFrequency (int32_t f) {
 	return  Mhz (24) <= f && f <= Mhz (1800);
 }
 
-int32_t	rtlsdrHandler::defaultFrequency	(void) {
+int32_t	rtlsdrHandler::defaultFrequency	() {
 	return Khz (94700);
 }
 //
-bool	rtlsdrHandler::restartReader	(void) {
+bool	rtlsdrHandler::restartReader	() {
 int32_t	r;
 
 	if (workerHandle != nullptr)
@@ -252,7 +252,7 @@ int32_t	r;
 	return true;
 }
 
-void	rtlsdrHandler::stopReader	(void) {
+void	rtlsdrHandler::stopReader	() {
 	if (workerHandle == nullptr)
 	   return;
 
@@ -306,11 +306,11 @@ int32_t rtlsdrHandler::getSamples (std::complex<float> *V, int32_t size, uint8_t
 	return getSamples (V, size);
 }
 
-int32_t	rtlsdrHandler::Samples	(void) {
+int32_t	rtlsdrHandler::Samples	() {
 	return _I_Buffer. GetRingBufferReadAvailable () / 2;
 }
 //
-uint8_t	rtlsdrHandler::myIdentity	(void) {
+uint8_t	rtlsdrHandler::myIdentity	() {
 	return DAB_STICK;
 }
 
@@ -324,7 +324,7 @@ void	rtlsdrHandler::setHzOffset	(int h) {
 	vfoOffset	= KHz (1) * vfoOffset / KHz (1) + h;
 }
 
-bool	rtlsdrHandler::load_rtlFunctions (void) {
+bool	rtlsdrHandler::load_rtlFunctions () {
 //
 //	link the required procedures
 	rtlsdr_open	= (pfnrtlsdr_open)
