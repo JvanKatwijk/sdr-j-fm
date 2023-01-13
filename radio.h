@@ -282,7 +282,7 @@ public slots:
 //	void	showStrength		(float, float);
 
 	void	showPeakLevel		(const float, const float);
-	void	showMetaData	(const fmProcessor::SMetaData *);
+	void	showMetaData		(const fmProcessor::SMetaData *);
   //
   //	and for the extio handling
 	void	set_ExtFrequency	(int);
@@ -291,6 +291,6 @@ public slots:
 	void	set_unlockLO		();
 	void	set_stopHW		();
 	void	set_startHW		();
-	void	set_changeRate		(int);
+//	void	set_changeRate		(int);
 };
 #endif

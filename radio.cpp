@@ -667,43 +667,43 @@ void	RadioInterface::set_startHW	() {
 	   myRig -> restartReader();
 }
 //
-//	This is a difficult one, everything should go down first
-//	and then restart with the new samplerate
-void	RadioInterface::set_changeRate	(int r) {
-	if (r == inputRate)
-	   return;
-	fprintf (stderr, "request for changerate\n");
-	myRig	-> stopReader ();
-	if (myFMprocessor != nullptr) {
-	   myFMprocessor	-> stop();
-	   delete myFMprocessor;
-	   myFMprocessor	= nullptr;
-	}
-
-	runMode. store (ERunStates::IDLE);
+////	This is a difficult one, everything should go down first
+////	and then restart with the new samplerate
+//void	RadioInterface::set_changeRate	(int r) {
+//	if (r == inputRate)
+//	   return;
+//	fprintf (stderr, "request for changerate\n");
+//	myRig	-> stopReader ();
+//	if (myFMprocessor != nullptr) {
+//	   myFMprocessor	-> stop();
+//	   delete myFMprocessor;
+//	   myFMprocessor	= nullptr;
+//	}
 //
-//	Now we need to rebuild the prerequisites for the "new" processor
-	inputRate = r;
-	if (inputRate < Khz (176)) { // rather arbitrarily
-	   QMessageBox::warning (this, tr("sdr"),
-	                         tr("Sorry, rate low\n"));
-	   delete myRig;
-	   myRig	= new deviceHandler ();
-	   inputRate	= myRig -> getRate ();
-	}
-//
-//	compute the new fmRate
-//	fmRate			= mapRates (inputRate);
-//	ask the new for the frequency
-	currentFreq		= myRig -> getVFOFrequency () + fmRate / 4;
-//	and show everything
-	Display (currentFreq);
-	lcd_fmRate		-> display ((int)this -> fmRate);
-	lcd_inputRate		-> display ((int)this -> inputRate);
-	lcd_OutputRate		-> display ((int)this -> audioRate);
-//
-//	The device is still the same, so now we wait for a start
-}
+//	runMode. store (ERunStates::IDLE);
+////
+////	Now we need to rebuild the prerequisites for the "new" processor
+//	inputRate = r;
+//	if (inputRate < Khz (176)) { // rather arbitrarily
+//	   QMessageBox::warning (this, tr("sdr"),
+//	                         tr("Sorry, rate low\n"));
+//	   delete myRig;
+//	   myRig	= new deviceHandler ();
+//	   inputRate	= myRig -> getRate ();
+//	}
+////
+////	compute the new fmRate
+////	fmRate			= mapRates (inputRate);
+////	ask the new for the frequency
+//	currentFreq		= myRig -> getVFOFrequency () + fmRate / 4;
+////	and show everything
+//	Display (currentFreq);
+//	lcd_fmRate		-> display ((int)this -> fmRate);
+//	lcd_inputRate		-> display ((int)this -> inputRate);
+//	lcd_OutputRate		-> display ((int)this -> audioRate);
+////
+////	The device is still the same, so now we wait for a start
+//}
 //
 //	@brief setDevice is called upon pressing the device button
 //	@params: the name (string) on the button
@@ -730,7 +730,6 @@ bool    success;
 #ifdef HAVE_SDRPLAY
 	if (s == D_SDRPLAY) {
 	   try {
-	      success = true;
 	      myRig = new sdrplayHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
@@ -741,7 +740,6 @@ bool    success;
 #ifdef HAVE_SDRPLAY_V3
 	if (s == D_SDRPLAY_V3) {
 	   try {
-	      success = true;
 	      myRig = new sdrplayHandler_v3 (fmSettings);
 	   } catch (int e) {
 	      success = false;
@@ -752,7 +750,6 @@ bool    success;
 #ifdef HAVE_AIRSPY
 	if (s == D_AIRSPY) {
 	   try {
-	      success	= true;
 	      myRig = new airspyHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
@@ -763,7 +760,6 @@ bool    success;
 #ifdef HAVE_HACKRF
 	if (s == D_HACKRF) {
 	   try {
-	      success = true;
 	      myRig = new hackrfHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
@@ -774,19 +770,7 @@ bool    success;
 #ifdef HAVE_LIME
 	if (s == D_LIME) {
 	   try {
-	      success = true;
 	      myRig = new limeHandler (fmSettings);
-	   } catch (int e) {
-	      success = false;
-	   }
-	}
-	else
-#endif
-#ifdef HAVE_COLIBRI
-	if (s == D_COLIBRI) {
-	   try {
-			success = true;
-			myRig = new colibriHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -796,8 +780,7 @@ bool    success;
 #ifdef HAVE_PLUTO
 	if (s == D_PLUTO) {
 	   try {
-			success = true;
-			myRig = new plutoHandler (fmSettings);
+	      myRig = new plutoHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -807,8 +790,7 @@ bool    success;
 #ifdef HAVE_ELAD_S1
 	if (s == D_ELAD_S1) {
 	   try {
-			success = true;
-			myRig = new eladHandler (fmSettings, true, &success);
+	      myRig = new eladHandler (fmSettings, true, &success);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -818,8 +800,7 @@ bool    success;
 #ifdef HAVE_DABSTICK
 	if (s == D_RTLSDR) {
 	   try {
-			success = true;
-			myRig = new rtlsdrHandler (fmSettings);
+	      myRig = new rtlsdrHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -828,19 +809,15 @@ bool    success;
 #endif
 #ifdef HAVE_EXTIO
 	if (s == D_EXTIO) {
-	   myRig = new ExtioHandler(fmSettings, theSelector, &success);
-	}
-	else
-#endif
-#ifdef HAVE_PMSDR
-	if (s == D_PMSDR) {
-	   myRig = new pmsdrHandler (fmSettings, &success);
+	   try {
+	      myRig = new ExtioHandler (fmSettings, theSelector, &success);
+	   } catch (int e) {
+	      success = false;
 	}
 	else
 #endif
 	if (s == "filereader") {
 	   try {
-	      success = true;
 	      myRig	= new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
@@ -875,8 +852,8 @@ bool    success;
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
 	lcd_OutputRate		-> display ((int)this -> audioRate);
-	connect (myRig, SIGNAL (set_changeRate (int)),
-	         this, SLOT (set_changeRate (int)));
+//	connect (myRig, SIGNAL (set_changeRate (int)),
+//	         this, SLOT (set_changeRate (int)));
 
 #ifdef __MINGW32__
 //	communication from the dll to the main program is through signals
@@ -1338,32 +1315,36 @@ SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 
 void	RadioInterface::set_audioDump	() {
 SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
+static QString audioTempFile;
 
 	if (audioDumping) {
 	   our_audioSink	-> stopDumping ();
 	   sf_close (audiofilePointer);
 	   audioDumping		= false;
 	   audioDump		-> setText ("audioDump");
+	   QString file		= QFileDialog::getSaveFileName (this,
+                                                tr ("open file .."),
+                                                QDir::homePath (),
+                                                tr ("Sound (*.wav)"));
+
+           file            = QDir::toNativeSeparators (file);
+           if (!file. endsWith (".wav", Qt::CaseInsensitive))
+              file.append (".wav");
+	   QString cmdline = QString ("mv ") + audioTempFile + " "  + file;
+	   system (cmdline. toLatin1 (). data ());
 	   return;
 	}
 
-	QString file = QFileDialog::getSaveFileName (this,
-	                                        tr ("open file .."),
-	                                        QDir::homePath (),
-	                                        tr ("Sound (*.wav)"));
-
-	file		= QDir::toNativeSeparators (file);
-	if (!file. endsWith (".wav", Qt::CaseInsensitive))
-	   file.append (".wav");
-
+	audioTempFile = QDir::homePath () + "/tmp" +
+	                               QString::number (getpid ());
 	sf_info		-> samplerate = this -> audioRate;
 	sf_info		-> channels   = 2;
 	sf_info		-> format     = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
 
-	audiofilePointer	= sf_open (file. toLatin1 (). data (),
+	audiofilePointer	= sf_open (audioTempFile. toLatin1 (). data (),
 	                                   SFM_WRITE, sf_info);
 	if (audiofilePointer == nullptr) {
-	   qDebug() << "Cannot open " << file. toLatin1 (). data ();
+	   qDebug() << "Cannot open " << audioTempFile. toLatin1 (). data ();
 	   return;
 	}
 
