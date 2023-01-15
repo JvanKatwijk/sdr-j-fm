@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>1681</width>
-    <height>919</height>
+    <height>950</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -553,7 +553,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9">
+      <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="4,0,0,0,1,8,0,0,0">
        <item>
         <widget class="QLabel" name="systemindicator">
          <property name="font">
@@ -577,6 +577,26 @@
          </property>
          <property name="text">
           <string>fm software</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
         </widget>
        </item>
@@ -638,6 +658,19 @@
           <enum>Qt::Vertical</enum>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
         <widget class="QLabel" name="timeDisplay">
@@ -1709,7 +1742,7 @@
            <item>
             <widget class="QComboBox" name="fmRdsSelector">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select RDS decoding on or off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select RDS decoding:&lt;/p&gt;&lt;p&gt;RDS OFF: RDS is off at all&lt;br/&gt;&lt;br/&gt;RDS 1: RDS works with Matched Filter, Costas Loop and Time Synchronizer&lt;br/&gt;&lt;br/&gt;RDS 2: RDS works with Matched Filter, Costas Loop and Symbol Integrator&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">
