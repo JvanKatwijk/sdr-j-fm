@@ -31,7 +31,6 @@ float	pilotRecovery::getLockedStrength () const {
 
 DSPFLOAT pilotRecovery::getPilotPhase (const DSPFLOAT pilot) {
 DSPFLOAT OscillatorValue	= mySinCos -> getSin (pilot_OscillatorPhase);
-//DSPFLOAT OscillatorValue	= -mySinCos -> getCos (pilot_OscillatorPhase);
 DSPFLOAT PhaseError		= pilot * OscillatorValue;
 constexpr float alpha		= 1.0f / 3000.0f;
 
@@ -84,7 +83,7 @@ constexpr float alpha		= 1.0f / 3000.0f;
 
 
 void	PerfectStereoSeparation::reset	() {
-// keep this part fast as it could be called each sample
+//	keep this part fast as it could be called each sample
 
 	accPhaseShift		= 0;
 	error_minimized		= false;
@@ -113,7 +112,7 @@ float	PerfectStereoSeparation::
 //	until left and right side is (almost) (conjugate complex) symmetrical
 //	(mixing with cos() would give the maximum level,
 //	with sin() the minimum level)
-//	this is the priciples of a costas loop
+//	this is the principle of a costas loop
 	sinCosPath	= lpFilter. Pass (sinCosPath);
 //	real is cos() path, imag is sin() path
 	DSPFLOAT error	= real (sinCosPath) * imag (sinCosPath);

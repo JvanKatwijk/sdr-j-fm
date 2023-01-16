@@ -1313,8 +1313,9 @@ SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	myFMprocessor		-> startDumping (dumpfilePointer);
 }
 
+#ifndef	__MINGW32__
 void	RadioInterface::set_audioDump	() {
-SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
+SF_INFO sf_info;
 static QString audioTempFile;
 
 	if (audioDumping) {
@@ -1337,12 +1338,12 @@ static QString audioTempFile;
 
 	audioTempFile = QDir::homePath () + "/tmp" +
 	                               QString::number (getpid ());
-	sf_info		-> samplerate = this -> audioRate;
-	sf_info		-> channels   = 2;
-	sf_info		-> format     = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
+	sf_info. samplerate = this -> audioRate;
+	sf_info. channels   = 2;
+	sf_info. format     = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
 
 	audiofilePointer	= sf_open (audioTempFile. toLatin1 (). data (),
-	                                   SFM_WRITE, sf_info);
+	                                   SFM_WRITE, &sf_info);
 	if (audiofilePointer == nullptr) {
 	   qDebug() << "Cannot open " << audioTempFile. toLatin1 (). data ();
 	   return;
@@ -1353,6 +1354,45 @@ static QString audioTempFile;
 	our_audioSink		-> startDumping (audiofilePointer);
 }
 
+#else
+//
+//	windows version differs since it is (for me) to
+//	complicated to run a "mv"  command in a shell
+void	RadioInterface::set_audioDump	() {
+SF_INFO sf_info;
+
+	if (audioDumping) {
+	   our_audioSink	-> stopDumping ();
+	   sf_close (audiofilePointer);
+	   audioDumping		= false;
+	   audioDump		-> setText ("audioDump");
+	   audiofilePointer	= nullptr;
+	   return;
+	}
+
+	QString audioFile	= QFileDialog::getSaveFileName (this,
+                                                tr ("open file .."),
+                                                QDir::homePath (),
+                                                tr ("Sound (*.wav)"));
+
+	audioFile		= QDir::toNativeSeparators (audioFile);
+	if (!audioFile. endsWith (".wav", Qt::CaseInsensitive))
+	   audioFile. append (".wav");
+	sf_info. samplerate = this -> audioRate;
+	sf_info. channels   = 2;
+	sf_info. format     = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
+	audiofilePointer	= sf_open (audioFile. toLatin1 (). data (),
+	                                   SFM_WRITE, &sf_info);
+	if (audiofilePointer == nullptr) {
+	   qDebug() << "Cannot open " << audioFile. toLatin1 (). data ();
+	   return;
+	}
+
+	audioDump		-> setText ("WRITING");
+	audioDumping		= true;
+	our_audioSink		-> startDumping (audiofilePointer);
+}
+#endif
 /*
  *      there is a tremendous amount of signal/slot connections
  *      The local connects, knobs, sliders and displays,

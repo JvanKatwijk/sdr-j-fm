@@ -2,12 +2,9 @@
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
  *    This file is part of the SDR-J (JSDR).
- *    Many of the ideas as implemented in JSDR are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
  *
  *    SDR-J is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -34,7 +31,7 @@ class	SinCos {
 public:
 	        	SinCos		(DSPCOMPLEX *, int32_t);
 			SinCos		(int32_t);
-			~SinCos		(void);
+			~SinCos		();
 	DSPFLOAT	getSin		(DSPFLOAT);
 	DSPFLOAT	getCos		(DSPFLOAT);
 	DSPCOMPLEX	getComplex	(DSPFLOAT);

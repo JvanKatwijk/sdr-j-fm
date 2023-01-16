@@ -72,7 +72,8 @@
 	                                           10 * (2 * M_PI) / fmRate,
 	                                           &mySinCos), 
 	                             pPSS (fmRate, 10.0f / fmRate,
-	                                            &mySinCos) ,
+	                                            &mySinCos),
+	                             pPS1 (fmRate, 10.0f /  fmRate, &mySinCos),
 	                             rdsLowPassFilter (FFT_SIZE,
 	                                               PILOTFILTER_SIZE),
 	                             rdsHilbertFilter (FFT_SIZE,
@@ -834,10 +835,10 @@ const float demodDelayed = demodDirect;
 //	process RDS
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 //	currentPilotPhase shifts also about 19kHz without
-	   float thePhase = 3 * (currentPilotPhase);
-//	   float thePhase = 3 * (currentPilotPhase - M_PI / 4);
+	   float thePhase = 3 * currentPilotPhase;
 	   if (thePhase < 0)
 	      thePhase += 2 * M_PI;
+
 	   float rdsSample = demodDelayed *  - mySinCos. getSin (thePhase);
 	   std::complex<float> rdsComplex =
 	                        rdsHilbertFilter. Pass (rdsSample);
