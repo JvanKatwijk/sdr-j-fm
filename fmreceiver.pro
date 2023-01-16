@@ -189,7 +189,7 @@ isEmpty(GITHASHSTRING) {
 }
 include ( $$(QWT_ROOT)/features/qwt.prf )
 //DEFINES	+= __PILOT_FIR__
-CONFIG		+= console
+#CONFIG		+= console
 #CONFIG		+= pmsdr
 CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3

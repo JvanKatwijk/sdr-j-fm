@@ -63,7 +63,7 @@ public:
 	enum class ERdsMode {
 	   RDS_OFF,
 		RDS_1,
-		RDS_2,
+		RDS_2
 	};
 
 	bool	doDecode	(const DSPCOMPLEX,
@@ -72,13 +72,13 @@ public:
 	void	reset		();
 
 private:
-	void			doDecode2	(DSPCOMPLEX v,
-	                                         DSPCOMPLEX *mag, int);
+	void			doDecode2	(float v, int);
 	void			processBit	(bool, int);
 
 	ERdsMode		mode;
 	AGC			my_AGC;
 	TimeSync		my_timeSync;
+	//Costas			my_Costas1;
 	Costas			my_Costas;
 
 	int32_t			sampleRate;
@@ -97,7 +97,7 @@ private:
 	bool			previousBit;
 	int			symbolCeiling;
 	int			symbolFloor;
-        std::vector<std::complex<float>> syncBuffer;
+	std::vector<float>	syncBuffer;
 	bool			prevBit;
 	DSPFLOAT		bitIntegrator;
 	DSPFLOAT		bitClkPhase;
@@ -109,7 +109,7 @@ private:
 	DSPFLOAT		doMatchFiltering	(DSPFLOAT);
 	DSPCOMPLEX		doMatchFiltering	(DSPCOMPLEX);
 
-	void			synchronizeOnBitClk	(std::vector<DSPCOMPLEX>, int16_t);
+	void			synchronizeOnBitClk	(const std::vector<float> &, int16_t);
 
 
 signals:

@@ -198,7 +198,7 @@ private:
 	fftFilter	fmFilter;
 	pilotRecovery	pilotRecover;
 	PerfectStereoSeparation pPSS;
-	fftFilter	rdsLowPassFilter;
+	fftFilter	rdsBandPassFilter;
 	fftFilterHilbert rdsHilbertFilter;
 
 	std::atomic<bool>	fmFilterOn;

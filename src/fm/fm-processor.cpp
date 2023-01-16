@@ -35,6 +35,15 @@
 #define OMEGA_PILOT	((DSPFLOAT(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
+
+// predefine to make some line more compact later
+#ifdef DO_STEREO_SEPARATION_TEST
+   #define PILOTTESTDELAY (pilotDelay2)
+#else
+   #define PILOTTESTDELAY (0)
+#endif
+
+
 //
 //	Note that no decimation done as yet: the samplestream is still
 //	full speed, up to 2304000 samples/second
@@ -73,8 +82,8 @@
 	                                           &mySinCos), 
 	                             pPSS (fmRate, 10.0f / fmRate,
 	                                            &mySinCos) ,
-	                             rdsLowPassFilter (FFT_SIZE,
-	                                               PILOTFILTER_SIZE),
+	                             rdsBandPassFilter (FFT_SIZE,
+	                                           PILOTFILTER_SIZE),
 	                             rdsHilbertFilter (FFT_SIZE,
 	                                                PILOTFILTER_SIZE) {
 	this	-> running. store (false);
@@ -174,9 +183,9 @@
 	K_FM           = B_FM * M_PI / F_G;
 	theDemodulator = new fm_Demodulator(fmRate, &mySinCos, K_FM);
 //
-//	In the case of mono we do not assume a pilot
-//	to be available. We borrow the approach from CuteSDR
-	rdsLowPassFilter. setLowPass (RDS_WIDTH / 2, fmRate);
+	rdsBandPassFilter. setSimple(RDS_FREQUENCY - RDS_WIDTH / 2,
+	                             RDS_FREQUENCY + RDS_WIDTH / 2,
+	                             fmRate);
 
 // for the deemphasis we use an in-line filter with
 	lastAudioSample = 0;
@@ -416,8 +425,8 @@ void	fmProcessor::stopDumping () {
 
 void	fmProcessor::setAttenuation (DSPFLOAT l, DSPFLOAT r) {
 #ifdef DO_STEREO_SEPARATION_TEST
-	pilotDelay2 = l / 180.0f * M_PI;
-	//pilotDelayLine. set_delay_steps ((DELAY_STEPS) + (int)l);
+	(void)r;
+	PILOTTESTDELAY = l / 180.0f * M_PI;
 #else
 	Lgain = l;
 	Rgain = r;
@@ -671,7 +680,7 @@ int		iqCounter	= 0;
 
 	               switch (lfPlotType) {
 	                  case ELfPlot::RDS_INPUT:
-	                     spectrumBuffer_lf. push_back (pcmSample);
+							   spectrumBuffer_lf. push_back (20.0f * pcmSample);
 	                     break;
 
 	                  case ELfPlot::RDS_DEMOD:
@@ -787,17 +796,14 @@ int		iqCounter	= 0;
 	}
 }
 
-void	fmProcessor::process_signal_with_rds (const float demodDirect,
+void	fmProcessor::process_signal_with_rds (const float demod,
 	                                      std::complex<float> *audioOut,
                                          std::complex<float> *rdsValueCmpl) {
 
-const float demodDelayed = demodDirect;
-
 //	Get the phase for the "carrier to be inserted" right.
 //	Do this always to be able to check of a locked pilot PLL.
-	DSPFLOAT pilot	= demodDirect;
 	DSPFLOAT currentPilotPhase =
-	                 pilotRecover. getPilotPhase (5 * pilot);
+	                 pilotRecover. getPilotPhase (5 * demod);
 	const bool pilotLocked = pilotRecover. isLocked ();
 
 	if (!pilotLocked) {
@@ -808,41 +814,31 @@ const float demodDelayed = demodDirect;
 	if (fmModus != FM_Mode::Mono &&
 	        (pilotLocked || autoMono == false)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-#ifdef DO_STEREO_SEPARATION_TEST
 	   DSPFLOAT PhaseforLRDiff =
-	              2 * (currentPilotPhase + M_PI / 4 +  pilotDelay2) - pilotDelayPSS;
-#else
-	   DSPFLOAT PhaseforLRDiff =
-	              2 * (currentPilotPhase + M_PI / 4) - pilotDelayPSS;
-#endif
+		           2 * (currentPilotPhase + M_PI_4 + PILOTTESTDELAY) - pilotDelayPSS;
 //	perform perfect stereo separation (PSS)
-		pilotDelayPSS = pssActive ? this -> pPSS. process_sample (demodDelayed,
+		pilotDelayPSS = pssActive ? this -> pPSS. process_sample (demod,
 		                                                          PhaseforLRDiff)
 		                          : 0;
 
 //	we look for minimum correlation so mix with PI/2 phase shift
 	   DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?
 	                      mySinCos. getSin (PhaseforLRDiff) :
-	                      mySinCos. getCos (PhaseforLRDiff)) * demodDelayed;
-	   DSPFLOAT LRPlus = demodDelayed;
+		                   mySinCos. getCos (PhaseforLRDiff)) * demod;
+		DSPFLOAT LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
-	   *audioOut = DSPCOMPLEX (demodDelayed, 0);
+		*audioOut = DSPCOMPLEX (demod, 0);
 	}
 
 //	process RDS
-	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
-//	currentPilotPhase shifts also about 19kHz without
-	   float thePhase = 3 * (currentPilotPhase);
-//	   float thePhase = 3 * (currentPilotPhase - M_PI / 4);
-	   if (thePhase < 0)
-	      thePhase += 2 * M_PI;
-	   float rdsSample = demodDelayed *  - mySinCos. getSin (thePhase);
-	   std::complex<float> rdsComplex =
-	                        rdsHilbertFilter. Pass (rdsSample);
-	   rdsComplex	= rdsLowPassFilter. Pass (rdsComplex);
-	   *rdsValueCmpl        = rdsComplex;
+	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
+//	currentPilotPhase shifts also about 19kHz without exting pilot signal
+		float thePhase = 3 * (currentPilotPhase + PILOTTESTDELAY);
+		float rdsBaseBp = rdsBandPassFilter. Pass(demod);
+		std::complex<float> rdsBaseHilb = rdsHilbertFilter. Pass(rdsBaseBp);
+		*rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex(-thePhase);
 	}
 }
 //
