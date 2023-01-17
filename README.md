@@ -50,17 +50,17 @@ create appImages. I use qmake for generating a Makefile,
 if you have cmake installed, it is possible to use that instead,
 here it is assumed that qmake is used
 
-   sudo apt-get update
-   sudo apt-get install git
-   sudo apt-get install qt5-qmake build-essential g++
-   sudo apt-get install pkg-config
-   sudo apt-get install libsndfile1-dev qt5-default
-   sudo apt-get install libfftw3-dev portaudio19-dev 
-   sudo apt-get install zlib1g-dev 
-   sudo apt-get install libusb-1.0-0-dev mesa-common-dev
-   sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
-   sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
-   sudo apt-get install qtbase5-dev
+- sudo apt-get update
+- sudo apt-get install git
+- sudo apt-get install qt5-qmake build-essential g++
+- sudo apt-get install pkg-config
+- sudo apt-get install libsndfile1-dev qt5-default
+- sudo apt-get install libfftw3-dev portaudio19-dev 
+- sudo apt-get install zlib1g-dev 
+- sudo apt-get install libusb-1.0-0-dev mesa-common-dev
+- sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
+- sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
+- sudo apt-get install qtbase5-dev
 
 Summarizing:
 
