@@ -25,11 +25,9 @@ As usual, next to the sources, an AppImage (for Linux x64) and a Windows
 installer are available in the releases section.
 
 Supported devices are sdrplay, hackrf, adalm pluto, line and the good 
-old dabstick. Note that on Windows, if you ahve installed a library 3.11
+old dabstick. Note that on Windows, if you have installed a library 3.10
 for SDRplay devices, the "old" 2.13 library will not be accessible.
-
-Note that in the most  recent versions the biasT selectors seem to
-work.
+(Note that in the most  recent versions of the SDRplay drivers the biasT selectors seem to work.)
 
 You can choose  one of two "skin"s using a command line parameter
 Choose -A for the one, and -B for the other skin. Of course the setting
@@ -37,43 +35,97 @@ is maintained between program invocations.
 Since the setting is kept in the "ini" file, you can edit
 the "ini" file (file ".jsdr-fm.ini"  in the user's home directory (folder)).
 
--------------------------------------------------------------------------
-Nww: appImage (july 2021)
-------------------------------------------------------------------------
-
-An appImage was create for use with common devices, like DABstick,
-SDRplay etc
 
 ------------------------------------------------------------------------
 Buiding an executable
 ------------------------------------------------------------------------
 
 While there is an installer for Windows, and an appImage for Linux64,
-it is of course possible  to generate an executable.
+it is of course possible to generate an executable.
 
-For compiling and linking some libraries need to be installed
+For compiling and linking lots of libraries and utilities
+have to be installed
+On Ubuntu, in any case, the (older) 16 version that I use to
+create appImages. I use qmake for generating a Makefile,
+if you have cmake installed, it is possible to use that instead,
+here it is assumed that qmake is used
 
    sudo apt-get update
-   sudo apt-get install git cmake
+   sudo apt-get install git
    sudo apt-get install qt5-qmake build-essential g++
    sudo apt-get install pkg-config
    sudo apt-get install libsndfile1-dev qt5-default
    sudo apt-get install libfftw3-dev portaudio19-dev 
-   sudo apt-get install zlib1g-dev rtl-sdr
+   sudo apt-get install zlib1g-dev 
    sudo apt-get install libusb-1.0-0-dev mesa-common-dev
    sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
    sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
    sudo apt-get install qtbase5-dev
 
-- It turns out that in rfecent versions of Debian (and related)
-distributions the lib qt50default does not exist as a separate
-library
+Summarizing:
 
-- Be ware that different distributions store qt (related) files om
-different locations. Please adaptm the INCLUDEPATH settingss on the '.pro'
-file if needed.
+-  Obviously, we need a C++ compiler and associated libraries
 
-- Aadapt the configuration (the "CONFIG += XXX" elements in the
+-  The GUI is developed using the Qt5 framework, for qt5 one needs
+to install the qt5-qmake utility (which may have a lightly different
+name on other distributions), the qt5 environment and dependent
+libraries (here qt5-default, mesa-common-dev libgl1-mesa-dev,
+libqt5opengh5-dev, qtbase5-dev)
+
+- Furthermore, we need qwt, which is built on Qt5, but a separate library
+(here libqwt-qt5-dev)
+Note that on different systems, the qwt library and coreresponding include 
+files may reside on different locations.
+
+- Fast fourier transforms, both for generating spectra and for some
+advanced filtering, is using the fftw3 subsystem. Note that the 
+implementation uses the fftw3f (i.e. "float") version, not the "double".
+
+- For handling the audio output, the portaudio library is used. Note that
+the Version 19 library is used, not the older version 18.
+
+- For handling file I/O the library libsndfile is used, and for
+(some) rate conversions the library libsamplerate.
+
+- To allow distributions to run on systems were not all device
+libraries are installed, the approach taken is than when selecting
+a device, the required functions needed by the interface software
+are dynamically loaded. Since all devices use some form
+of I/O over USB, the libusb library is also needed.
+
+Once the libraries are loaded, one should look at the "fmreceiver.pro"
+file, which is basically a configuration file. The qmake (whatever
+version) is able to generate a real Makefile from it.
+Of course, the "fmreceiver.pro" file might have to be adapted.
+It contains a section for "unix" and one for "win" (i.e. windows.
+The system dependencies are two parts:
+
+ - the compiler flags, set by default on maximum optimization (after
+all the program is a serious user of resources). In some cases the
+"-flto" flag is known not to be available
+
+ - the devices.
+
+On selecting a device, the program dynamically loads the functions
+from the device  library. The advantage is that devices for which
+no device library is installed can be part of the configuration.
+Of course, for a device you want to use, the device library should
+be installed.
+
+The program supports sdrplay RSP devices
+(both using the "old" 2.13 library (which does not support the RSPdx)
+and the 3.XX (XX = 11 on Windows), When using the 3.10 library or
+higher on Windows, the 2.13 library cannot be reached, and the 3.10
+library does not support the very first RSP, the RSP 1.
+
+The program support the airspy devices, The program supports "dabsticks",
+The program supports lime devices, program supports hackrf devices and
+the program supports the Adalm pluto.
+
+Note that this version does NOT support devices using a soundcard
+for data input.
+
+ Adapt the configuration (the "CONFIG += XXX" elements in the
 ".pro" file, most likely comment out devices that you do not want
 to include
 
@@ -82,145 +134,7 @@ which generates a Makefile
 
 - if all libraries are installed run "Make",
 
------------------------------------------------------------------------
-New: resizable widgets
------------------------------------------------------------------------
 
-It was an item on my todo list, redesiging the GUI such that the main
-widget - and most of the widgets for device support - are resizable.
-Having that dome wasd the main reason to renumber the version into 3.0
-
-------------------------------------------------------------------------
-New: support for the Adalm Pluto and experimentally for ColibriNano
-------------------------------------------------------------------------
-
-The Adalm pluto is now supported for both the Windows and the Linux version.
-Since the software has to run on systems where support for the Pluto is
-not installed, the driver software had to be adapted as with
-other devices: on selecting the device, functions will be read-in from the
-device library. To reduce dependency on external libraries, the filtering
-software does not depend on the AD9361 library, but is "hard coded",
-based on output from this library
-
-As an experiment support for the ColibriNano is added. While I do not 
-possess such a device, am SDR collegue has and helped me with the
-installation and incorporation of support for the Colibri.
-Note that since the colibri supports to up to 55 MHz, it is the second Nyquist
-zone that is used for FM
-
-
--------------------------------------------------------------------------
--------------------------------------------------------------------------
-
-In spite of the foreseen move from analog to digital radio, there
-are still lots of FM stations in the FM broadcast band.
-
-The FM receiver software is an experimental receiver, with quite some settings.
-A simpler version, just to listen to radio, is in the WFM-RPI repository.
-
-The program shows 2 spectra, one is the spectrum of the incoming signal,
-the other is - depending on the setting - part of the decoded signal
-or part of the RDS signal
-
--------------------------------------------------------------------------
-Supported devices
--------------------------------------------------------------------------
-
-The FM software supports (obviously depending on the configuration)
-
-* rtlsdr based sticks
-
-* SDRplay devices, both  for the 2.13 and 3.07 library
-
-* airspy
-
-* hackrf
-
-* lime
-
-* pluto
-
---------------------------------------------------------------------------------
-Linux
---------------------------------------------------------------------------------
-For creating an executable under: install the required libraries use qmake.
-For e,g. Ubuntu (i.e. Debian like) systems, the required libraries
-can be installed by the following script
-
-	sudo apt-get update
-	sudo apt-get install git cmake
-	sudo apt-get install qt5-qmake build-essential g++
-	sudo apt-get install pkg-config
-	sudo apt-get install libsndfile1-dev qt5-default
-	sudo apt-get install libfftw3-dev portaudio19-dev
-	sudo apt-get install zlib1g-dev
-	sudo apt-get install libusb-1.0-0-dev mesa-common-dev
-	sudo apt-get install libgl1-mesa-dev libqt5opengl5-dev
-	sudo apt-get install libsamplerate0-dev libqwt-qt5-dev
-	sudo apt-get install qtbase5-dev
-
-The file "fmreceiver.pro", in the section "unix",
-adaptations may have to be made for the proper configuration
-If
-
-	#CONFIG		+= console
-
-is uncommented, the software will write some data to it, merely to
-see/show that everything works
-
-Comment the devices that ar enot available out
-
-#CONFIG		+= pmsdr
-CONFIG		+= sdrplay
-CONFIG		+= sdrplay-v3
-CONFIG		+= airspy
-CONFIG		+= dabstick
-CONFIG		+= elad_s1
-CONFIG		+= hackrf
-CONFIG		+= lime
-CONFIG		+= pluto
-CONFIG		+= colibri
-
-It happens that Fedora (the system I am working on) and Debian derived
-systems have different naming for the qwt library
-
-For Ubuntu the line
-
-#LIBS +=  -lqwt -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -lrtlsdr -ldl
-
-and for fedora the line
-
-LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
-
-seems to work
-
-Of course, library support for devices that are part of the configuration
-needs to be installed.
-
-For SDRplay devices it is easy: download them from www.sdrplay.com
-
-for "dabsticks" one might try the library that can be downloaded from
-the distribution's repository, however, in some cases one needs
-to blacklist the device.
-
-For other devices there are no (known) precompiled libraries
-
--------------------------------------------------------------------------------
-Windows
--------------------------------------------------------------------------------
-
-For Windows, the releases section of this repository contains an installer, setup-fmreceiver-  that will
-install the executable as well as required libraries. Note that the installer will call upon
-an installer for the dll implementing the api to get access to the SDRplay
-
-------------------------------------------------------------------------------
-Notes
-------------------------------------------------------------------------------
-
-Note that this version now supports a maintained programlist,
-a list maintained between invocations of the program.
-
-Finally, I was experimenting with a scanning function, one that stops
-whenever the S/N ration is above a certain level. Still lots to be done.
-
+-
+    Good luck
 

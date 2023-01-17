@@ -1,15 +1,9 @@
-Qt-DAB is written and maintained by
-	Jan van Katwijk
-	Lazy Chair Computing
 
-with many thanks to 
-	
-	Stefan Pöschel
-	probonopd
-and especially to
-	Andreas Mikula
-and
-	Athanasios Oikonomou
+The FM receiver was written bij me, I used a number of libraries
+that are available under an open source license, all rights acknowledged
+The software uses some parts dericed from other open source software,
+in particular FMSTACK software from Michael Feilen
 
-for continuous and valuable input.
+The current version is a serious upgrade to previous version, 
+large contribution was made bu Tomneda, all rights acknowledged.
 

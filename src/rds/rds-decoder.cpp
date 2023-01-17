@@ -45,9 +45,11 @@ constexpr DSPFLOAT RDS_BITCLK_HZ = 1187.5;
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
-	               	            my_AGC (2e-3f, 0.4f, 10.0f),
+	                            my_AGC (2e-3f, 0.38f, 9.0f),
 	                            my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f),
-	                            my_Costas (rate, 1.0f, 0.02f, 20.0f) {
+	                            //my_Costas1 (RDS_BITCLK_HZ, 1.0f, 0.02f, 20.0f) ,
+	                            my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
+	{
 
 DSPFLOAT	synchronizerSamples;
 
@@ -88,13 +90,13 @@ DSPFLOAT	synchronizerSamples;
         symbolFloor             = floor (synchronizerSamples);
         syncBuffer. resize (symbolCeiling);
 	memset ((void*)syncBuffer. data (), 0,
-	                   symbolCeiling * sizeof (DSPCOMPLEX));
+	                   symbolCeiling * sizeof (float));
 
         p                       = 0;
         bitIntegrator           = 0;
         bitClkPhase             = 0;
         prev_clkState           = 0;
-        prevBit                 = 0;
+		  prevBit                 = false;
         Resync                  = true;
 //
 //	end 
@@ -139,18 +141,24 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
 
-   if (mode	==  rdsDecoder::ERdsMode::RDS_2) {
-	   doDecode2 (v, m, ptyLocale);
+   v = doMatchFiltering (v);
+	v = my_AGC. process_sample (v);
+/*
+ *  Excluding the Costas Loop when DO_STEREO_SEPARATION_TEST is set is
+ *  to be able to see the phase shift which remains on the RDS signal.
+*/
+#ifndef DO_STEREO_SEPARATION_TEST
+	v = my_Costas. process_sample (v);
+#endif
+	if (mode	==  rdsDecoder::ERdsMode::RDS_2) {
+		*m = v;
+		doDecode2 (real (v), ptyLocale);
 	   return true;
 	}
 
-	v = doMatchFiltering (v);
-	v = my_AGC. process_sample(v);
-
-
 	if (my_timeSync. process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
-		r = my_Costas. process_sample (r);
+		//r = my_Costas1. process_sample (r); // the Costas is now made above
 	   bool bit	= (real (r) >= 0);
 	   processBit	(bit ^ previousBit, ptyLocale);
 	   previousBit	= bit;
@@ -191,25 +199,22 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 	}
 }
 
-void	rdsDecoder::doDecode2	(DSPCOMPLEX v, DSPCOMPLEX *mag, int ptyLocale) {
+void	rdsDecoder::doDecode2	(float v, int ptyLocale) {
 DSPFLOAT clkState;
 std::complex<float> tt;
 
-	v = my_AGC. process_sample (v);
-
-	*mag		= syncBuffer [p];
 	syncBuffer [p]	= v;
 	p		= (p + 1) % symbolCeiling;
 
 	if (Resync || (my_rdsBlockSync -> getNumSyncErrors () > 3)) {
-	   synchronizeOnBitClk (syncBuffer, p);
+		synchronizeOnBitClk (syncBuffer, p);
 	   my_rdsBlockSync -> resync ();
 	   my_rdsBlockSync -> resetResyncErrorCounter ();
 	   Resync = false;
 	}
 
 	clkState	= mySinCos -> getSin (bitClkPhase);
-	bitIntegrator	+= clkState * real (v);
+	bitIntegrator	+= clkState * v;
 //
 //	rising edge -> look at integrator
 	if (prev_clkState <= 0 && clkState > 0) {
@@ -223,8 +228,8 @@ std::complex<float> tt;
 	bitClkPhase	= fmod (bitClkPhase + omegaRDS, 2 * M_PI);
 }
 
-void	rdsDecoder::synchronizeOnBitClk (std::vector<DSPCOMPLEX> v,
-	                                                int16_t first) {
+void	rdsDecoder::synchronizeOnBitClk (const std::vector<float> & v,
+                                       int16_t first) {
 bool	isHigh	= false;
 int32_t	k = 0;
 DSPFLOAT	phase;
@@ -246,8 +251,7 @@ DSPFLOAT correlationVector [symbolCeiling];
 	      k = 0;
 	   }
 
-	   correlationVector [k ++] += imag (v [(first + i) % symbolCeiling]);
-//	   correlationVector [k ++] += real (v [(first + i) % symbolCeiling]);
+		correlationVector [k ++] += v [(first + i) % symbolCeiling];
 	}
 
 //	detect rising edge in correlation window
