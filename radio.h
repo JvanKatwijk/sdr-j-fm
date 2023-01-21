@@ -55,6 +55,15 @@ class	audioSink;
 class	deviceHandler;
 class	programList;
 
+//extern const char * const sTheme[2];
+//extern std::array<const char * const, 2> sThemes;
+
+
+#define THEME1NAME  "Adaptic"
+#define THEME1FILE  "./stylesheets/Adaptic.qss"
+#define THEME2NAME  "Combinear"
+#define THEME2FILE  "./stylesheets/Combinear.qss"
+
 #define	IQ_SCOPE_SIZE	64
 /*
  *	The main gui object. It inherits from
@@ -242,6 +251,7 @@ private slots:
 	void	setfmStereoBalanceSlider(int);
 	void	setAudioGainSlider	(int n);
 	void	setlfPlotType		(const QString &s);
+	void	setTheme				(int);
 	void	setlfPlotZoomFactor	(const QString &s);
 	void	set_squelchMode		(const QString &);
 	void	set_display_delay	(int);

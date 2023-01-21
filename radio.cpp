@@ -34,7 +34,7 @@
 #include	"fm-demodulator.h"
 //#include	"popup-keypad.h"
 #include	"rds-decoder.h"
-
+#include "themechoser.h"
 #include	"program-list.h"
 
 #include	"device-handler.h"
@@ -122,6 +122,8 @@ static
 // int16_t	delayTable [] = {15, 13, 11, 10, 9, 8, 7, 5, 3, 2, 1};
 constexpr int16_t delayTable[] = { 1, 3, 5, 7, 9, 10, 15 };
 constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)));
+
+//std::array<const char * const, 2> sThemes = { "Adaptic", "Combinear" };
 
 /*
  *	We use the creation function merely to set up the
@@ -367,6 +369,10 @@ int     k;
 	   if (setDevice (fmSettings) == nullptr)
 	      TerminateProcess ();
 	}
+
+	for (auto name : sThemeChoser. get_style_sheet_names() )
+		cbThemes -> addItem(name);
+	cbThemes -> setCurrentIndex(sThemeChoser. get_curr_style_sheet_idx() );
 }
 
 void	RadioInterface::quickStart () {
@@ -456,6 +462,8 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	s	-> setValue ("peakLevelDelaySteps",
 	                             sbDispDelay	-> value ());
+
+	s -> setValue ("styleSheet", sThemeChoser. get_curr_style_sheet_idx() );
 
 	s	-> sync ();
 //	Note that settings for the device used will be restored
@@ -1454,6 +1462,9 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (setlfPlotType (const QString &)));
 	connect (plotFactor, SIGNAL (activated (const QString &)),
 	         this, SLOT (setlfPlotZoomFactor (const QString &)));
+	connect (cbThemes, SIGNAL (activated (int)),
+	         this, SLOT (setTheme (int)));
+
 }
 
 void	RadioInterface::setfmStereoPanoramaSlider (int n) {
@@ -1630,6 +1641,15 @@ void	RadioInterface::setlfPlotType (const QString &s) {
 	   Q_ASSERT(0);
 }
 
+void	RadioInterface::setTheme(int idx) {
+	const int idxCur = sThemeChoser. get_curr_style_sheet_idx();
+	sThemeChoser. set_curr_style_sheet_idx(idx);
+
+// terminate program if theme changed (better would be a restart)
+	if (idx != idxCur)
+		TerminateProcess ();
+}
+
 void	RadioInterface::setlfPlotZoomFactor (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1735,11 +1755,11 @@ bool triggerLog = false;
 	}
 
 	if (ipMD -> PilotPllLocked) {
-	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green}");
+		pll_isLocked -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Locked");
 	}
 	else {
-	   pll_isLocked -> setStyleSheet ("QLabel {background-color:red}");
+		pll_isLocked -> setStyleSheet ("QLabel {background-color:red} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 

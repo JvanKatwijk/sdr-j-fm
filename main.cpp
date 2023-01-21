@@ -28,13 +28,14 @@
 #include	<unistd.h>
 #include	"fm-constants.h"
 #include	"radio.h"
+#include "themechoser.h"
 
-static const QString styleSheet_1 =
-	        #include "./stylesheets/Adaptic.qss"
-;
-static const QString styleSheet_2 =
-	        #include "./stylesheets/Combinear.qss"
-;
+//static const QString styleSheet_1 =
+//           #include "./stylesheets/Adaptic.qss"
+//;
+//static const QString styleSheet_2 =
+//           #include "./stylesheets/Combinear.qss"
+//;
 
 #define	DEFAULT_INI	".jsdr-fm.ini"
 #define	STATION_LIST	".jsdr-fm-stations.bin"
@@ -90,14 +91,20 @@ QString stationList     = QDir::homePath ();
 
 	if (styleSheet == 0)
 	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
-	else 
-	   ISettings -> setValue ("styleSheet", styleSheet);
+//	else
+//	   ISettings -> setValue ("styleSheet", styleSheet);
 
 	QApplication a (argc, argv);
-	a. setStyleSheet (styleSheet == 1 ? styleSheet_1 : styleSheet_2);
+
+	if (sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
+		sThemeChoser. set_curr_style_sheet_idx(styleSheet);
+
+	if (sThemeChoser. get_curr_style_sheet_idx() > 0 &&
+	    sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
+	  a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
 
         MyRadioInterface = new RadioInterface (ISettings,
-	                                       stationList, outputRate);
+		                                    stationList, outputRate);
         MyRadioInterface -> show ();
 
 		  a.setWindowIcon(QIcon(":fm-icon.ico"));
