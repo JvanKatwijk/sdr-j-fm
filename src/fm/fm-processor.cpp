@@ -702,7 +702,9 @@ int		iqCounter	= 0;
 	            default:;
 	         }
 
-	         iqCounter ++;
+				std::complex<float> zeroVal(0.0f);
+				iqBuffer -> putDataIntoBuffer (&zeroVal, 1);
+				iqCounter ++;
 	         if (iqCounter > 100) {
 	            emit iqBufferLoaded ();
 	            iqCounter = 0;
