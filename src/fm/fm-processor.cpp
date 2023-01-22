@@ -946,15 +946,15 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 }
 
 void	fmProcessor::restartPssAnalyzer	() {
+	// this function is called while frequency change
+	// use this to suppress audio to avoid transient noise
+	suppressAudioSampleCnt = suppressAudioSampleCntMax;
+
 	pilotDelayPSS = 0;
 	pPSS. reset (); // TODO shift this as it is called while RDS switch, too
 }
 
 void	fmProcessor::resetRds	() {
-	// this function is called while frequency change
-	// use this to suppress audio to avoid transient noise
-	suppressAudioSampleCnt = suppressAudioSampleCntMax;
-
 	myRdsDecoder. reset ();
 }
 
