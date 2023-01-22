@@ -4,26 +4,25 @@
 
 class ThemeChoser {
 public:
-	//ThemeChoser() = default;
-	//~ThemeChoser() = default;
+	ThemeChoser();
+	~ThemeChoser() = default;
 
-	using TNameList = std::vector<const char *>;
+	using TStringVec = std::vector<const char *>;
 
-	int				get_style_sheet_max_idx() const;
-	TNameList		get_style_sheet_names() const;
+	int               get_style_sheet_size() const;
+	const TStringVec & get_style_sheet_names() const;
 
-	void				set_curr_style_sheet_idx(int ci);
-	int				get_curr_style_sheet_idx() const;
-	const char *	get_curr_style_sheet_string() const;
+	void              set_curr_style_sheet_idx(std::size_t ci);
+	int               get_curr_style_sheet_idx() const;
+	const char *      get_curr_style_sheet_string() const;
 
 
 
 
 private:
-	static const char *	styleSheet_1_Adaptic;
-	static const char *	styleSheet_2_Combinear;
-	int						currentIdx = 0;
+	TStringVec vecStyleSheetCode;
+	TStringVec vecStyleSheetName;
+	int        currIdx = 0;
 };
 
 extern ThemeChoser sThemeChoser;
-

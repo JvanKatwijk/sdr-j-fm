@@ -92,7 +92,7 @@ QString stationList     = QDir::homePath ();
 	if (styleSheet == 0)
 	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
 
-	if (sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
+	if (styleSheet < sThemeChoser. get_style_sheet_size())
 		sThemeChoser. set_curr_style_sheet_idx(styleSheet);
 
 	int exitCode = 0;
@@ -100,7 +100,7 @@ QString stationList     = QDir::homePath ();
 	do {
 		QApplication a (argc, argv);
 
-		if (sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
+		if (styleSheet < sThemeChoser. get_style_sheet_size())
 			a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
 
 		MyRadioInterface = new RadioInterface (ISettings,
