@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>1681</width>
-    <height>989</height>
+    <height>956</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -695,27 +695,6 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="font">
-              <font>
-               <weight>75</weight>
-               <italic>false</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Theme:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="cbThemes"/>
-           </item>
-          </layout>
-         </item>
-         <item>
           <spacer name="verticalSpacer_5">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -1349,17 +1328,40 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QPushButton" name="pauseButton">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>36</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Pause</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="2,4">
+           <item>
+            <widget class="QComboBox" name="cbThemes">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the Theme (Style Sheet)&lt;/p&gt;&lt;p&gt;ATTENTION: The program will be restarted that the new Theme takes effect.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pauseButton">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Pause</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_14">

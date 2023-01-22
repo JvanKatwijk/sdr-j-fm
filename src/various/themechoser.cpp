@@ -20,7 +20,7 @@ std::vector<const char *> ThemeChoser::get_style_sheet_names() const {
 
 const char * ThemeChoser::get_curr_style_sheet_string() const {
 	switch (currentIdx) {
-	case 0: return "";
+	case 0: return ""; // this will reset the style sheet to the default
 	case 1: return styleSheet_1_Adaptic;
 	case 2: return styleSheet_2_Combinear;
 	default: throw;

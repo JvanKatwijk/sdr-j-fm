@@ -91,24 +91,25 @@ QString stationList     = QDir::homePath ();
 
 	if (styleSheet == 0)
 	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
-//	else
-//	   ISettings -> setValue ("styleSheet", styleSheet);
-
-	QApplication a (argc, argv);
 
 	if (sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
 		sThemeChoser. set_curr_style_sheet_idx(styleSheet);
 
-	if (sThemeChoser. get_curr_style_sheet_idx() > 0 &&
-	    sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
-	  a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
+	int exitCode = 0;
 
-        MyRadioInterface = new RadioInterface (ISettings,
-		                                    stationList, outputRate);
-        MyRadioInterface -> show ();
+	do {
+		QApplication a (argc, argv);
 
-		  a.setWindowIcon(QIcon(":fm-icon.ico"));
-		  a. exec ();
+		if (sThemeChoser. get_style_sheet_max_idx() >= styleSheet)
+			a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
+
+		MyRadioInterface = new RadioInterface (ISettings,
+		                                       stationList, outputRate);
+		MyRadioInterface -> show ();
+
+		a.setWindowIcon(QIcon(":fm-icon.ico"));
+		exitCode = a. exec ();
+	} while( exitCode == PROGRAM_RESTART_EXIT_CODE );
 
 	fprintf (stderr, "Terug van de exec\n");
 /*
@@ -122,5 +123,6 @@ QString stationList     = QDir::homePath ();
 	delete MyRadioInterface;
 #endif
 //	ISettings	-> ~QSettings ();
+	return exitCode;
 }
 

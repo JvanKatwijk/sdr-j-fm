@@ -1645,9 +1645,11 @@ void	RadioInterface::setTheme(int idx) {
 	const int idxCur = sThemeChoser. get_curr_style_sheet_idx();
 	sThemeChoser. set_curr_style_sheet_idx(idx);
 
-// terminate program if theme changed (better would be a restart)
-	if (idx != idxCur)
+// restart program if theme changed
+	if (idx != idxCur) {
 		TerminateProcess ();
+		qApp->exit(PROGRAM_RESTART_EXIT_CODE);
+	}
 }
 
 void	RadioInterface::setlfPlotZoomFactor (const QString &s) {

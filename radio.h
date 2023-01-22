@@ -55,16 +55,15 @@ class	audioSink;
 class	deviceHandler;
 class	programList;
 
-//extern const char * const sTheme[2];
-//extern std::array<const char * const, 2> sThemes;
-
-
 #define THEME1NAME  "Adaptic"
 #define THEME1FILE  "./stylesheets/Adaptic.qss"
 #define THEME2NAME  "Combinear"
 #define THEME2FILE  "./stylesheets/Combinear.qss"
 
 #define	IQ_SCOPE_SIZE	64
+
+constexpr int PROGRAM_RESTART_EXIT_CODE = -1234;  // value is arbitrary
+
 /*
  *	The main gui object. It inherits from
  *	QDialog and the generated form
