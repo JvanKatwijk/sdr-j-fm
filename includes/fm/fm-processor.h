@@ -132,6 +132,7 @@ public:
 	void		setBandwidth		(const QString &);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
 	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
+	void		triggerFrequencyChange	();
 	void		restartPssAnalyzer	();
 	void		resetRds		();
 	void		set_localOscillator	(int32_t);

@@ -647,8 +647,7 @@ int32_t vfo	= myRig -> getVFOFrequency ();
 	Display (currentFreq);
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	-> set_localOscillator (LOFrequency);
-	   myFMprocessor	-> resetRds ();
-		myFMprocessor	-> restartPssAnalyzer();
+		myFMprocessor	-> triggerFrequencyChange ();
 	}
 }
 //
@@ -1103,7 +1102,7 @@ int32_t	vfo;
 	   myRig -> setVFOFrequency (n);
 	   vfo = myRig -> getVFOFrequency ();
 //
-//	we crerate a new spectrum on a diferent frequency
+//	we create a new spectrum on a different frequency
 	if (runMode. load () == ERunStates::RUNNING) 
 	   myFMprocessor -> triggerDrawNewHfSpectrum ();
 	}
@@ -1119,16 +1118,10 @@ int32_t	vfo;
 
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor -> set_localOscillator (LOFrequency);
-//	   myFMprocessor -> resetRds ();
 //	redraw LF frequency and reset RDS only with bigger frequency steos
 //	AFC will trigger this too
-	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100)) {
-	      myFMprocessor -> resetRds ();
-			myFMprocessor -> restartPssAnalyzer();
-//	      on a change in frequency. draw new LF spectrum immediately
-//	      without averaging
-	      myFMprocessor -> triggerDrawNewLfSpectrum (); //
-	   }
+		if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100))
+			myFMprocessor -> triggerFrequencyChange ();
 	}
 	
 	Display (vfo + LOFrequency);

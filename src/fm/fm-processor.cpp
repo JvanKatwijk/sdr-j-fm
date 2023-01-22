@@ -945,11 +945,18 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 	}
 }
 
-void	fmProcessor::restartPssAnalyzer	() {
+void	fmProcessor::triggerFrequencyChange() {
 	// this function is called while frequency change
-	// use this to suppress audio to avoid transient noise
+
+	// suppress audio to avoid transient noise
 	suppressAudioSampleCnt = suppressAudioSampleCntMax;
 
+	resetRds ();
+	restartPssAnalyzer ();
+	triggerDrawNewLfSpectrum ();
+}
+
+void	fmProcessor::restartPssAnalyzer	() {
 	pilotDelayPSS = 0;
 	pPSS. reset (); // TODO shift this as it is called while RDS switch, too
 }
