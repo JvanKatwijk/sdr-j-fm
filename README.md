@@ -1,16 +1,19 @@
 
-A simple FM receiver V3.0
+A simple FM receiver V3.1
 -------------------------
 
 ========================================================================
 
 Some significant modifications were made by Thomas Neder, apart from the
 "skin", most mods were "under the hood". 
-The version number is now 3.0
+
+The version number is now 3.1
 
 ![fm receiver](/fmreceiver.png?raw=true)
 
-The most recent version has an additional button to set the program type
+The most recent version has an additional button to set the theme (style sheet).
+
+There is also an additional button to set the program type
 labels correct for the area, one might select "Europe"  or "USA".
 
 The filtering, i.e. separation between transmissions close to each other
