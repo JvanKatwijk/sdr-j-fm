@@ -299,6 +299,9 @@ int     k;
 //
 //	Display the version
 	QString v = "sdrJ-FM -V" + QString (CURRENT_VERSION);
+#ifdef GITHASH
+	v += "  (" GITHASH ")";
+#endif
 	systemindicator -> setText (v);
 
 	ExtioLock		= false;
