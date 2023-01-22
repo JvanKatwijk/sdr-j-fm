@@ -175,7 +175,6 @@ int     k;
 	afcAlpha		= 1;
 	afcCurrOffFreq		= 0;
 
-	suppressTransient	= false;
 	peakLeftDamped		= -100;
 	peakRightDamped	= -100;
 //	end added
@@ -1738,8 +1737,7 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 
 //	simple overflow avoidance ->
 //	reduce volume slider about -0.5dB (one step)
-	if ((iPeakLeft > 0.0f || iPeakRight > 0.0f) &&
-	                         !suppressTransient)
+	if (iPeakLeft > 0.0f || iPeakRight > 0.0f)
 	   volumeSlider -> setValue (volumeSlider -> value () - 1);
 }
 //

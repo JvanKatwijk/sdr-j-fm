@@ -125,6 +125,9 @@
 	this	-> volumeFactor		= 0.5f;
 	this	-> panorama		= 1.0f;
 
+	this	-> suppressAudioSampleCntMax	= workingRate / 2; // suppress audio 0.5 second
+	this	-> suppressAudioSampleCnt		= suppressAudioSampleCntMax; // suppress audio while startup
+
 	this	-> rdsModus		= rdsDecoder::ERdsMode::RDS_OFF;
 	this	-> DCREnabled		= true;
 	this	-> RfDC			= DSPCOMPLEX (0, 0);
@@ -617,7 +620,7 @@ int		iqCounter	= 0;
 	         default:;
 	      }
 
-	      std::complex<float> audio;
+			std::complex<float> audio;
 	      std::complex<float> rdsDataCplx;
 
 	      process_signal_with_rds (demod, &audio, &rdsDataCplx);
@@ -759,7 +762,12 @@ int		iqCounter	= 0;
 //	   here the sample rate is "workingRate" (typ. 48000Ss)
 	         for (int32_t k = 0; k < audioAmount; k++) {
 	            std::complex<float> pcmSample = audioOut [k];
-	            insertTestTone (pcmSample);
+					if (suppressAudioSampleCnt > 0) {
+						pcmSample *= ((float)suppressAudioSampleCntMax - (float)suppressAudioSampleCnt)
+						             / (float)suppressAudioSampleCntMax;
+						--suppressAudioSampleCnt;
+					}
+					insertTestTone (pcmSample);
 	            evaluatePeakLevel (pcmSample);
 	            sendSampletoOutput (pcmSample);
 	         }
@@ -943,6 +951,10 @@ void	fmProcessor::restartPssAnalyzer	() {
 }
 
 void	fmProcessor::resetRds	() {
+	// this function is called while frequency change
+	// use this to suppress audio to avoid transient noise
+	suppressAudioSampleCnt = suppressAudioSampleCntMax;
+
 	myRdsDecoder. reset ();
 }
 

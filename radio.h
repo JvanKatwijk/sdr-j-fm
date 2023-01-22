@@ -185,7 +185,6 @@ private:
 	float		afcAlpha;
 	int32_t		afcCurrOffFreq;
 
-	bool		suppressTransient;
 	float		peakLeftDamped;
 	float		peakRightDamped;
 //

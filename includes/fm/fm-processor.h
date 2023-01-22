@@ -258,6 +258,9 @@ private:
 	DSPFLOAT	absPeakLeft;
 	DSPFLOAT	absPeakRight;
 
+	int32_t	suppressAudioSampleCntMax;
+	int32_t	suppressAudioSampleCnt;
+
 	struct TestTone {
 	   bool		Enabled		= false;
 	   float	TimePeriod	= 2.0f;
