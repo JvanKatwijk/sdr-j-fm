@@ -466,7 +466,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("peakLevelDelaySteps",
 	                             sbDispDelay	-> value ());
 
-	s -> setValue ("styleSheet", sThemeChoser. get_curr_style_sheet_idx() );
+	s -> setValue ("styleSheet", cbThemes -> currentText ());
 
 	s	-> sync ();
 //	Note that settings for the device used will be restored

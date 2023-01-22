@@ -32,12 +32,6 @@ old dabstick. Note that on Windows, if you have installed a library 3.10
 for SDRplay devices, the "old" 2.13 library will not be accessible.
 (Note that in the most  recent versions of the SDRplay drivers the biasT selectors seem to work.)
 
-You can choose  one of two "skin"s using a command line parameter
-Choose -A for the one, and -B for the other skin. Of course the setting
-is maintained between program invocations.
-Since the setting is kept in the "ini" file, you can edit
-the "ini" file (file ".jsdr-fm.ini"  in the user's home directory (folder)).
-
 
 ------------------------------------------------------------------------
 Buiding an executable

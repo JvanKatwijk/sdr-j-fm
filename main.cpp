@@ -59,17 +59,9 @@ QString stationList     = QDir::homePath ();
         stationList. append (STATION_LIST);
         stationList = QDir::toNativeSeparators (stationList);
 
-	int styleSheet	= 0;
-
-	while ((opt = getopt (argc, argv, "ABm")) != -1) {
+	while ((opt = getopt (argc, argv, "m")) != -1) {
 	   switch (opt) {
 	      case 'm': outputRate = 192000;
-	         break;
-
-	      case 'A':	styleSheet	= 1;
-	         break;
-
-	      case 'B':	styleSheet	= 2;
 	         break;
 
 	      default:
@@ -89,19 +81,17 @@ QString stationList     = QDir::homePath ();
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
 
-	if (styleSheet == 0)
-	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
+	QString styleSheetText = ISettings -> value ("styleSheet", ""). toString();
+	int styleSheet	= sThemeChoser. get_idx_of_sheet_name(styleSheetText. toStdString(). c_str() );
 
-	if (styleSheet < sThemeChoser. get_style_sheet_size())
-		sThemeChoser. set_curr_style_sheet_idx(styleSheet);
+	sThemeChoser. set_curr_style_sheet_idx(styleSheet);
 
 	int exitCode = 0;
 
 	do {
 		QApplication a (argc, argv);
 
-		if (styleSheet < sThemeChoser. get_style_sheet_size())
-			a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
+		a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
 
 		MyRadioInterface = new RadioInterface (ISettings,
 		                                       stationList, outputRate);
