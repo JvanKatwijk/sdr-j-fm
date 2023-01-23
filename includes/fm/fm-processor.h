@@ -132,6 +132,7 @@ public:
 	void		setBandwidth		(const QString &);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
 	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
+	void		triggerFrequencyChange	();
 	void		restartPssAnalyzer	();
 	void		resetRds		();
 	void		set_localOscillator	(int32_t);
@@ -257,6 +258,9 @@ private:
 	int32_t		peakLevelSampleMax;
 	DSPFLOAT	absPeakLeft;
 	DSPFLOAT	absPeakRight;
+
+	int32_t	suppressAudioSampleCntMax;
+	int32_t	suppressAudioSampleCnt;
 
 	struct TestTone {
 	   bool		Enabled		= false;

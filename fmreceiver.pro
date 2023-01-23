@@ -78,7 +78,8 @@ HEADERS += ./radio.h \
 	   ./includes/various/fft-filters.h \
 	   ./includes/various/iir-filters.h \
 	   ./includes/various/Xtan2.h \
-	   ./includes/output/audiosink.h \
+		./includes/various/themechoser.h \
+		./includes/output/audiosink.h \
 	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
            ./includes/scopes-qwt6/spectrogramdata.h \
@@ -117,7 +118,8 @@ SOURCES += ./main.cpp \
 	   ./src/various/fft-filters.cpp \
 	   ./src/various/iir-filters.cpp \
 	   ./src/various/Xtan2.cpp \
-	   ./src/output/audiosink.cpp \
+		./src/various/themechoser.cpp \
+		./src/output/audiosink.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
 	   ./src/scopes-qwt6/fft-scope.cpp \

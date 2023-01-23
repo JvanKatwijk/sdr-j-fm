@@ -34,7 +34,7 @@
 #include	"fm-demodulator.h"
 //#include	"popup-keypad.h"
 #include	"rds-decoder.h"
-
+#include "themechoser.h"
 #include	"program-list.h"
 
 #include	"device-handler.h"
@@ -123,6 +123,8 @@ static
 constexpr int16_t delayTable[] = { 1, 3, 5, 7, 9, 10, 15 };
 constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)));
 
+//std::array<const char * const, 2> sThemes = { "Adaptic", "Combinear" };
+
 /*
  *	We use the creation function merely to set up the
  *	user interface and make the connections between the
@@ -173,7 +175,6 @@ int     k;
 	afcAlpha		= 1;
 	afcCurrOffFreq		= 0;
 
-	suppressTransient	= false;
 	peakLeftDamped		= -100;
 	peakRightDamped	= -100;
 //	end added
@@ -297,6 +298,9 @@ int     k;
 //
 //	Display the version
 	QString v = "sdrJ-FM -V" + QString (CURRENT_VERSION);
+#ifdef GITHASH
+	v += "  (" GITHASH ")";
+#endif
 	systemindicator -> setText (v);
 
 	ExtioLock		= false;
@@ -367,6 +371,10 @@ int     k;
 	   if (setDevice (fmSettings) == nullptr)
 	      TerminateProcess ();
 	}
+
+	for (auto name : sThemeChoser. get_style_sheet_names() )
+		cbThemes -> addItem(name);
+	cbThemes -> setCurrentIndex(sThemeChoser. get_curr_style_sheet_idx() );
 }
 
 void	RadioInterface::quickStart () {
@@ -456,6 +464,8 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	s	-> setValue ("peakLevelDelaySteps",
 	                             sbDispDelay	-> value ());
+
+	s -> setValue ("styleSheet", cbThemes -> currentText ());
 
 	s	-> sync ();
 //	Note that settings for the device used will be restored
@@ -637,8 +647,7 @@ int32_t vfo	= myRig -> getVFOFrequency ();
 	Display (currentFreq);
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	-> set_localOscillator (LOFrequency);
-	   myFMprocessor	-> resetRds ();
-		myFMprocessor	-> restartPssAnalyzer();
+		myFMprocessor	-> triggerFrequencyChange ();
 	}
 }
 //
@@ -1093,7 +1102,7 @@ int32_t	vfo;
 	   myRig -> setVFOFrequency (n);
 	   vfo = myRig -> getVFOFrequency ();
 //
-//	we crerate a new spectrum on a diferent frequency
+//	we create a new spectrum on a different frequency
 	if (runMode. load () == ERunStates::RUNNING) 
 	   myFMprocessor -> triggerDrawNewHfSpectrum ();
 	}
@@ -1109,16 +1118,10 @@ int32_t	vfo;
 
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor -> set_localOscillator (LOFrequency);
-//	   myFMprocessor -> resetRds ();
 //	redraw LF frequency and reset RDS only with bigger frequency steos
 //	AFC will trigger this too
-	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100)) {
-	      myFMprocessor -> resetRds ();
-			myFMprocessor -> restartPssAnalyzer();
-//	      on a change in frequency. draw new LF spectrum immediately
-//	      without averaging
-	      myFMprocessor -> triggerDrawNewLfSpectrum (); //
-	   }
+		if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100))
+			myFMprocessor -> triggerFrequencyChange ();
 	}
 	
 	Display (vfo + LOFrequency);
@@ -1454,6 +1457,9 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (setlfPlotType (const QString &)));
 	connect (plotFactor, SIGNAL (activated (const QString &)),
 	         this, SLOT (setlfPlotZoomFactor (const QString &)));
+	connect (cbThemes, SIGNAL (activated (int)),
+	         this, SLOT (setTheme (int)));
+
 }
 
 void	RadioInterface::setfmStereoPanoramaSlider (int n) {
@@ -1630,6 +1636,17 @@ void	RadioInterface::setlfPlotType (const QString &s) {
 	   Q_ASSERT(0);
 }
 
+void	RadioInterface::setTheme(int idx) {
+	const int idxCur = sThemeChoser. get_curr_style_sheet_idx();
+	sThemeChoser. set_curr_style_sheet_idx(idx);
+
+// restart program if theme changed
+	if (idx != idxCur) {
+		TerminateProcess ();
+		qApp->exit(PROGRAM_RESTART_EXIT_CODE);
+	}
+}
+
 void	RadioInterface::setlfPlotZoomFactor (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1713,8 +1730,7 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 
 //	simple overflow avoidance ->
 //	reduce volume slider about -0.5dB (one step)
-	if ((iPeakLeft > 0.0f || iPeakRight > 0.0f) &&
-	                         !suppressTransient)
+	if (iPeakLeft > 0.0f || iPeakRight > 0.0f)
 	   volumeSlider -> setValue (volumeSlider -> value () - 1);
 }
 //
@@ -1735,11 +1751,11 @@ bool triggerLog = false;
 	}
 
 	if (ipMD -> PilotPllLocked) {
-	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green}");
+		pll_isLocked -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Locked");
 	}
 	else {
-	   pll_isLocked -> setStyleSheet ("QLabel {background-color:red}");
+		pll_isLocked -> setStyleSheet ("QLabel {background-color:red} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 

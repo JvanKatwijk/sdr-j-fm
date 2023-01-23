@@ -55,7 +55,15 @@ class	audioSink;
 class	deviceHandler;
 class	programList;
 
+#define THEME1NAME  "Adaptic"
+#define THEME1FILE  "./stylesheets/Adaptic.qss"
+#define THEME2NAME  "Combinear"
+#define THEME2FILE  "./stylesheets/Combinear.qss"
+
 #define	IQ_SCOPE_SIZE	64
+
+constexpr int PROGRAM_RESTART_EXIT_CODE = -1234;  // value is arbitrary
+
 /*
  *	The main gui object. It inherits from
  *	QDialog and the generated form
@@ -177,7 +185,6 @@ private:
 	float		afcAlpha;
 	int32_t		afcCurrOffFreq;
 
-	bool		suppressTransient;
 	float		peakLeftDamped;
 	float		peakRightDamped;
 //
@@ -242,6 +249,7 @@ private slots:
 	void	setfmStereoBalanceSlider(int);
 	void	setAudioGainSlider	(int n);
 	void	setlfPlotType		(const QString &s);
+	void	setTheme				(int);
 	void	setlfPlotZoomFactor	(const QString &s);
 	void	set_squelchMode		(const QString &);
 	void	set_display_delay	(int);

@@ -188,6 +188,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/various/fft-filters.h 
 	     ./includes/various/iir-filters.h 
 	     ./includes/various/Xtan2.h 
+	     ./includes/various/themechoser.h 
 	     ./includes/output/audiosink.h 
 	     ./includes/scopes-qwt6/iqdisplay.h 
 	     ./includes/scopes-qwt6/scope.h 
@@ -226,6 +227,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/various/fft-filters.cpp 
 	      ./src/various/iir-filters.cpp 
 	      ./src/various/Xtan2.cpp 
+	      ./src/various/themechoser.cpp 
 	      ./src/output/audiosink.cpp 
 	      ./src/scopes-qwt6/iqdisplay.cpp 
 	      ./src/scopes-qwt6/scope.cpp 

@@ -28,13 +28,14 @@
 #include	<unistd.h>
 #include	"fm-constants.h"
 #include	"radio.h"
+#include "themechoser.h"
 
-static const QString styleSheet_1 =
-	        #include "./stylesheets/Adaptic.qss"
-;
-static const QString styleSheet_2 =
-	        #include "./stylesheets/Combinear.qss"
-;
+//static const QString styleSheet_1 =
+//           #include "./stylesheets/Adaptic.qss"
+//;
+//static const QString styleSheet_2 =
+//           #include "./stylesheets/Combinear.qss"
+//;
 
 #define	DEFAULT_INI	".jsdr-fm.ini"
 #define	STATION_LIST	".jsdr-fm-stations.bin"
@@ -58,17 +59,9 @@ QString stationList     = QDir::homePath ();
         stationList. append (STATION_LIST);
         stationList = QDir::toNativeSeparators (stationList);
 
-	int styleSheet	= 0;
-
-	while ((opt = getopt (argc, argv, "ABm")) != -1) {
+	while ((opt = getopt (argc, argv, "m")) != -1) {
 	   switch (opt) {
 	      case 'm': outputRate = 192000;
-	         break;
-
-	      case 'A':	styleSheet	= 1;
-	         break;
-
-	      case 'B':	styleSheet	= 2;
 	         break;
 
 	      default:
@@ -88,20 +81,25 @@ QString stationList     = QDir::homePath ();
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
 
-	if (styleSheet == 0)
-	   styleSheet = ISettings -> value ("styleSheet", 1). toInt ();
-	else 
-	   ISettings -> setValue ("styleSheet", styleSheet);
+	QString styleSheetText = ISettings -> value ("styleSheet", ""). toString();
+	int styleSheet	= sThemeChoser. get_idx_of_sheet_name(styleSheetText. toStdString(). c_str() );
 
-	QApplication a (argc, argv);
-	a. setStyleSheet (styleSheet == 1 ? styleSheet_1 : styleSheet_2);
+	sThemeChoser. set_curr_style_sheet_idx(styleSheet);
 
-        MyRadioInterface = new RadioInterface (ISettings,
-	                                       stationList, outputRate);
-        MyRadioInterface -> show ();
+	int exitCode = 0;
 
-		  a.setWindowIcon(QIcon(":fm-icon.ico"));
-		  a. exec ();
+	do {
+		QApplication a (argc, argv);
+
+		a. setStyleSheet (sThemeChoser. get_curr_style_sheet_string());
+
+		MyRadioInterface = new RadioInterface (ISettings,
+		                                       stationList, outputRate);
+		MyRadioInterface -> show ();
+
+		a.setWindowIcon(QIcon(":fm-icon.ico"));
+		exitCode = a. exec ();
+	} while( exitCode == PROGRAM_RESTART_EXIT_CODE );
 
 	fprintf (stderr, "Terug van de exec\n");
 /*
@@ -115,5 +113,6 @@ QString stationList     = QDir::homePath ();
 	delete MyRadioInterface;
 #endif
 //	ISettings	-> ~QSettings ();
+	return exitCode;
 }
 
