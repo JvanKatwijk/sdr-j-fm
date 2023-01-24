@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>configWidget</class>
+ <widget class="QWidget" name="configWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>486</width>
+    <height>235</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>configWidget</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="audioDumpButton">
+       <property name="text">
+        <string>audioDump</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="dumpButton">
+       <property name="text">
+        <string>dump RF</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="loggingButton">
+       <item>
+        <property name="text">
+         <string>log off</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Log 1 sec</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Log 2 sec</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Log 3 sec</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="logSaving">
+       <property name="text">
+        <string>save log</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="fc_minus">
+       <property name="text">
+        <string>fc-</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="f_minus">
+       <property name="text">
+        <string>f-</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="incrementFlag">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="f_plus">
+       <property name="text">
+        <string>f+</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fc_plus">
+       <property name="text">
+        <string>fc+</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QSpinBox" name="minimumSelect">
+       <property name="maximum">
+        <number>110000</number>
+       </property>
+       <property name="singleStep">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>88000</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="fm_increment">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="singleStep">
+        <number>10</number>
+       </property>
+       <property name="value">
+        <number>100</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="maximumSelect">
+       <property name="maximum">
+        <number>140000</number>
+       </property>
+       <property name="singleStep">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>110000</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QComboBox" name="fmFilterSelect">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter, applied to the incoming raw signal to isolate the FM signal from the noise around it&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>9kHz (AM)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>15kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>25kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>35kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>45kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>55kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>65kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>75kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>90kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>115kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>140kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>165kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>190kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Off</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="countrySelector">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select region to choose the suitable RDS PTY code&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Europe</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>USA</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QComboBox" name="fmDeemphasisSelector">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;the deemphasis filter&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>Off (AM)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>25us (Dolby FM)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>50us  (Europe, non-USA)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>75us  (USA)</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

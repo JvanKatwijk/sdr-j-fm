@@ -247,7 +247,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	)
 
 	set ( ${objectName}_UIS 
-	      ./radio.ui 
+	      ./forms/radio.ui 
+	      ./forms.configwidget.ui
 	      ./devices/filereader/filereader-widget.ui
 	)
 

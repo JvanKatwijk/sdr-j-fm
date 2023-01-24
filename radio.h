@@ -46,6 +46,7 @@
 #include	<atomic>
 #include	"popup-keypad.h"
 
+#include	"ui_configwidget.h"
 //class	keyPad;
 class	QSettings;
 class	fmProcessor;
@@ -101,6 +102,8 @@ private:
 	void		localConnects		(void);
 	void		dumpControlState	(QSettings *);
 
+	Ui_configWidget		configWidget;
+	QFrame			configDisplay;
 	RingBuffer<double>	*hfBuffer;
 	RingBuffer<double>	*lfBuffer;
 	Scope			*hfScope;
@@ -153,6 +156,7 @@ private:
 	void		stopIncrementing	();
 
 	void		stop_lcdTimer		();
+	void		stopDumping		();
 	int32_t		Panel;
   /*
    *	dumping
@@ -178,6 +182,9 @@ private:
 	bool		squelchMode;
 	void		resetSelector	();
 	int32_t		mapRates	(int32_t);
+	void		abortSystem		(int);
+	void		TerminateProcess	();
+	void		make_newProcessor	();
 
 //
 //	added or modified
@@ -202,59 +209,54 @@ private:
    *	to the GUI code
    */
 private slots:
-	void	setStart		();
-	void	updateTimeDisplay	();
-	void	clickPause		();
+	void		setStart		();
+	void		updateTimeDisplay	();
+	void		handle_pauseButton	();
 
-//	void	setInputMode		(const QString &);
-	void	setAttenuation		(int);
-	void	setIQBalance		(int);
+	void		setIQBalance		(int);
 
-	void	setStreamOutSelector	(int);
-	void	abortSystem		(int);
-	void	TerminateProcess	();
-	void	make_newProcessor	();
-	void	stopDumping		();
+	void		handle_StreamOutSelector	(int);
 	deviceHandler	*getDevice	(const QString &);
 	deviceHandler	*setDevice	(QSettings *);
-	void	set_dumping		();
-	void	set_audioDump		();
+	void		handle_dumpButton	();
+	void		handle_audioDumpButton	();
+	void		handle_configButton	();
 
-	void	setfmBandwidth		(const QString &);
-//	void	setfmBandwidth		(int);
-	void	setfmMode		(const QString &);
-	void	setfmRdsSelector	(const QString &);
-	void	setfmDecoder		(const QString &);
-	void	setfmChannelSelector	(const QString &);
-	void	setfmDeemphasis		(const QString &);
-	void	setfmLFcutoff		(const QString &);
+	void		handle_fmFilterSelect	(const QString &);
+	void		handle_fmModeSelector	(const QString &);
+	void		handle_fmRdsSelector	(const QString &);
+	void		setfmDecoder		(const QString &);
+	void		setfmChannelSelector	(const QString &);
+	void		setfmDeemphasis		(const QString &);
+	void		setfmLFcutoff		(const QString &);
 
-	void	autoIncrement_timeout	();
-	void	autoIncrementButton	();
-	void	autoDecrementButton	();
-	void	set_fm_increment	(int);
-	void	set_minimum		(int);
-	void	set_maximum		(int);
-	void	IncrementButton		();
-	void	DecrementButton		();
+	void		autoIncrement_timeout	();
+	void		handle_fc_plus		();
+	void		handle_fc_min		();
+	void		set_fm_increment	(int);
+	void		set_minimum		(int);
+	void		set_maximum		(int);
+	void		handle_f_plus		();
+	void		handle_f_min		();
 
-	bool	setupSoundOut		(QComboBox *, audioSink *,
+	bool		setupSoundOut		(QComboBox *, audioSink *,
 	                                 int32_t, std::vector<int16_t> &);
-	void	set_squelchValue	(int);
-	void	set_freqSave		();
-	void	handle_myLine		();
+	void		handle_squelchSlider	(int);
+	void		handle_squelchSelector	(const QString &);
+	void		handle_freqSaveButton	();
+	void		handle_myLine		();
+	void		handle_loggingButton	(const QString &);
+	void		handle_logSavingButton	();
+	void		handle_afcSelector	(int);
 
-//	void	setVolume		(int);
 	void	setfmStereoPanoramaSlider(int);
 	void	setfmStereoBalanceSlider(int);
 	void	setAudioGainSlider	(int n);
 	void	setlfPlotType		(const QString &s);
 	void	setTheme				(int);
 	void	setlfPlotZoomFactor	(const QString &s);
-	void	set_squelchMode		(const QString &);
 	void	set_display_delay	(int);
 
-	void	check_afc		(int);
 public slots:
 	void	quickStart		();
 	void	handle_countrySelector	(const QString &);
@@ -263,8 +265,6 @@ public slots:
 	void	newFrequency		(int);
 	void	hfBufferLoaded		();
 	void	wheelEvent		(QWheelEvent *);
-	void	setLogging		(const QString &);
-	void	setLogsaving		();
 	void	AdjustFrequency		(int);
 	void	setCRCErrors		(int);
 	void	setSyncErrors		(int);

@@ -100,7 +100,8 @@ HEADERS += ./radio.h \
 	   ./devices/filereader/filereader.h \
 	   ./devices/filereader/filehulp.h
 
-FORMS +=   ./radio.ui \
+FORMS +=   ./forms/radio.ui \
+	   ./forms/configwidget.ui \
 	   ./devices/filereader/filereader-widget.ui
 
 SOURCES += ./main.cpp \

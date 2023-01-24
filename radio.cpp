@@ -144,6 +144,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	                                QWidget *parent):
 	                                        QDialog (parent),
 	                                        iqBuffer (IQ_SCOPE_SIZE),
+	                                        configDisplay (nullptr),
 	                                        mykeyPad () {
 
 int16_t i;
@@ -153,6 +154,7 @@ int     k;
 	setupUi (this);
 	fmSettings		= Si;
 
+	configWidget. setupUi (&configDisplay);
 	runMode. store (ERunStates::IDLE);
 	squelchMode		= false;
 //
@@ -228,7 +230,7 @@ int     k;
 	k = streamOutSelector -> findText (h);
 	if (k != -1) {
 	   streamOutSelector -> setCurrentIndex (k);
-	   setStreamOutSelector (k);
+	   handle_StreamOutSelector (k);
 	}
 
 	setup_HFScope	();
@@ -245,9 +247,9 @@ int     k;
   	restoreGUIsettings (fmSettings);
 //
 //
-	incrementingFlag ->
+	configWidget. incrementFlag ->
 	                 setStyleSheet ("QLabel {background-color:blue}");
-	incrementingFlag -> setText(" ");
+	configWidget. incrementFlag -> setText(" ");
 	IncrementIndex		= 0;
 //	settings for the auto tuner
 	IncrementIndex		=
@@ -265,9 +267,9 @@ int     k;
 	if (maxLoopFrequency == 0)
 	   maxLoopFrequency = 110000;
 
-	fm_increment	-> setValue (fmIncrement);	//
-	minimumSelect	-> setValue (KHz (minLoopFrequency) / MHz(1));
-	maximumSelect	-> setValue (KHz (maxLoopFrequency) / MHz(1));
+	configWidget. fm_increment	-> setValue (fmIncrement);	//
+	configWidget. minimumSelect	-> setValue (KHz (minLoopFrequency) / MHz(1));
+	configWidget. maximumSelect	-> setValue (KHz (maxLoopFrequency) / MHz(1));
 
 //	he does the connections from the gui buttons, sliders etc
 	localConnects		();
@@ -276,6 +278,9 @@ int     k;
 	         this, SLOT (handle_freqButton ()));
 	connect (&mykeyPad, SIGNAL (newFrequency (int)),
                  this, SLOT (newFrequency (int)));
+
+	connect (configButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_configButton ()));
 
 
 //	Create a timer for autoincrement/decrement of the tuning
@@ -306,9 +311,9 @@ int     k;
 	ExtioLock		= false;
 	logFile			= nullptr;
 	pauseButton		-> setText (QString ("Pause"));
-	dumpButton		-> setText ("inputDump");
+	configWidget. dumpButton		-> setText ("inputDump");
 	sourceDumping		= false;
-	audioDump		-> setText ("audioDump");
+	configWidget. audioDumpButton		-> setText ("audioDump");
 	audioDumping		= false;
 	currentPIcode		= 0;
 	frequencyforPICode	= 0;
@@ -320,11 +325,11 @@ int     k;
 	hfScope		-> setBitDepth (myRig -> bitDepth ());
 	lfScope		-> setBitDepth (myRig -> bitDepth ());
 //
-	connect (fm_increment, SIGNAL (valueChanged (int)),
+	connect (configWidget. fm_increment, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_fm_increment (int)));
-	connect (minimumSelect, SIGNAL (valueChanged (int)),
+	connect (configWidget. minimumSelect, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_minimum (int)));
-	connect (maximumSelect, SIGNAL (valueChanged (int)),
+	connect (configWidget. maximumSelect, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_maximum (int)));
 	displayTimer. start (1000);
 
@@ -333,18 +338,19 @@ int     k;
 //
 	myLine = nullptr;
 	connect (freqSave, SIGNAL (clicked ()),
-	         this, SLOT (set_freqSave ()));
+	         this, SLOT (handle_freqSaveButton ()));
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
-	         this,  SLOT (check_afc (int)));
+	         this,  SLOT (handle_afcSelector (int)));
 
 	QString country	= 
 	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
 	if ((country == "Europe") || (country == "USA")) {
-	   k = countrySelector -> findText (country);
+	   k = configWidget. countrySelector -> findText (country);
 	   if (k != -1)
-	      countrySelector	-> setCurrentIndex (k);
+	      configWidget. countrySelector	-> setCurrentIndex (k);
 	}
-	connect (countrySelector, SIGNAL (activated (const QString &)),
+	connect (configWidget. countrySelector,
+	                        SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_countrySelector (const QString &)));
 
 	QString device =
@@ -373,7 +379,7 @@ int     k;
 	}
 
 	for (auto name : sThemeChoser. get_style_sheet_names() )
-		cbThemes -> addItem(name);
+		cbThemes -> addItem (name);
 	cbThemes -> setCurrentIndex(sThemeChoser. get_curr_style_sheet_idx() );
 }
 
@@ -414,7 +420,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("repeatRate", repeatRate);
 
 	s	-> setValue ("fm_increment",
-	                             fm_increment->value ());
+	                             configWidget. fm_increment -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider_hf",
 	                             spectrumAmplitudeSlider_hf -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider_lf",
@@ -431,9 +437,9 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                             cbPSS -> checkState ());
 //	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
-	                             fmFilterSelect	-> currentText ());
+	                             configWidget. fmFilterSelect -> currentText ());
 	s	-> setValue ("fmMode",
-	                             fmMode		-> currentText ());
+	                             fmModeSelector	-> currentText ());
 	s	-> setValue ("fmDecoder",
 	                             fmDecoder		-> currentText ());
 	s	-> setValue ("volumeHalfDb",
@@ -443,7 +449,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("fmChannelSelect",
 	                             fmChannelSelect	-> currentText ());
 	s	-> setValue ("fmDeemphasisSelector",
-	                             fmDeemphasisSelector -> currentText ());
+	                             configWidget. fmDeemphasisSelector -> currentText ());
 	s	-> setValue ("fmStereoPanoramaSlider",
 	                             fmStereoPanoramaSlider -> value ());
 	s	-> setValue ("fmStereoBalanceSlider",
@@ -451,7 +457,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("fmLFcutoff",
 	                             fmLFcutoff		-> currentText ());
 	s	-> setValue ("logging",
-	                             logging		-> currentText ());
+	                             configWidget. loggingButton	-> currentText ());
 	s	-> setValue ("streamOutSelector",
 	                             streamOutSelector	-> currentText ());
 
@@ -499,9 +505,9 @@ bool r = false;
 	pauseButton	-> setText (QString ("Pause"));
 //
 //	New stuff:
-	set_squelchMode ("NSQ"); // toggle sequelch on
+	handle_squelchSelector ("NSQ"); // toggle sequelch on
 //	toggle sequelch off (TODO: make this nicer)
-	set_squelchMode ("SQ OFF");
+	handle_squelchSelector ("SQ OFF");
 
 //	populate FM decoder combo box
 
@@ -588,6 +594,7 @@ void	RadioInterface::TerminateProcess () {
 	dumpControlState (fmSettings);
 	fmSettings		-> sync ();
 
+	configDisplay. hide ();
   //	It is pretty important that no one is attempting to
   //	set things within the FMprocessor when it is
   //	being deleted
@@ -622,14 +629,14 @@ void	RadioInterface::stopDumping () {
 	   myFMprocessor -> stopDumping ();
 	   sf_close (dumpfilePointer);
 	   sourceDumping = false;
-	   dumpButton -> setText ("inputDump");
+	   configWidget. dumpButton -> setText ("inputDump");
 	}
 
 	if (audioDumping) {
 	   our_audioSink	-> stopDumping ();
 	   sf_close (audiofilePointer);
 	   audioDumping = false;
-	   audioDump -> setText ("audioDump");
+	   configWidget. audioDumpButton -> setText ("audioDump");
 	}
 }
 //	The following signals originate from the Winrad Extio interface
@@ -647,7 +654,7 @@ int32_t vfo	= myRig -> getVFOFrequency ();
 	Display (currentFreq);
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	-> set_localOscillator (LOFrequency);
-		myFMprocessor	-> triggerFrequencyChange ();
+	   myFMprocessor	-> triggerFrequencyChange ();
 	}
 }
 //
@@ -942,41 +949,21 @@ void	RadioInterface::make_newProcessor () {
 	lcd_OutputRate		-> display ((int)this -> audioRate);
 	hfScope			-> setBitDepth (myRig -> bitDepth ());
 
-	setAttenuation		(1);
-	setfmBandwidth		(fmFilterSelect		-> currentText ());
-	setfmMode		(fmMode			-> currentText ());
-	setfmRdsSelector	(fmRdsSelector 		-> currentText ());
+	handle_fmFilterSelect	(configWidget. fmFilterSelect	-> currentText ());
+	handle_fmModeSelector	(fmModeSelector		-> currentText ());
+	handle_fmRdsSelector	(fmRdsSelector 		-> currentText ());
 //	setfmDecoder		(fmDecoder		-> currentText ());
 	setfmChannelSelector	(fmChannelSelect	-> currentText ());
-	setfmDeemphasis		(fmDeemphasisSelector	-> currentText ());
-	set_squelchValue	(squelchSlider		-> value ());
+	setfmDeemphasis		(configWidget. fmDeemphasisSelector	-> currentText ());
+	handle_squelchSlider	(squelchSlider		-> value ());
 	setfmLFcutoff		(fmLFcutoff		-> currentText ());
-	setLogging		(logging		-> currentText ());
+	handle_loggingButton	(configWidget. loggingButton	-> currentText ());
 	hfScope			->setBitDepth		(myRig	-> bitDepth ());
 
 	set_display_delay	(sbDispDelay		-> value ());
 	setfmStereoBalanceSlider(fmStereoBalanceSlider	-> value ());
 	setfmStereoPanoramaSlider(fmStereoPanoramaSlider-> value ());
 }
-
-//void	RadioInterface::setInputMode (const QString &s) {
-//	if (s == "I and Q")
-//	   inputMode	= IandQ;
-//	else
-//	if (s == "Q and I")
-//	   inputMode	= QandI;
-//	else
-//	if (s == "I Only")
-//	   inputMode	= I_Only;
-//	else
-//	if (s == "Q Only")
-//	   inputMode	= Q_Only;
-//	else
-//	   inputMode	= IandQ;
-//	
-//	if (myFMprocessor != nullptr)
-//	   myFMprocessor	-> setInputMode	(inputMode);
-//}
 
 void	RadioInterface::setfmChannelSelector (const QString &s) {
 
@@ -1006,21 +993,6 @@ void	RadioInterface::setfmChannelSelector (const QString &s) {
 	   myFMprocessor	-> setSoundMode (channelSelector);
 }
 
-void	RadioInterface::setAttenuation (int n) {
-int16_t f	= IQBalanceDisplay	->value ();
-int16_t bl, br;
-
-	bl = 100 - f;
-	br = 100 + f;
-
-	currAttSliderValue	= 2 * n;
-	attValueL	= currAttSliderValue * (float)bl / 100;
-	attValueR	= currAttSliderValue * (float)br / 100;
-#ifndef DO_STEREO_SEPARATION_TEST
-	if (myFMprocessor != nullptr)
-	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
-#endif
-}
 /*
  *  the balance slider runs between -100 .. 100
  */
@@ -1030,7 +1002,7 @@ int16_t bl, br;
 	IQBalanceDisplay->display(n);
 #ifdef DO_STEREO_SEPARATION_TEST
 	if (myFMprocessor != nullptr)
-		myFMprocessor	-> setAttenuation ((float)n, 0);
+	   myFMprocessor	-> setAttenuation ((float)n, 0);
 #else
 	bl		= 100 - n;
 	br		= 100 + n;
@@ -1152,18 +1124,18 @@ void	RadioInterface::set_incrementFlag (int16_t incr) {
 char temp [128];
 
 	if (incr == 0) {
-	   incrementingFlag ->
+	   configWidget. incrementFlag ->
 	                 setStyleSheet ("QLabel {background-color:blue}");
-	   incrementingFlag -> setText (" ");
+	   configWidget. incrementFlag -> setText (" ");
 	   return;
 	}
 	if (incr < 0) 
 	   sprintf (temp, " << %d", IncrementInterval(incr) / 1000);
 	else
 	   sprintf (temp, "%d >> ", IncrementInterval(incr) / 1000);
-	incrementingFlag ->
+	configWidget. incrementFlag ->
 	                 setStyleSheet ("QLabel {background-color:green}");
-	incrementingFlag -> setText (temp);
+	configWidget. incrementFlag -> setText (temp);
 }
 //
 void	RadioInterface::autoIncrement_timeout () {
@@ -1211,7 +1183,7 @@ void	RadioInterface::stopIncrementing	() {
 	   myFMprocessor	-> stopScanning ();
 }
 
-void	RadioInterface::autoIncrementButton	() {
+void	RadioInterface::handle_fc_plus	() {
 
 	if (autoIncrementTimer. isActive ())
 	   autoIncrementTimer. stop ();
@@ -1228,7 +1200,7 @@ void	RadioInterface::autoIncrementButton	() {
 	set_incrementFlag (IncrementIndex);
 }
 
-void	RadioInterface::autoDecrementButton () {
+void	RadioInterface::handle_fc_min () {
 
 	if (autoIncrementTimer. isActive ())
 	   autoIncrementTimer. stop ();
@@ -1259,12 +1231,12 @@ void	RadioInterface::set_maximum	(int f) {
 	maxLoopFrequency	= Khz (f);
 }
 
-void	RadioInterface::IncrementButton	() {
+void	RadioInterface::handle_f_plus	() {
 	stopIncrementing ();
 	currentFreq	= setTuner (currentFreq + Khz (fmIncrement));
 }
 
-void	RadioInterface::DecrementButton	() {
+void	RadioInterface::handle_f_min	() {
 	stopIncrementing ();
 	currentFreq = setTuner (currentFreq - Khz(fmIncrement));
 }
@@ -1276,7 +1248,7 @@ QDateTime	currentTime = QDateTime::currentDateTime ();
 	                            toString (QString ("dd.MM.yy hh:mm:ss")));
 }
 
-void	RadioInterface::set_dumping	() {
+void	RadioInterface::handle_dumpButton	() {
 SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 
 	if (myFMprocessor == nullptr)
@@ -1286,7 +1258,7 @@ SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	   myFMprocessor	-> stopDumping ();
 	   sf_close (dumpfilePointer);
 	   sourceDumping = false;
-	   dumpButton	-> setText ("input dump");
+	   configWidget.dumpButton	-> setText ("input dump");
 	   return;
 	}
 
@@ -1311,13 +1283,13 @@ SF_INFO *sf_info	= (SF_INFO *)alloca (sizeof (SF_INFO));
 	   return;
 	}
 
-	dumpButton		-> setText ("WRITING");
+	configWidget. dumpButton	-> setText ("WRITING");
 	sourceDumping		= true;
 	myFMprocessor		-> startDumping (dumpfilePointer);
 }
 
 #ifndef	__MINGW32__
-void	RadioInterface::set_audioDump	() {
+void	RadioInterface::handle_audioDumpButton	() {
 SF_INFO sf_info;
 static QString audioTempFile;
 
@@ -1325,7 +1297,7 @@ static QString audioTempFile;
 	   our_audioSink	-> stopDumping ();
 	   sf_close (audiofilePointer);
 	   audioDumping		= false;
-	   audioDump		-> setText ("audioDump");
+	   configWidget. audioDumpButton	-> setText ("audioDump");
 	   QString file		= QFileDialog::getSaveFileName (this,
                                                 tr ("open file .."),
                                                 QDir::homePath (),
@@ -1352,7 +1324,7 @@ static QString audioTempFile;
 	   return;
 	}
 
-	audioDump		-> setText ("WRITING");
+	configWidget. audioDumpButton -> setText ("WRITING");
 	audioDumping		= true;
 	our_audioSink		-> startDumping (audiofilePointer);
 }
@@ -1361,14 +1333,14 @@ static QString audioTempFile;
 //
 //	windows version differs since it is (for me) to
 //	complicated to run a "mv"  command in a shell
-void	RadioInterface::set_audioDump	() {
+void	RadioInterface::handle_audioDumpButton	() {
 SF_INFO sf_info;
 
 	if (audioDumping) {
 	   our_audioSink	-> stopDumping ();
 	   sf_close (audiofilePointer);
 	   audioDumping		= false;
-	   audioDump		-> setText ("audioDump");
+	   configWidget. audioDumpButton	-> setText ("audioDump");
 	   audiofilePointer	= nullptr;
 	   return;
 	}
@@ -1391,7 +1363,7 @@ SF_INFO sf_info;
 	   return;
 	}
 
-	audioDump		-> setText ("WRITING");
+	configWidget. audioDumpButton	-> setText ("WRITING");
 	audioDumping		= true;
 	our_audioSink		-> startDumping (audiofilePointer);
 }
@@ -1403,53 +1375,52 @@ SF_INFO sf_info;
  */
 void    RadioInterface::localConnects (void) {
 	connect (pauseButton, SIGNAL (clicked ()),
-	         this, SLOT (clickPause ()));
+	         this, SLOT (handle_pauseButton ()));
 	connect (streamOutSelector, SIGNAL (activated (int)),
-	         this, SLOT (setStreamOutSelector (int)));
-//	connect (deviceSelector, SIGNAL (activated (const QString &)),
-//	         this, SLOT (setDevice (const QString &)));
-	connect (dumpButton, SIGNAL (clicked ()),
-	         this, SLOT (set_dumping ()));
-	connect (audioDump, SIGNAL (clicked ()),
-	         this, SLOT (set_audioDump ()));
+	         this, SLOT (handle_StreamOutSelector (int)));
+	connect (configWidget. dumpButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_dumpButton ()));
+	connect (configWidget. audioDumpButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_audioDumpButton ()));
 
 	connect (squelchSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_squelchMode (const QString &)));
+	         this, SLOT (handle_squelchSelector (const QString &)));
 	connect (squelchSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_squelchValue (int)));
+	         this, SLOT (handle_squelchSlider (int)));
 
 	connect (IQbalanceSlider, SIGNAL (valueChanged (int) ),
 	              this, SLOT (setIQBalance (int) ));
-
-	connect (fc_plus, SIGNAL (clicked ()),
-	              this, SLOT (autoIncrementButton ()));
-	connect (fc_minus, SIGNAL (clicked ()),
-	              this, SLOT (autoDecrementButton ()));
-	connect (f_plus, SIGNAL (clicked ()),
-	              this, SLOT (IncrementButton ()));
-	connect (f_minus, SIGNAL (clicked ()),
-	              this, SLOT (DecrementButton ()));
+	connect (configWidget. fc_plus, SIGNAL (clicked ()),
+	              this, SLOT (handle_fc_plus ()));
+	connect (configWidget. fc_minus, SIGNAL (clicked ()),
+	              this, SLOT (handle_fc_min ()));
+	connect (configWidget. f_plus, SIGNAL (clicked ()),
+	              this, SLOT (handle_f_plus ()));
+	connect (configWidget. f_minus, SIGNAL (clicked ()),
+	              this, SLOT (handle_f_min ()));
 //
-//	fm specific buttons and sliders
+	connect (configWidget. loggingButton, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_loggingButton (const QString &)));
+	connect (configWidget. logSaving, SIGNAL (clicked ()),
+	         this, SLOT (handle_logSavingButton ()));
+
+
+	connect (configWidget. fmFilterSelect,
+	                            SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_fmFilterSelect (const QString &)));
+	connect (fmModeSelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_fmModeSelector (const QString &)));
 	connect (fmChannelSelect, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmChannelSelector (const QString &)));
-	connect (logging, SIGNAL (activated (const QString &)),
-	         this, SLOT (setLogging (const QString &)));
-	connect (logSaving, SIGNAL (clicked ()),
-	         this, SLOT (setLogsaving ()));
-	connect (fmFilterSelect, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmBandwidth (const QString &)));
-	connect (fmMode, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmMode (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmRdsSelector (const QString &)));
+	         this, SLOT (handle_fmRdsSelector (const QString &)));
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmDecoder (const QString &)));
 	connect (fmStereoPanoramaSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setfmStereoPanoramaSlider (int)));
 	connect (fmStereoBalanceSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (setfmStereoBalanceSlider (int)));
-	connect (fmDeemphasisSelector, SIGNAL (activated (const QString&)),
+	connect (configWidget. fmDeemphasisSelector, SIGNAL (activated (const QString&)),
 	         this, SLOT (setfmDeemphasis (const QString &)));
 	connect (fmLFcutoff, SIGNAL (activated (const QString &)),
 	         this, SLOT (setfmLFcutoff (const QString &)));
@@ -1575,7 +1546,7 @@ void	RadioInterface::setRDSisSynchronized (bool syn) {
 	   rdsSyncLabel -> setStyleSheet ("QLabel {background-color:green}");
 }
 
-void	RadioInterface::setfmMode (const QString &s) {
+void	RadioInterface::handle_fmModeSelector (const QString &s) {
 
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1642,8 +1613,8 @@ void	RadioInterface::setTheme(int idx) {
 
 // restart program if theme changed
 	if (idx != idxCur) {
-		TerminateProcess ();
-		qApp->exit(PROGRAM_RESTART_EXIT_CODE);
+	   TerminateProcess ();
+	   qApp->exit (PROGRAM_RESTART_EXIT_CODE);
 	}
 }
 
@@ -1654,7 +1625,7 @@ void	RadioInterface::setlfPlotZoomFactor (const QString &s) {
 	myFMprocessor -> setlfPlotZoomFactor (std::stol (s.toStdString()));
 }
 
-void	RadioInterface::setfmRdsSelector (const QString &s) {
+void	RadioInterface::handle_fmRdsSelector (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
@@ -1703,7 +1674,7 @@ void	RadioInterface::Display	(int32_t freq) {
 	lcd_Frequency	-> display ((int)freq / KHz (1));
 }
 
-void	RadioInterface::setfmBandwidth (const QString &s) {
+void	RadioInterface::handle_fmFilterSelect (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
@@ -1711,10 +1682,6 @@ void	RadioInterface::setfmBandwidth (const QString &s) {
 	fmSettings	-> setValue ("fmFilterSelect", s);
 }
 
-//void	RadioInterface::setfmBandwidth	(int32_t b) {
-//	if (myFMprocessor != nullptr)
-//	   myFMprocessor	-> setBandfilterDegree (b);
-//}
 //
 void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	                               const float iPeakRight) {
@@ -1835,7 +1802,7 @@ bool triggerLog = false;
 	}
 }
 
-void	RadioInterface::setLogging (const QString &s) {
+void	RadioInterface::handle_loggingButton (const QString &s) {
 
 	if (s == "log off")
 	   logTime	= 0;
@@ -1855,12 +1822,12 @@ void	RadioInterface::setLogging (const QString &s) {
 	   logTime = 5;
 }
 
-void	RadioInterface::setLogsaving () {
+void	RadioInterface::handle_logSavingButton () {
 
 	if (logFile != nullptr) { // just stop it
 	   fclose (logFile);
 	   logFile		= nullptr;
-	   logSaving		-> setText ("save");
+	   configWidget. logSaving	-> setText ("save");
 	   return;
 	}
 	else {
@@ -1874,13 +1841,13 @@ void	RadioInterface::setLogsaving () {
 	                                 tr ("/dev/null is used"));
 	   }
 	   else {   // logFile != nullptr
-	      logSaving		-> setText ("halt");
+	      configWidget. logSaving		-> setText ("halt");
 	      fprintf (logFile, "\nlogging starting\n\n\n");
 	   }
 	}
 }
 //
-void	RadioInterface::clickPause () {
+void	RadioInterface::handle_pauseButton () {
 	if (runMode. load () == ERunStates::IDLE)
 	   return;
 
@@ -1929,7 +1896,7 @@ uint16_t ocnt = 1;
 	return ocnt > 1;
 }
 
-void	RadioInterface::setStreamOutSelector (int idx) {
+void	RadioInterface::handle_StreamOutSelector (int idx) {
 	if (idx == 0)
 	   return;
 
@@ -1948,7 +1915,7 @@ void	RadioInterface::setStreamOutSelector (int idx) {
 	our_audioSink	-> restart ();
 }
 
-void	RadioInterface::set_squelchValue (int n) {
+void	RadioInterface::handle_squelchSlider (int n) {
 	if (myFMprocessor != nullptr)
 	   myFMprocessor -> set_squelchValue (n);
 }
@@ -2059,7 +2026,7 @@ void	RadioInterface::setup_IQPlot () {
 }
 
 //
-void	RadioInterface::set_squelchMode (const QString& s) {
+void	RadioInterface::handle_squelchSelector (const QString& s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
@@ -2107,9 +2074,9 @@ QString h;
 int     k;
 
 	h	= s -> value ("deemphasis", "Off"). toString ();
-	k	= fmDeemphasisSelector -> findText (h);
+	k	= configWidget. fmDeemphasisSelector -> findText (h);
 	if (k != -1)
-	   fmDeemphasisSelector -> setCurrentIndex (k);
+	   configWidget. fmDeemphasisSelector -> setCurrentIndex (k);
 
 
 	k	= s -> value ("afc", Qt::CheckState::Unchecked).toInt ();
@@ -2137,15 +2104,15 @@ int     k;
 	squelchSlider		-> setValue (k);
 
 	h	= s -> value ("fmFilterSelect", "165kHz"). toString ();
-	k	= fmFilterSelect -> findText (h);
+	k	= configWidget. fmFilterSelect -> findText (h);
 	if (k != -1)
-	   fmFilterSelect -> setCurrentIndex (k);
+	   configWidget. fmFilterSelect -> setCurrentIndex (k);
 
 	h	= s -> value ("fmMode",
-	                      fmMode -> currentText ()). toString ();
-	k	= fmMode -> findText (h);
+	                      fmModeSelector -> currentText ()). toString ();
+	k	= fmModeSelector -> findText (h);
 	if (k != -1)
-	   fmMode -> setCurrentIndex(k);
+	   fmModeSelector -> setCurrentIndex(k);
 
 	h	= s -> value ("fmRdsSelector",
 	                      fmRdsSelector -> currentText ()). toString ();
@@ -2168,9 +2135,9 @@ int     k;
 
 	h	= s -> value ("fmDeemphasisSelector",
 	                             "50us  (Europe, non-USA)"). toString ();
-	k	= fmDeemphasisSelector -> findText(h);
+	k	= configWidget. fmDeemphasisSelector -> findText(h);
 	if (k != -1)
-	   fmDeemphasisSelector -> setCurrentIndex (k);
+	   configWidget. fmDeemphasisSelector -> setCurrentIndex (k);
 
 	h	= s -> value ("fmLFcutoff", "15000Hz"). toString ();
 	k	= fmLFcutoff -> findText (h);
@@ -2214,10 +2181,10 @@ void	RadioInterface::newFrequency	(int f) {
 	currentFreq = setTuner (f);
 }
 
-void	RadioInterface::set_freqSave	(void) {
+void	RadioInterface::handle_freqSaveButton	() {
 	myLine	= new QLineEdit ();
 	myLine	-> show ();
-	connect (myLine, SIGNAL (returnPressed (void)),
+	connect (myLine, SIGNAL (returnPressed ()),
 	         this, SLOT (handle_myLine ()));
 }
 
@@ -2258,7 +2225,7 @@ void	RadioInterface::closeEvent (QCloseEvent *event) {
 	}
 }
 
-void	RadioInterface::check_afc	(int b) {
+void	RadioInterface::handle_afcSelector	(int b) {
 	(void)b;
 	afcActive	= cbAfc -> isChecked ();
 	fprintf (stderr, "afcActive = %s\n", afcActive ? "true" : "false");
@@ -2270,5 +2237,12 @@ int ptyLocale	= country == "Europe" ? 0 : 1;
 	fmSettings -> setValue ("ptyLocale", country);
 	if (myFMprocessor != nullptr)
 	   myFMprocessor -> set_ptyLocale (ptyLocale);
+}
+
+void	RadioInterface::handle_configButton	() {
+	if (configDisplay. isHidden ())
+	   configDisplay. show ();
+	else
+	   configDisplay. hide ();
 }
 
