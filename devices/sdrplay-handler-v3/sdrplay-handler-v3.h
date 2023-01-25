@@ -54,7 +54,7 @@ public:
 	void		setVFOFrequency		(int32_t);
 	int32_t		getVFOFrequency		();
 	int32_t		defaultFrequency	();
-
+	bool		legalFrequency		(int);
 	bool		restartReader		();
 	void		stopReader		();
 	int32_t		getSamples		(std::complex<float> *,

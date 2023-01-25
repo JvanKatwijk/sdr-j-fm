@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 2.8.11 )
-set (objectName fmreceiver-3.0)
+set (objectName fmreceiver-3.01)
 set (CMAKE_CXX_FLAGS "${CMAKE_XCC_FLAGS} -Wall -std=c++14 -flto")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
 
@@ -206,7 +206,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/sdr/time_sync.h  
 	     ./includes/sdr/shaping_filter.h  
 	     ./devices/device-handler.h 
-		  ./devices/deviceselect.h
+	      ./devices/deviceselect.h
 	     ./devices/filereader/filereader.h 
 	     ./devices/filereader/filehulp.h
 	)
@@ -239,16 +239,16 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/rds/rds-blocksynchronizer.cpp 
 	      ./src/rds/rds-group.cpp 
 	      ./src/rds/rds-groupdecoder.cpp 
-			./src/sdr/shaping_filter.cpp
-			./devices/device-handler.cpp
-			./devices/deviceselect.cpp
+	      ./src/sdr/shaping_filter.cpp
+	      ./devices/device-handler.cpp
+	      ./devices/deviceselect.cpp
 	      ./devices/filereader/filereader.cpp 
 	      ./devices/filereader/filehulp.cpp
 	)
 
 	set ( ${objectName}_UIS 
 	      ./forms/radio.ui 
-	      ./forms.configwidget.ui
+	      ./forms/configwidget.ui
 	      ./devices/filereader/filereader-widget.ui
 	)
 
@@ -519,6 +519,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./includes/various/squelchClass.h
 	      ./devices/filereader/filereader.h
 	      ./devices/filereader/filehulp.h
+	      ./devices/deviceselect.h
 	      ./includes/scopes-qwt6/fft-scope.h
 	)
 

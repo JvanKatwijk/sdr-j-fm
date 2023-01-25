@@ -49,6 +49,10 @@ int32_t	deviceHandler::defaultFrequency	() {
 	return Khz (94700);
 }
 
+bool	deviceHandler::legalFrequency	(int freq) {
+	return (MHz (86) <= freq) && (freq <= MHz (110));
+}
+
 bool	deviceHandler::restartReader	() {
 	return true;
 }

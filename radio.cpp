@@ -326,11 +326,11 @@ int     k;
 	lfScope		-> setBitDepth (myRig -> bitDepth ());
 //
 	connect (configWidget. fm_increment, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_fm_increment (int)));
+	         this, SLOT (handle_fm_increment (int)));
 	connect (configWidget. minimumSelect, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_minimum (int)));
+	         this, SLOT (handle_minimumSelect (int)));
 	connect (configWidget. maximumSelect, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_maximum (int)));
+	         this, SLOT (handle_maximumSelect (int)));
 	displayTimer. start (1000);
 
 	scrollStationList	-> setWidgetResizable (true);
@@ -514,7 +514,7 @@ bool r = false;
 //	disconnect GUI link temporary as filling the GUI-list
 //	will trigger the signal
 	disconnect (fmDecoder, SIGNAL (activated (const QString &)),
-	            this, SLOT (setfmDecoder (const QString &)));
+	            this, SLOT (handle_fmDecoder (const QString &)));
 
 	for (const auto & dc : myFMprocessor -> listNameofDecoder ()) 
 	   fmDecoder -> addItem (dc);
@@ -525,7 +525,7 @@ bool r = false;
 
 	if (k != -1) {
 	   fmDecoder -> setCurrentIndex (k);
-	   setfmDecoder (fmDecoder -> currentText ());
+	   handle_fmDecoder (fmDecoder -> currentText ());
 	}
 
 	k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
@@ -546,10 +546,10 @@ bool r = false;
 
 	int vol = fmSettings -> value ("volumeHalfDb", -12).toInt();
 	volumeSlider -> setValue (vol);
-	setAudioGainSlider(vol);
+	handle_AudioGainSlider (vol);
 
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmDecoder (const QString &)));
+	         this, SLOT (handle_fmDecoder (const QString &)));
 
 	connect (cbAutoMono, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor -> setAutoMonoMode(isChecked); });
@@ -557,14 +557,12 @@ bool r = false;
 	         this, [this](bool isChecked){myFMprocessor -> setPSSMode(isChecked); });
 	connect (cbDCRemove, &QCheckBox::clicked,
 	         this, [this](bool isChecked){ myFMprocessor->setDCRemove(isChecked); });
-	connect (volumeSlider, &QSlider::valueChanged,
-	         this, &RadioInterface::setAudioGainSlider);
+	connect (volumeSlider, SIGNAL (valueChanged (int)),
+	         this, SLOT (handle_AudioGainSlider (int)));
 	connect (cbTestTone, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor->setTestTone(isChecked); });
-//	connect (sbDispDelay, qOverload<int>(&QSpinBox::valueChanged),
-//	         this, &RadioInterface::set_display_delay);
 	connect (sbDispDelay, SIGNAL (valueChanged (int)),
-	         this,  SLOT (set_display_delay (int)));
+	         this,  SLOT (handle_sbDispDelay (int)));
 	connect (btnRestartPSS, &QAbstractButton::clicked,
 	         this, [this](){myFMprocessor -> restartPssAnalyzer(); });
 
@@ -953,19 +951,19 @@ void	RadioInterface::make_newProcessor () {
 	handle_fmModeSelector	(fmModeSelector		-> currentText ());
 	handle_fmRdsSelector	(fmRdsSelector 		-> currentText ());
 //	setfmDecoder		(fmDecoder		-> currentText ());
-	setfmChannelSelector	(fmChannelSelect	-> currentText ());
-	setfmDeemphasis		(configWidget. fmDeemphasisSelector	-> currentText ());
+	handle_fmChannelSelector (fmChannelSelect	-> currentText ());
+	handle_fmDeemphasis	(configWidget. fmDeemphasisSelector	-> currentText ());
 	handle_squelchSlider	(squelchSlider		-> value ());
-	setfmLFcutoff		(fmLFcutoff		-> currentText ());
+	handle_fmLFcutoff	(fmLFcutoff		-> currentText ());
 	handle_loggingButton	(configWidget. loggingButton	-> currentText ());
 	hfScope			->setBitDepth		(myRig	-> bitDepth ());
 
-	set_display_delay	(sbDispDelay		-> value ());
-	setfmStereoBalanceSlider(fmStereoBalanceSlider	-> value ());
-	setfmStereoPanoramaSlider(fmStereoPanoramaSlider-> value ());
+	handle_sbDispDelay	(sbDispDelay		-> value ());
+	handle_fmStereoBalanceSlider	(fmStereoBalanceSlider	-> value ());
+	handle_fmStereoPanoramaSlider	(fmStereoPanoramaSlider -> value ());
 }
 
-void	RadioInterface::setfmChannelSelector (const QString &s) {
+void	RadioInterface::handle_fmChannelSelector (const QString &s) {
 
 	if (s == "L | R")
 	   channelSelector = fmProcessor::S_STEREO;
@@ -1058,8 +1056,8 @@ void	RadioInterface::wheelEvent (QWheelEvent *e) {
 int32_t	RadioInterface::setTuner (int32_t n) {
 int32_t	vfo;
 
-//	if ((n < Mhz (60)) || (n > Mhz (420)))
-//	   return Khz (94700);
+	if (!myRig -> legalFrequency (n))
+	   return Khz (94700);
 //	as long as the requested frequency fits within the current
 //	range - i.e. the full width required for fm demodulation fits -
 //	the vfo remains the same, while the LO is adapted.
@@ -1217,17 +1215,17 @@ void	RadioInterface::handle_fc_min () {
 	set_incrementFlag (IncrementIndex);
 }
 
-void	RadioInterface::set_fm_increment (int v) {
+void	RadioInterface::handle_fm_increment (int v) {
 	fmIncrement = v; // in Khz
 }
 
 //
 //	min and max frequencies are specified in Mhz
-void	RadioInterface::set_minimum	(int f) {
+void	RadioInterface::handle_minimumSelect	(int f) {
 	minLoopFrequency	= Khz (f);
 }
 
-void	RadioInterface::set_maximum	(int f) {
+void	RadioInterface::handle_maximumSelect	(int f) {
 	maxLoopFrequency	= Khz (f);
 }
 
@@ -1411,41 +1409,41 @@ void    RadioInterface::localConnects (void) {
 	connect (fmModeSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_fmModeSelector (const QString &)));
 	connect (fmChannelSelect, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmChannelSelector (const QString &)));
+	         this, SLOT (handle_fmChannelSelector (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_fmRdsSelector (const QString &)));
 	connect (fmDecoder, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmDecoder (const QString &)));
+	         this, SLOT (handle_fmDecoder (const QString &)));
 	connect (fmStereoPanoramaSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (setfmStereoPanoramaSlider (int)));
+	         this, SLOT (handle_fmStereoPanoramaSlider (int)));
 	connect (fmStereoBalanceSlider, SIGNAL (valueChanged (int)),
-	         this, SLOT (setfmStereoBalanceSlider (int)));
+	         this, SLOT (handle_fmStereoBalanceSlider (int)));
 	connect (configWidget. fmDeemphasisSelector, SIGNAL (activated (const QString&)),
-	         this, SLOT (setfmDeemphasis (const QString &)));
+	         this, SLOT (handle_fmDeemphasis (const QString &)));
 	connect (fmLFcutoff, SIGNAL (activated (const QString &)),
-	         this, SLOT (setfmLFcutoff (const QString &)));
+	         this, SLOT (handle_fmLFcutoff (const QString &)));
 	connect (plotSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (setlfPlotType (const QString &)));
+	         this, SLOT (handle_plotTypeSelector (const QString &)));
 	connect (plotFactor, SIGNAL (activated (const QString &)),
-	         this, SLOT (setlfPlotZoomFactor (const QString &)));
+	         this, SLOT (handle_PlotZoomFactor (const QString &)));
 	connect (cbThemes, SIGNAL (activated (int)),
-	         this, SLOT (setTheme (int)));
+	         this, SLOT (handle_cbThemes (int)));
 
 }
 
-void	RadioInterface::setfmStereoPanoramaSlider (int n) {
+void	RadioInterface::handle_fmStereoPanoramaSlider (int n) {
 	if (myFMprocessor != nullptr)
 	   myFMprocessor -> setStereoPanorama (n);
 }
 
-void	RadioInterface::setfmStereoBalanceSlider (int n) {
+void	RadioInterface::handle_fmStereoBalanceSlider (int n) {
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor -> setSoundBalance (n);
 	   balanceDisplay -> display (n);
 	}
 }
 
-void	RadioInterface::setAudioGainSlider (int n) {
+void	RadioInterface::handle_AudioGainSlider (int n) {
 	if (myFMprocessor != nullptr) {
 	   float gainDB = (n < -59 ? -99.9f : n / 2.0f);
 	   myFMprocessor -> setVolume (gainDB);
@@ -1456,7 +1454,7 @@ void	RadioInterface::setAudioGainSlider (int n) {
 
 //	Deemphasis	= 50 usec (3183 Hz, Europe)
 //	Deemphasis	= 75 usec (2122 Hz US)
-void	RadioInterface::setfmDeemphasis (const QString &s) {
+void	RadioInterface::handle_fmDeemphasis (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 	if (s == "Off (AM)") {
@@ -1569,7 +1567,7 @@ void	RadioInterface::handle_fmModeSelector (const QString &s) {
 	   Q_ASSERT(0);
 }
 
-void	RadioInterface::setlfPlotType (const QString &s) {
+void	RadioInterface::handle_plotTypeSelector (const QString &s) {
 
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1607,7 +1605,7 @@ void	RadioInterface::setlfPlotType (const QString &s) {
 	   Q_ASSERT(0);
 }
 
-void	RadioInterface::setTheme(int idx) {
+void	RadioInterface::handle_cbThemes (int idx) {
 	const int idxCur = sThemeChoser. get_curr_style_sheet_idx();
 	sThemeChoser. set_curr_style_sheet_idx(idx);
 
@@ -1618,7 +1616,7 @@ void	RadioInterface::setTheme(int idx) {
 	}
 }
 
-void	RadioInterface::setlfPlotZoomFactor (const QString &s) {
+void	RadioInterface::handle_PlotZoomFactor (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
 
@@ -1639,7 +1637,7 @@ void	RadioInterface::handle_fmRdsSelector (const QString &s) {
 	myFMprocessor	-> resetRds ();
 }
 
-void	RadioInterface::setfmDecoder (const QString &decoder) {
+void	RadioInterface::handle_fmDecoder (const QString &decoder) {
 
 	if (myFMprocessor == nullptr) 
 	   return;
@@ -1647,7 +1645,7 @@ void	RadioInterface::setfmDecoder (const QString &decoder) {
 	myFMprocessor -> setFMdecoder (decoder);
 }
 
-void	RadioInterface::setfmLFcutoff (const QString &s) {
+void	RadioInterface::handle_fmLFcutoff (const QString &s) {
 
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1982,7 +1980,7 @@ double  temp	= (double)sampleRate / 2 / displaySize;
 }
 
 void	RadioInterface::iqBufferLoaded () {
-DSPCOMPLEX iq_values [IQ_SCOPE_SIZE];
+std::complex<float> iq_values [IQ_SCOPE_SIZE];
 int32_t sizeRead = iqBuffer. getDataFromBuffer (iq_values, IQ_SCOPE_SIZE);
 	iqScope -> DisplayIQVec (iq_values, sizeRead, 1.0f);
 }
@@ -2062,7 +2060,7 @@ void	RadioInterface::setSquelchIsActive (bool active) {
 	   sqlStatusLabel -> setStyleSheet ("QLabel {background-color:gray}");
 }
 
-void	RadioInterface::set_display_delay (int n) {
+void	RadioInterface::handle_sbDispDelay (int n) {
 	if (myFMprocessor != nullptr)
 	   myFMprocessor -> setDispDelay (n);
 }

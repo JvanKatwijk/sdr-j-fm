@@ -1,5 +1,5 @@
 
-A simple FM receiver V3.1
+A simple FM receiver V3.01
 -------------------------
 
 ========================================================================
@@ -7,7 +7,7 @@ A simple FM receiver V3.1
 Some significant modifications were made by Thomas Neder, apart from the
 "skin", most mods were "under the hood". 
 
-The version number is now 3.1
+The version number is now 3.01
 
 ![fm receiver](/fmreceiver.png?raw=true)
 

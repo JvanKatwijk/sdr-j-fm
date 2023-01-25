@@ -59,20 +59,23 @@
 class	deviceHandler: public QThread {
 Q_OBJECT
 public:
-			deviceHandler 	();
-virtual			~deviceHandler 	();
-virtual		int32_t	getRate		();
-virtual		void	setVFOFrequency	(int32_t);
-virtual		int32_t	getVFOFrequency	();
-virtual		int32_t	defaultFrequency ();
-virtual		bool	restartReader	();
-virtual		void	stopReader	();
-virtual		int32_t	getSamples	(DSPCOMPLEX *, int32_t);
-virtual		int32_t	getSamples	(DSPCOMPLEX *, int32_t, uint8_t);
-virtual		int32_t	Samples		();
-virtual		void	resetBuffer	();
-virtual		int16_t	bitDepth	();
-	        int32_t	vfoOffset;
+				deviceHandler 	();
+virtual				~deviceHandler 	();
+virtual		int32_t		getRate		();
+virtual		void		setVFOFrequency	(int32_t);
+virtual		int32_t		getVFOFrequency	();
+virtual		int32_t		defaultFrequency ();
+virtual		bool		legalFrequency	(int);
+virtual		bool		restartReader	();
+virtual		void		stopReader	();
+virtual		int32_t		getSamples	(std::complex<float> *,
+	                                                     int32_t);
+virtual		int32_t		getSamples	(std::complex<float> *,
+	                                                     int32_t, uint8_t);
+virtual		int32_t		Samples		();
+virtual		void		resetBuffer	();
+virtual		int16_t		bitDepth	();
+	        int32_t		vfoOffset;
 //
 protected:
 		int32_t	lastFrequency;

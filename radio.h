@@ -80,7 +80,7 @@ public:
 		~RadioInterface ();
 
 private:
-	RingBuffer<DSPCOMPLEX>	iqBuffer;
+	RingBuffer<std::complex<float>>	iqBuffer;
 	IQDisplay	*iqScope;
 	enum Keyboard {
 	   NORMAL	= 0,
@@ -132,8 +132,8 @@ private:
 //	uint8_t		LFviewMode;
 	uint8_t		inputMode;
 	int16_t		currAttSliderValue;
-	DSPFLOAT	attValueL;
-	DSPFLOAT	attValueR;
+	float		attValueL;
+	float		attValueR;
 
 	int32_t		fmBandwidth;
 	int32_t		LOFrequency;
@@ -177,6 +177,9 @@ private:
 	int16_t		logTime;
 	FILE		*logFile;
 
+	bool		setupSoundOut		(QComboBox *, audioSink *,
+	                                         int32_t,
+	                                         std::vector<int16_t> &);
 	void		setup_HFScope	();
 	void		setup_LFScope	();
 	bool		squelchMode;
@@ -185,6 +188,8 @@ private:
 	void		abortSystem		(int);
 	void		TerminateProcess	();
 	void		make_newProcessor	();
+	deviceHandler	*getDevice	(const QString &);
+	deviceHandler	*setDevice	(QSettings *);
 
 //
 //	added or modified
@@ -216,8 +221,6 @@ private slots:
 	void		setIQBalance		(int);
 
 	void		handle_StreamOutSelector	(int);
-	deviceHandler	*getDevice	(const QString &);
-	deviceHandler	*setDevice	(QSettings *);
 	void		handle_dumpButton	();
 	void		handle_audioDumpButton	();
 	void		handle_configButton	();
@@ -225,22 +228,20 @@ private slots:
 	void		handle_fmFilterSelect	(const QString &);
 	void		handle_fmModeSelector	(const QString &);
 	void		handle_fmRdsSelector	(const QString &);
-	void		setfmDecoder		(const QString &);
-	void		setfmChannelSelector	(const QString &);
-	void		setfmDeemphasis		(const QString &);
-	void		setfmLFcutoff		(const QString &);
+	void		handle_fmDecoder	(const QString &);
+	void		handle_fmChannelSelector (const QString &);
+	void		handle_fmDeemphasis	(const QString &);
+	void		handle_fmLFcutoff	(const QString &);
 
 	void		autoIncrement_timeout	();
 	void		handle_fc_plus		();
 	void		handle_fc_min		();
-	void		set_fm_increment	(int);
-	void		set_minimum		(int);
-	void		set_maximum		(int);
+	void		handle_fm_increment	(int);
+	void		handle_minimumSelect	(int);
+	void		handle_maximumSelect	(int);
 	void		handle_f_plus		();
 	void		handle_f_min		();
 
-	bool		setupSoundOut		(QComboBox *, audioSink *,
-	                                 int32_t, std::vector<int16_t> &);
 	void		handle_squelchSlider	(int);
 	void		handle_squelchSelector	(const QString &);
 	void		handle_freqSaveButton	();
@@ -249,50 +250,51 @@ private slots:
 	void		handle_logSavingButton	();
 	void		handle_afcSelector	(int);
 
-	void	setfmStereoPanoramaSlider(int);
-	void	setfmStereoBalanceSlider(int);
-	void	setAudioGainSlider	(int n);
-	void	setlfPlotType		(const QString &s);
-	void	setTheme				(int);
-	void	setlfPlotZoomFactor	(const QString &s);
-	void	set_display_delay	(int);
+	void		handle_AudioGainSlider	(int n);
+	void		handle_fmStereoBalanceSlider	(int);
+	void		handle_fmStereoPanoramaSlider	(int);
+	void		handle_plotTypeSelector	(const QString &s);
+	void		handle_cbThemes		(int);
+	void		handle_PlotZoomFactor	(const QString &s);
+	void		handle_sbDispDelay	(int);
+
+	void		handle_countrySelector	(const QString &);
+	void		handle_freqButton	();
+	void		newFrequency		(int);
+	void		closeEvent		(QCloseEvent *event);
 
 public slots:
-	void	quickStart		();
-	void	handle_countrySelector	(const QString &);
-	void	setHFplotterView	(int);
-	void	handle_freqButton	();
-	void	newFrequency		(int);
-	void	hfBufferLoaded		();
-	void	wheelEvent		(QWheelEvent *);
-	void	AdjustFrequency		(int);
-	void	setCRCErrors		(int);
-	void	setSyncErrors		(int);
-	void	setbitErrorRate		(double);
-	void	setGroup		(int);
-	void	setPiCode		(int);
-	void	setStationLabel		(const QString &);
-	void	setRadioText		(const QString &);
-	void	setRDSisSynchronized	(bool);
-	void	setMusicSpeechFlag	(int);
-	void	clearMusicSpeechFlag	();
-	void	scanresult		();
-	void	closeEvent		(QCloseEvent *event);
+	void		quickStart		();
+	void		setHFplotterView	(int);
+	void		hfBufferLoaded		();
+	void		wheelEvent		(QWheelEvent *);
+	void		AdjustFrequency		(int);
+	void		setCRCErrors		(int);
+	void		setSyncErrors		(int);
+	void		setbitErrorRate		(double);
+	void		setGroup		(int);
+	void		setPiCode		(int);
+	void		setStationLabel		(const QString &);
+	void		setRadioText		(const QString &);
+	void		setRDSisSynchronized	(bool);
+	void		setMusicSpeechFlag	(int);
+	void		clearMusicSpeechFlag	();
+	void		scanresult		();
 //
 //	changed or added
-	void	lfBufferLoaded		(bool, int);
-	void	iqBufferLoaded		();
-	void	setPTYCode		(int, const QString &);
-//	void	clearStationLabel	();
-//	void	clearRadioText		();
-	void	setAFDisplay		(int, int);
-	void	setSquelchIsActive	(bool);
-//	void	showStrength		(float, float);
+	void		lfBufferLoaded		(bool, int);
+	void		iqBufferLoaded		();
+	void		setPTYCode		(int, const QString &);
+//	void		clearStationLabel	();
+//	void		clearRadioText		();
+	void		setAFDisplay		(int, int);
+	void		setSquelchIsActive	(bool);
+//	void		showStrength		(float, float);
 
-	void	showPeakLevel		(const float, const float);
-	void	showMetaData		(const fmProcessor::SMetaData *);
+	void		showPeakLevel		(const float, const float);
+	void		showMetaData		(const fmProcessor::SMetaData *);
   //
-  //	and for the extio handling
+  //	and for the extio handling NOT AVAILABLE IN THIS VERSION
 	void	set_ExtFrequency	(int);
 	void	set_ExtLO		(int);
 	void	set_lockLO		();

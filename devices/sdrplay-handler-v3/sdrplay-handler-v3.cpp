@@ -146,8 +146,13 @@ int	sdrplayHandler_v3::getRate	() {
 /////////////////////////////////////////////////////////////////////////
 
 int32_t	sdrplayHandler_v3::defaultFrequency	() {
-	return Mhz (220);
+	return Khz (94700);
 }
+
+bool	sdrplayHandler_v3::legalFrequency	(int freq) {
+	return (MHz (60) <= freq) && (freq <= MHz (250));
+}
+
 
 int32_t	sdrplayHandler_v3::getVFOFrequency() {
 	return vfoFrequency;

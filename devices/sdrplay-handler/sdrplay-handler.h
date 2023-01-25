@@ -111,9 +111,6 @@ typedef mir_sdr_ErrT (*pfn_mir_sdr_rsp1a_BiasT)(int enable);
 typedef mir_sdr_ErrT (*pfn_mir_sdr_rspDuo_BiasT)(int enable);
 
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////
 class	sdrplayHandler: public deviceHandler, public Ui_sdrplayWidget {
 Q_OBJECT
