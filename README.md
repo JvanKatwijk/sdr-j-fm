@@ -13,8 +13,14 @@ The version number is now 3.1
 
 The most recent version has an additional button to set the theme (style sheet).
 
-There is also an additional button to set the program type
-labels correct for the area, one might select "Europe"  or "USA".
+Some buttons are moved to a separate "configuration" window (as in Qt-DAB),
+the widget can be made visible (or can be hidden) by touching the
+"config" button on the main widget.
+
+Buttons on the configuration widget are typically those that are not
+often touches when just listening to the radio.
+Buttons for setting the deemphasis and the pty labels are therefore now
+on the configuration widget.
 
 The filtering, i.e. separation between transmissions close to each other
 in frequency, or even with (slightly) overlapping frequencies,
@@ -130,6 +136,23 @@ to include
 which generates a Makefile
 
 - if all libraries are installed run "Make",
+
+-----------------------------------------------------------------------
+Building an appImage
+----------------------------------------------------------------------
+
+The AppImage, part of the distribution on the releases section, is
+created on an Ubuntu 16 VM. If you want to experiment, the file
+fm-build-script is there that - as the name suggests - is the script
+being used to create such an AppImage
+
+--------------------------------------------------------------------------
+CopyRight
+--------------------------------------------------------------------------
+
+Copyright of the fm software is by J Van Katwijk, but parts of the mods
+to older versions are done by Thomas Neder, obviously for the
+parts he contributed, he the copyrights are his.
 
 
 -
