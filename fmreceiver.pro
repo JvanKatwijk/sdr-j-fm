@@ -5,7 +5,7 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-3.01
+TARGET		= fmreceiver-3.1
 QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
