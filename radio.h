@@ -55,6 +55,7 @@ class	fft_scope;
 class	audioSink;
 class	deviceHandler;
 class	programList;
+class	ThemeChoser;
 
 #define THEME1NAME  "Adaptic"
 #define THEME1FILE  "./stylesheets/Adaptic.qss"
@@ -75,6 +76,7 @@ Q_OBJECT
 public:
 		RadioInterface (QSettings *,
 	                        QString,
+	                        ThemeChoser *,
 	                        int32_t,
 	                        QWidget *parent = nullptr);
 		~RadioInterface ();
@@ -82,12 +84,6 @@ public:
 private:
 	RingBuffer<std::complex<float>>	iqBuffer;
 	IQDisplay	*iqScope;
-	enum Keyboard {
-	   NORMAL	= 0,
-	   CONTROL	= 1,
-	   ALT		= 2,
-	   SHIFT	= 3
-	};
 
 //	Processing modes
 	enum class ERunStates {
@@ -97,10 +93,11 @@ private:
 	   STOPPING	= 0103
 	};
 
-	bool		ExtioLock;
-	int16_t		outputDevice;
-	void		localConnects		(void);
-	void		dumpControlState	(QSettings *);
+	ThemeChoser		*themeChooser;
+	bool			ExtioLock;
+	int16_t			outputDevice;
+	void			localConnects		();
+	void			dumpControlState	(QSettings *);
 
 	Ui_configWidget		configWidget;
 	QFrame			configDisplay;
@@ -126,7 +123,7 @@ private:
 	int8_t		channelSelector;
 	deviceHandler	*myRig;
 	std::vector<int16_t>	outTable;
-	int16_t		numberofDevices;
+//	int16_t		numberofDevices;
 
 	uint8_t		HFviewMode;
 //	uint8_t		LFviewMode;
@@ -180,11 +177,11 @@ private:
 	bool		setupSoundOut		(QComboBox *, audioSink *,
 	                                         int32_t,
 	                                         std::vector<int16_t> &);
-	void		setup_HFScope	();
-	void		setup_LFScope	();
+	void		setup_HFScope		();
+	void		setup_LFScope		();
 	bool		squelchMode;
-	void		resetSelector	();
-	int32_t		mapRates	(int32_t);
+	void		resetSelector		();
+	int32_t		mapRates		(int32_t);
 	void		abortSystem		(int);
 	void		TerminateProcess	();
 	void		make_newProcessor	();
@@ -257,6 +254,7 @@ private slots:
 	void		handle_cbThemes		(int);
 	void		handle_PlotZoomFactor	(const QString &s);
 	void		handle_sbDispDelay	(int);
+	void		handle_cbTestTone	(int v);
 
 	void		handle_countrySelector	(const QString &);
 	void		handle_freqButton	();

@@ -2,11 +2,12 @@
 #include <cassert>
 #include <cstring>
 
-ThemeChoser::ThemeChoser() {
-// Add here further stylesheets, currently there are sorted alphabetically (beside "Default")
+	ThemeChoser::ThemeChoser () {
+//	Add here further stylesheets, currently
+//	there are sorted alphabetically (beside "Default")
 /* ------------------------------------------------- */
 //	do not change this first entry (keep it also on first place)
-	vecStyleSheetName. push_back ("Default");
+	vecStyleSheetName. push_back ( "Default");
 	vecStyleSheetCode. push_back (""); // this will reset the style sheet to the default
 /* ------------------------------------------------- */
 	vecStyleSheetName. push_back ("Adaptic");
@@ -106,10 +107,10 @@ ThemeChoser::ThemeChoser() {
 	assert(vecStyleSheetCode.size() == vecStyleSheetName.size());
 }
 
-int ThemeChoser::get_idx_of_sheet_name(const char * const iName) const {
+int ThemeChoser::get_idx_of_sheet_name (const char * const iName) const {
 	for (int idx = 0; idx < (int)vecStyleSheetName.size(); ++idx ) {
-	  if (strcmp(vecStyleSheetName[idx], iName) == 0)
-		  return idx;
+	   if (strcmp (vecStyleSheetName [idx], iName) == 0)
+	      return idx;
 	}
 	return 0; // choose "Default" when not found
 }

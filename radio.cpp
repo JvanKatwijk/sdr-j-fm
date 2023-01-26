@@ -27,16 +27,18 @@
 #include	<QHeaderView>
 #include	<QSettings>
 #include	<Qt>
-#include	"radio.h"
+#include	<fstream>
+#include	<iostream>
 #include	<array>
+#include	"radio.h"
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
 //#include	"popup-keypad.h"
 #include	"rds-decoder.h"
-#include "themechoser.h"
+#include	"themechoser.h"
 #include	"program-list.h"
-
+#include	"themechoser.h"
 #include	"device-handler.h"
 #include	"filereader.h"
 #ifdef HAVE_SDRPLAY
@@ -69,6 +71,47 @@
 #ifdef __MINGW32__
 #include	<iostream>
 #include	<windows.h>
+#endif
+
+#ifdef	__MINGW32__
+__int64 FileTimeToInt64 (FILETIME & ft) {
+	ULARGE_INTEGER foo;
+
+	foo.LowPart	= ft.dwLowDateTime;
+	foo.HighPart	= ft.dwHighDateTime;
+	return (foo.QuadPart);
+}
+
+bool get_cpu_times (size_t &idle_time, size_t &total_time) {
+FILETIME IdleTime, KernelTime, UserTime;
+size_t	thisIdle, thisKernel, thisUser;
+
+	GetSystemTimes (&IdleTime, &KernelTime, &UserTime);
+	
+	thisIdle	= FileTimeToInt64 (IdleTime);
+	thisKernel	= FileTimeToInt64 (KernelTime);
+	thisUser	= FileTimeToInt64 (UserTime);
+	idle_time	= (size_t) thisIdle;
+	total_time	= (size_t)(thisKernel + thisUser);
+	return true;
+}
+#else
+std::vector<size_t> get_cpu_times() {
+	std::ifstream proc_stat ("/proc/stat");
+	proc_stat. ignore (5, ' ');    // Skip the 'cpu' prefix.
+	std::vector<size_t> times;
+	for (size_t time; proc_stat >> time; times. push_back (time));
+	return times;
+}
+ 
+bool get_cpu_times (size_t &idle_time, size_t &total_time) {
+	const std::vector <size_t> cpu_times = get_cpu_times();
+	if (cpu_times. size() < 4)
+	   return false;
+	idle_time  = cpu_times [3];
+	total_time = std::accumulate (cpu_times. begin(), cpu_times. end(), 0);
+	return true;
+}
 #endif
 
 #include	"deviceselect.h"
@@ -138,8 +181,9 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
  * @version 0.98
  * @date 2015-01-07
  */
-	RadioInterface::RadioInterface (QSettings *Si,
-	                                QString saveName,
+	RadioInterface::RadioInterface (QSettings	*Si,
+	                                QString		saveName,
+	                                ThemeChoser	*themeChooser,
 	                                int32_t outputRate,
 	                                QWidget *parent):
 	                                        QDialog (parent),
@@ -153,6 +197,7 @@ int     k;
 
 	setupUi (this);
 	fmSettings		= Si;
+	this	-> themeChooser	= themeChooser;
 
 	configWidget. setupUi (&configDisplay);
 	runMode. store (ERunStates::IDLE);
@@ -209,6 +254,7 @@ int     k;
 //
 	this		-> workingRate = 48000;
 
+
 	myFMprocessor	= nullptr;
 	our_audioSink	= new audioSink (this -> audioRate, 16384);
 	outTable. resize (our_audioSink -> numberofDevices () + 1);
@@ -247,6 +293,10 @@ int     k;
   	restoreGUIsettings (fmSettings);
 //
 //
+	int x = fmSettings -> value ("closeDirect", 0). toInt ();
+        if (x != 0)
+           configWidget. closeDirect -> setChecked (true);
+
 	configWidget. incrementFlag ->
 	                 setStyleSheet ("QLabel {background-color:blue}");
 	configWidget. incrementFlag -> setText(" ");
@@ -378,9 +428,9 @@ int     k;
 	      TerminateProcess ();
 	}
 
-	for (auto name : sThemeChoser. get_style_sheet_names() )
-		cbThemes -> addItem (name);
-	cbThemes -> setCurrentIndex(sThemeChoser. get_curr_style_sheet_idx() );
+	for (auto name : themeChooser -> get_style_sheet_names ())
+	   cbThemes -> addItem (name);
+	cbThemes -> setCurrentIndex (themeChooser -> get_curr_style_sheet_idx());
 }
 
 void	RadioInterface::quickStart () {
@@ -469,7 +519,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	                             maxLoopFrequency);
 
 	s	-> setValue ("peakLevelDelaySteps",
-	                             sbDispDelay	-> value ());
+	                             configWidget. sbDispDelay	-> value ());
 
 	s -> setValue ("styleSheet", cbThemes -> currentText ());
 
@@ -559,9 +609,9 @@ bool r = false;
 	         this, [this](bool isChecked){ myFMprocessor->setDCRemove(isChecked); });
 	connect (volumeSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_AudioGainSlider (int)));
-	connect (cbTestTone, &QCheckBox::clicked,
-	         this, [this](bool isChecked){myFMprocessor->setTestTone(isChecked); });
-	connect (sbDispDelay, SIGNAL (valueChanged (int)),
+	connect (configWidget. cbTestTone, SIGNAL (stateChanged (int)),
+	         this,  SLOT (handle_cbTestTone (int)));
+	connect (configWidget. sbDispDelay, SIGNAL (valueChanged (int)),
 	         this,  SLOT (handle_sbDispDelay (int)));
 	connect (btnRestartPSS, &QAbstractButton::clicked,
 	         this, [this](){myFMprocessor -> restartPssAnalyzer(); });
@@ -958,7 +1008,7 @@ void	RadioInterface::make_newProcessor () {
 	handle_loggingButton	(configWidget. loggingButton	-> currentText ());
 	hfScope			->setBitDepth		(myRig	-> bitDepth ());
 
-	handle_sbDispDelay	(sbDispDelay		-> value ());
+	handle_sbDispDelay	(configWidget. sbDispDelay	-> value ());
 	handle_fmStereoBalanceSlider	(fmStereoBalanceSlider	-> value ());
 	handle_fmStereoPanoramaSlider	(fmStereoPanoramaSlider -> value ());
 }
@@ -1238,10 +1288,26 @@ void	RadioInterface::handle_f_min	() {
 	stopIncrementing ();
 	currentFreq = setTuner (currentFreq - Khz(fmIncrement));
 }
+
 //
+static size_t previous_idle_time        = 0;
+static size_t previous_total_time       = 0;
+
 void	RadioInterface::updateTimeDisplay () {
 QDateTime	currentTime = QDateTime::currentDateTime ();
+static int numberofSeconds	= 0;
 
+	numberofSeconds ++;
+	if ((numberofSeconds % 2) == 0) {
+	   size_t idle_time, total_time;
+	   get_cpu_times (idle_time, total_time);
+	   const float idle_time_delta = idle_time - previous_idle_time;
+	   const float total_time_delta = total_time - previous_total_time;
+	   const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+	   configWidget. cpuMonitor -> display (utilization);
+	   previous_idle_time	= idle_time;
+	   previous_total_time	= total_time;
+	}
 	timeDisplay	-> setText (currentTime.
 	                            toString (QString ("dd.MM.yy hh:mm:ss")));
 }
@@ -1428,7 +1494,6 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (handle_PlotZoomFactor (const QString &)));
 	connect (cbThemes, SIGNAL (activated (int)),
 	         this, SLOT (handle_cbThemes (int)));
-
 }
 
 void	RadioInterface::handle_fmStereoPanoramaSlider (int n) {
@@ -1606,8 +1671,8 @@ void	RadioInterface::handle_plotTypeSelector (const QString &s) {
 }
 
 void	RadioInterface::handle_cbThemes (int idx) {
-	const int idxCur = sThemeChoser. get_curr_style_sheet_idx();
-	sThemeChoser. set_curr_style_sheet_idx(idx);
+const int idxCur = themeChooser -> get_curr_style_sheet_idx ();
+	themeChooser -> set_curr_style_sheet_idx (idx);
 
 // restart program if theme changed
 	if (idx != idxCur) {
@@ -2143,7 +2208,7 @@ int     k;
 	   fmLFcutoff -> setCurrentIndex (k);
 
 	k	= s -> value ("peakLevelDelaySteps", 20). toInt ();
-	sbDispDelay -> setValue (k);
+	configWidget. sbDispDelay -> setValue (k);
 }
 
 //	For different input rates we select different rates for the
@@ -2208,6 +2273,14 @@ void	RadioInterface::reset_afc () {
 
 #include <QCloseEvent>
 void	RadioInterface::closeEvent (QCloseEvent *event) {
+	int x	= configWidget. closeDirect -> isChecked () ? 1 : 0;
+	fmSettings -> setValue ("closeDirect", x);
+	if (x != 0) {
+	   TerminateProcess ();
+	   event	-> accept ();
+	   return;
+	}
+	   
 	QMessageBox::StandardButton resultButton =
 	        QMessageBox::question (this, "Quitting fmreceiver?",
 	                               tr("Are you sure?\n"),
@@ -2242,5 +2315,11 @@ void	RadioInterface::handle_configButton	() {
 	   configDisplay. show ();
 	else
 	   configDisplay. hide ();
+}
+
+void	RadioInterface::handle_cbTestTone (int v) {
+(void)v;
+bool b	= configWidget. cbTestTone -> isChecked ();
+	myFMprocessor->setTestTone (b);
 }
 
