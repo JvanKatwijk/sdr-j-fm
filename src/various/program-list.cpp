@@ -39,7 +39,7 @@
         tableWidget     = new QTableWidget (0, 2);
         myWidget        -> setWidget(tableWidget);
         tableWidget     -> setHorizontalHeaderLabels (
-                    QStringList () << tr ("station") << tr ("frequency"));
+                    QStringList () << tr ("Station") << tr ("Frequency"));
 
 	tableWidget	-> verticalHeader ()	-> setVisible (false);
 	connect (tableWidget, SIGNAL (cellClicked (int, int)),

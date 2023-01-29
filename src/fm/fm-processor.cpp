@@ -708,14 +708,6 @@ int		iqCounter	= 0;
 	               break;
 	            default:;
 	         }
-
-	         std::complex<float> zeroVal(0.0f);
-	         iqBuffer -> putDataIntoBuffer (&zeroVal, 1);
-	         iqCounter ++;
-	         if (iqCounter > 100) {
-	            emit iqBufferLoaded ();
-	            iqCounter = 0;
-	         }
 	      }
 
 	      if (fmAudioFilterActive. load ()) {
@@ -731,7 +723,8 @@ int		iqCounter	= 0;
 	            spectrumBuffer_lf. push_back (std::complex<float> (0, 0));
 	            break;
 	         case ELfPlot::IF_FILTERED:
-	            spectrumBuffer_lf. push_back (v);
+	            // TODO: somehow the IF level got much higher, reduce level here for the scope
+	            spectrumBuffer_lf. push_back (v * 0.05f);
 	            break;
 	         case ELfPlot::DEMODULATOR:
 	            spectrumBuffer_lf. push_back (demod);

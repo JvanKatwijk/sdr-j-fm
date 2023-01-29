@@ -302,7 +302,7 @@
      <item>
       <widget class="QCheckBox" name="cbTestTone">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable/disable calibration test tone (consisting of short tone blings) to optimize the set up of the peak level delay setting&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable/disable calibration test tone (consisting of short tone pings) to optimize the set up of the peak level delay setting&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>set test tone</string>
