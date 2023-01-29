@@ -53,7 +53,7 @@ DSPCOMPLEX	Oscillator::nextValue (int32_t step) {
 	else
 	if (LOPhase >= Rate)
 	   LOPhase -= Rate;
-
+//	LOPhase	= (LOPhase + Rate) % Rate;
 	return OscillatorValues [LOPhase];
 }
 

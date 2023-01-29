@@ -261,7 +261,7 @@ int     k;
 	for (i = 0; i < our_audioSink -> numberofDevices (); i++) 
 	   outTable [i] = -1;
 
-	if (!setupSoundOut (streamOutSelector,
+	if (!setupSoundOut (configWidget. streamOutSelector,
 	                    our_audioSink,
 	                    this -> audioRate,
 	                    outTable)) {
@@ -273,9 +273,9 @@ int     k;
    */
 	h = fmSettings -> value ("streamOutSelector",
 	                              "default"). toString ();
-	k = streamOutSelector -> findText (h);
+	k = configWidget. streamOutSelector -> findText (h);
 	if (k != -1) {
-	   streamOutSelector -> setCurrentIndex (k);
+	   configWidget. streamOutSelector -> setCurrentIndex (k);
 	   handle_StreamOutSelector (k);
 	}
 
@@ -429,8 +429,8 @@ int     k;
 	}
 
 	for (auto name : themeChooser -> get_style_sheet_names ())
-	   cbThemes -> addItem (name);
-	cbThemes -> setCurrentIndex (themeChooser -> get_curr_style_sheet_idx());
+	   configWidget. cbThemes -> addItem (name);
+	configWidget. cbThemes -> setCurrentIndex (themeChooser -> get_curr_style_sheet_idx());
 }
 
 void	RadioInterface::quickStart () {
@@ -509,7 +509,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("logging",
 	                             configWidget. loggingButton	-> currentText ());
 	s	-> setValue ("streamOutSelector",
-	                             streamOutSelector	-> currentText ());
+	                             configWidget. streamOutSelector	-> currentText ());
 
 	s	-> setValue ("currentFreq",
 	                             currentFreq);
@@ -521,7 +521,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("peakLevelDelaySteps",
 	                             configWidget. sbDispDelay	-> value ());
 
-	s -> setValue ("styleSheet", cbThemes -> currentText ());
+	s -> setValue ("styleSheet", configWidget. cbThemes -> currentText ());
 
 	s	-> sync ();
 //	Note that settings for the device used will be restored
@@ -1440,7 +1440,7 @@ SF_INFO sf_info;
 void    RadioInterface::localConnects (void) {
 	connect (pauseButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_pauseButton ()));
-	connect (streamOutSelector, SIGNAL (activated (int)),
+	connect (configWidget. streamOutSelector, SIGNAL (activated (int)),
 	         this, SLOT (handle_StreamOutSelector (int)));
 	connect (configWidget. dumpButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_dumpButton ()));
@@ -1492,7 +1492,7 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (handle_plotTypeSelector (const QString &)));
 	connect (plotFactor, SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_PlotZoomFactor (const QString &)));
-	connect (cbThemes, SIGNAL (activated (int)),
+	connect (configWidget. cbThemes, SIGNAL (activated (int)),
 	         this, SLOT (handle_cbThemes (int)));
 }
 

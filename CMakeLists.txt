@@ -196,6 +196,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/scopes-qwt6/fft-scope.h 
 	     ./includes/fm/fm-demodulator.h 
 	     ./includes/fm/pilot-recover.h 
+	     ./includes/fm/stereo-separation.h 
 	     ./includes/fm/fm-processor.h 
 	     ./includes/rds/rds-decoder.h 
 	     ./includes/rds/rds-blocksynchronizer.h 
@@ -234,6 +235,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/scopes-qwt6/fft-scope.cpp 
 	      ./src/fm/fm-demodulator.cpp 
 	      ./src/fm/pilot-recover.cpp 
+	      ./src/fm/stereo-separation.cpp 
 	      ./src/fm/fm-processor.cpp 
 	      ./src/rds/rds-decoder.cpp 
 	      ./src/rds/rds-blocksynchronizer.cpp 

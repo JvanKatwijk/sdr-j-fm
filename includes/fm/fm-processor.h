@@ -36,6 +36,7 @@
 #include	"oscillator.h"
 
 #include	"pilot-recover.h"
+#include	"stereo-separation.h"
 #include	"fm-demodulator.h"
 #include	"rds-decoder.h"
 #include	"newconverter.h"
@@ -186,7 +187,6 @@ private:
 	DSPFLOAT 	getSignal		(DSPCOMPLEX *, int32_t);
 	DSPFLOAT 	getNoise		(DSPCOMPLEX *, int32_t);
 
-
 //	the privates
 private:
 	rdsDecoder	myRdsDecoder;
@@ -201,6 +201,8 @@ private:
 	PerfectStereoSeparation pPSS;
 	fftFilter	rdsBandPassFilter;
 	fftFilterHilbert rdsHilbertFilter;
+	squelch		mySquelch;
+	fm_Demodulator	theDemodulator;
 
 	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
@@ -217,16 +219,14 @@ private:
 	int32_t		averageCount;
 	int32_t		repeatRate;
 	int		ptyLocale;
-	bool		fillAveragehfBuffer;
-	bool		fillAveragelfBuffer;
+	bool		averagehfBuffer_full;
+	bool		averagelfBuffer_full;
 	RingBuffer<double> *hfBuffer;
 	RingBuffer<double> *lfBuffer;
 	RingBuffer<DSPCOMPLEX> *iqBuffer;
-	uint8_t		inputMode;
 	bool		scanning;
 	int16_t		thresHold;
 
-	squelch		*mySquelch;
 	ESqMode		squelchMode;
 	int32_t		spectrumSize;
 	common_fft	*spectrum_fft_hf;
@@ -259,8 +259,8 @@ private:
 	DSPFLOAT	absPeakLeft;
 	DSPFLOAT	absPeakRight;
 
-	int32_t	suppressAudioSampleCntMax;
-	int32_t	suppressAudioSampleCnt;
+	int32_t		suppressAudioSampleCntMax;
+	int32_t		suppressAudioSampleCnt;
 
 	struct TestTone {
 	   bool		Enabled		= false;
@@ -298,7 +298,6 @@ private:
 	FM_Mode		fmModus;
 	uint8_t		soundSelector;
 
-	fm_Demodulator	*theDemodulator;
 	rdsDecoder::ERdsMode rdsModus;
 
 #ifdef USE_EXTRACT_LEVELS
@@ -316,7 +315,7 @@ private:
 	int32_t		spectrumSampleRate;
 	int32_t		zoomFactor;
 
-	SMetaData metaData {};
+	SMetaData	metaData {};
 
 signals:
 	void		setPLLisLocked		(bool);
@@ -327,8 +326,6 @@ signals:
 	void		scanresult		();
 	void		showPeakLevel		(const float, const float);
 };
-
-//Q_DECLARE_METATYPE(fmProcessor::SMetaData)
 
 #endif
 

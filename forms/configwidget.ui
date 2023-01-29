@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>486</width>
-    <height>301</height>
+    <height>352</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -315,6 +315,16 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delay, in steps of 20 msec, for the peak level meter. Calibrate with the test tone generator the optimal setting, i.e. until the peak level correlates with the signal tone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QComboBox" name="streamOutSelector"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cbThemes"/>
      </item>
     </layout>
    </item>

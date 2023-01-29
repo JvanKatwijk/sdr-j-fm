@@ -10,9 +10,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1501</width>
-    <height>671</height>
+    <width>1689</width>
+    <height>490</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1690</width>
+    <height>490</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>sdr_j_fm - modified by tomneda</string>
@@ -519,6 +525,32 @@
        </item>
       </layout>
      </item>
+     <item>
+      <widget class="QComboBox" name="streamOutSelector">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>36</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>8</pointsize>
+         <weight>50</weight>
+         <italic>true</italic>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-style:normal;&quot;&gt;Select a device for the audio output. Default is a &amp;quot;default&amp;quot; channel selected.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>select output</string>
+        </property>
+       </item>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -734,7 +766,7 @@
         <widget class="QwtPlot" name="lfscope">
          <property name="maximumSize">
           <size>
-           <width>400</width>
+           <width>16777215</width>
            <height>301</height>
           </size>
          </property>
@@ -1265,6 +1297,19 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="pauseButton">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>36</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Pause</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -1482,6 +1527,35 @@
           </widget>
          </item>
          <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QSlider" name="squelchSlider">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the level where the squelch will be activated, i.e. below that level the audio is assumed to be just noise and will be reduced by 32dB.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="sliderPosition">
+            <number>50</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QComboBox" name="squelchSelector">
@@ -1515,31 +1589,21 @@
           </layout>
          </item>
          <item>
-          <widget class="QSlider" name="squelchSlider">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the level where the squelch will be activated, i.e. below that level the audio is assumed to be just noise and will be reduced by 32dB.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <widget class="QComboBox" name="cbThemes">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="maximum">
-            <number>100</number>
-           </property>
-           <property name="sliderPosition">
-            <number>50</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pauseButton">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
              <height>36</height>
             </size>
            </property>
-           <property name="text">
-            <string>Pause</string>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the Theme (Style Sheet)&lt;/p&gt;&lt;p&gt;ATTENTION: The program will be restarted that the new Theme takes effect.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -1790,16 +1854,6 @@
             </widget>
            </item>
           </layout>
-         </item>
-         <item>
-          <widget class="QPushButton" name="configButton">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;show (or hide) a separate widget with some more controls and displays&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>config </string>
-           </property>
-          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_2">
@@ -2218,6 +2272,13 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="configButton">
+           <property name="text">
+            <string>config </string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

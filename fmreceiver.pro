@@ -10,12 +10,12 @@ QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -flto -ffast-math
+MAKE_CFLAGS	+= -flto -ffast-math
 QMAKE_CXXFLAGS	+= -flto -ffast-math
 QMAKE_LFLAGS	+= -flto -ffast-math
-#QMAKE_CXXFLAGS	+= -g
-#QMAKE_CFLAGS	+= -g
-#QMAKE_LFLAGS	+= -g
+#QMAKE_CXXFLAGS	+= -pg
+#QMAKE_CFLAGS	+= -pg
+#QMAKE_LFLAGS	+= -pg
 QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -86,6 +86,7 @@ HEADERS += ./radio.h \
 	   ./includes/scopes-qwt6/fft-scope.h \
 	   ./includes/fm/fm-demodulator.h \
 	   ./includes/fm/pilot-recover.h \
+	   ./includes/fm/stereo-separation.h \
 	   ./includes/fm/fm-processor.h \
 	   ./includes/rds/rds-decoder.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
@@ -119,13 +120,14 @@ SOURCES += ./main.cpp \
 	   ./src/various/fft-filters.cpp \
 	   ./src/various/iir-filters.cpp \
 	   ./src/various/Xtan2.cpp \
-		./src/various/themechoser.cpp \
-		./src/output/audiosink.cpp \
+	   ./src/various/themechoser.cpp \
+	   ./src/output/audiosink.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
 	   ./src/scopes-qwt6/fft-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
 	   ./src/fm/pilot-recover.cpp \
+	   ./src/fm/stereo-separation.cpp \
 	   ./src/fm/fm-processor.cpp \
 	   ./src/rds/rds-decoder.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \

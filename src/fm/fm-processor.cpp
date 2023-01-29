@@ -85,7 +85,14 @@
 	                             rdsBandPassFilter (FFT_SIZE,
 	                                           PILOTFILTER_SIZE),
 	                             rdsHilbertFilter (FFT_SIZE,
-	                                                PILOTFILTER_SIZE) {
+	                                                PILOTFILTER_SIZE),
+	                             mySquelch (1, 70000, fmRate / 20,
+	                                                   fmRate),
+//
+//	K_FM depends on bandwidth and so,
+//	it is precomputed here
+	                             theDemodulator (fmRate,
+	                                               &mySinCos, 15.466302) {
 	this	-> running. store (false);
 	this	-> myRig		= theDevice;
 	this	-> myRadioInterface	= RI;
@@ -108,16 +115,16 @@
 
 	this	-> audioFrequency	= 15000;
 	this	-> newAudioFilter. store (false);
-	this	-> squelchMode	= ESqMode::OFF;
+	this	-> squelchMode		= ESqMode::OFF;
 	this	-> spectrumSampleRate = fmRate;
-	this	-> iqBuffer	= iqBuffer;
+	this	-> iqBuffer		= iqBuffer;
 //
 //	inits that cannot be done by older GCC versions
-	this	-> fillAveragehfBuffer	= true;
-	this	-> fillAveragelfBuffer	= true;
+	this	-> averagehfBuffer_full	= true;
+	this	-> averagelfBuffer_full	= true;
 	this	-> displayBuffer_lf	= nullptr;
 	this	-> autoMono		= true;
-	this	-> pssActive	= true;
+	this	-> pssActive		= true;
 	this	-> peakLevelCurSampleCnt	= 0;
 	this	-> peakLevelSampleMax	= 0x7FFFFFF;
 	this	-> absPeakLeft		= 0.0f;
@@ -184,7 +191,7 @@
 	DSPFLOAT B_FM    = 2 * (Delta_F + F_G);
 
 	K_FM           = B_FM * M_PI / F_G;
-	theDemodulator = new fm_Demodulator(fmRate, &mySinCos, K_FM);
+
 //
 //	rdsBandPassFilter. setSimple(RDS_FREQUENCY - RDS_WIDTH / 2,
 	rdsBandPassFilter. setBand  (RDS_FREQUENCY - RDS_WIDTH / 2,
@@ -198,11 +205,10 @@
 	dumping  = false;
 	dumpFile = nullptr;
 
-	mySquelch = new squelch (1, 70000, fmRate / 20, fmRate);
 
 	displayBuffer_lf = new double [displaySize];
 
-	connect (mySquelch, SIGNAL (setSquelchIsActive (bool)),
+	connect (&mySquelch, SIGNAL (setSquelchIsActive (bool)),
 	         myRadioInterface, SLOT (setSquelchIsActive (bool)));
 	connect (this, SIGNAL (hfBufferLoaded ()),
 	         myRadioInterface, SLOT (hfBufferLoaded ()));
@@ -232,11 +238,9 @@ fmProcessor::~fmProcessor() {
 	stop();
 
 	delete theConverter;
-	delete theDemodulator;
 	delete spectrum_fft_hf;
 	delete spectrum_fft_lf;
 	delete theConverter;
-	delete mySquelch;
 	delete[] displayBuffer_lf;
 }
 
@@ -277,18 +281,18 @@ void	fmProcessor::set_squelchValue (int16_t n) {
 }
 
 bool	fmProcessor::getSquelchState	() {
-	return mySquelch ->  getSquelchActive  ();
+	return mySquelch. getSquelchActive  ();
 }
 
 DSPFLOAT fmProcessor::get_demodDcComponent () {
 	if (running. load ()) {
-	   return theDemodulator -> get_DcComponent ();
+	   return theDemodulator. get_DcComponent ();
 	}
 	return 0.0;
 }
 
 fm_Demodulator::TDecoderListNames & fmProcessor::listNameofDecoder() {
-	return theDemodulator -> listNameofDecoder();
+	return theDemodulator. listNameofDecoder ();
 }
 //
 //	changing a filter is in two steps: here we set a marker,
@@ -342,7 +346,7 @@ void	fmProcessor::setlfPlotZoomFactor (int32_t ZoomFactor) {
 }
 
 void	fmProcessor::setFMdecoder (const QString &decoder) {
-	theDemodulator -> setDecoder (decoder);
+	theDemodulator. setDecoder (decoder);
 }
 
 void	fmProcessor::setSoundMode (uint8_t selector) {
@@ -490,7 +494,7 @@ int		iqCounter	= 0;
 	   }
 
 	   if (squelchValue != oldSquelchValue) {
-	      mySquelch -> setSquelchLevel (squelchValue);
+	      mySquelch. setSquelchLevel (squelchValue);
 	      oldSquelchValue = squelchValue;
 	   }
 //
@@ -539,9 +543,9 @@ int		iqCounter	= 0;
 	      int32_t zoomFactor = 1;
 	      mapSpectrum (spectrumBuffer_hf, Y_Values, zoomFactor);
 
-	      if (fillAveragehfBuffer) {
+	      if (averagehfBuffer_full) {
 	         fill_average_buffer (Y_Values, displayBuffer_hf);
-	         fillAveragehfBuffer = false;
+	         averagehfBuffer_full = false;
 	      }
 	      else {
 	         add_to_average (Y_Values, displayBuffer_hf);
@@ -605,22 +609,22 @@ int		iqCounter	= 0;
 	         continue; // no signal processing!!!!
 	      }
 
-	      DSPFLOAT demod = theDemodulator -> demodulate (v);
+	      DSPFLOAT demod = theDemodulator. demodulate (v);
 
 	      switch (squelchMode) {
 	         case ESqMode::NSQ:
-	            demod = mySquelch -> do_noise_squelch (demod);
+	            demod = mySquelch. do_noise_squelch (demod);
 	            break;
 
 	         case ESqMode::LSQ:
-	            demod = mySquelch -> do_level_squelch (demod,
-	                                theDemodulator -> get_carrier_ampl ());
+	            demod = mySquelch. do_level_squelch (demod,
+	                                theDemodulator. get_carrier_ampl ());
 	            break;
 
 	         default:;
 	      }
 
-			std::complex<float> audio;
+	      std::complex<float> audio;
 	      std::complex<float> rdsDataCplx;
 
 	      process_signal_with_rds (demod, &audio, &rdsDataCplx);
@@ -705,9 +709,9 @@ int		iqCounter	= 0;
 	            default:;
 	         }
 
-				std::complex<float> zeroVal(0.0f);
-				iqBuffer -> putDataIntoBuffer (&zeroVal, 1);
-				iqCounter ++;
+	         std::complex<float> zeroVal(0.0f);
+	         iqBuffer -> putDataIntoBuffer (&zeroVal, 1);
+	         iqCounter ++;
 	         if (iqCounter > 100) {
 	            emit iqBufferLoaded ();
 	            iqCounter = 0;
@@ -762,12 +766,12 @@ int		iqCounter	= 0;
 //	   here the sample rate is "workingRate" (typ. 48000Ss)
 	         for (int32_t k = 0; k < audioAmount; k++) {
 	            std::complex<float> pcmSample = audioOut [k];
-					if (suppressAudioSampleCnt > 0) {
-						pcmSample *= ((float)suppressAudioSampleCntMax - (float)suppressAudioSampleCnt)
+	            if (suppressAudioSampleCnt > 0) {
+	               pcmSample *= ((float)suppressAudioSampleCntMax - (float)suppressAudioSampleCnt)
 						             / (float)suppressAudioSampleCntMax;
-						--suppressAudioSampleCnt;
-					}
-					insertTestTone (pcmSample);
+	              --suppressAudioSampleCnt;
+	            }
+	            insertTestTone (pcmSample);
 	            evaluatePeakLevel (pcmSample);
 	            sendSampletoOutput (pcmSample);
 	         }
@@ -821,22 +825,24 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   pPSS. reset ();
 	}
 
+
 	if (fmModus != FM_Mode::Mono &&
 	        (pilotLocked || !autoMono)) {
 //	Now we have the right - i.e. synchronized - signal to work with
 	   DSPFLOAT PhaseforLRDiff =
-	               2 * (currentPilotPhase + M_PI_4 + PILOTTESTDELAY) - pilotDelayPSS;
+	               2 * (currentPilotPhase + M_PI_4 + PILOTTESTDELAY) -
+	                                                   pilotDelayPSS;
 //	perform perfect stereo separation (PSS)
-	               pilotDelayPSS = pssActive ?
-	                          this -> pPSS. process_sample (demod,
-	                                                        PhaseforLRDiff)
-	                          : 0;
+	   pilotDelayPSS = pssActive ?
+	              this -> pPSS. process_sample (demod, PhaseforLRDiff)
+	              : 0;
 
 //	we look for minimum correlation so mix with PI/2 phase shift
-	   DSPFLOAT LRDiff = 2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?
+	   DSPFLOAT LRDiff =
+	             2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?
 	                      mySinCos. getSin (PhaseforLRDiff) :
-		                 mySinCos. getCos (PhaseforLRDiff)) * demod;
-		DSPFLOAT LRPlus = demod;
+	                      mySinCos. getCos (PhaseforLRDiff)) * demod;
+	   DSPFLOAT LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
@@ -1006,7 +1012,8 @@ DSPFLOAT sum = 0;
 }
 
 void	fmProcessor::mapSpectrum (const DSPCOMPLEX * const in,
-	                          double * const out, int32_t &ioZoomFactor) {
+	                          double * const out,
+	                          int32_t &ioZoomFactor) {
 int16_t factor = spectrumSize / displaySize;  // typ factor = 4 (whole divider)
 
 	if (factor / ioZoomFactor >= 1) {
@@ -1074,9 +1081,9 @@ std::complex<float> *spectrumBuffer	= spectrum_fft_lf -> getVector ();
 	else 
 	   mapHalfSpectrum (spectrumBuffer, Y_Values, l_zoomFactor);
 
-	if (fillAveragelfBuffer) {
+	if (averagelfBuffer_full) {
 	   fill_average_buffer (Y_Values, displayBuffer_lf);
-	   fillAveragelfBuffer = false;
+	   averagelfBuffer_full = false;
 	}
 	else 
 	  add_to_average (Y_Values, displayBuffer_lf);
@@ -1192,11 +1199,11 @@ void	fmProcessor::setDCRemove	(const bool iDCREnabled) {
 }
 
 void	fmProcessor::triggerDrawNewHfSpectrum	() {
-	fillAveragehfBuffer = true;
+	averagehfBuffer_full = true;
 }
 
 void	fmProcessor::triggerDrawNewLfSpectrum	() {
-	fillAveragelfBuffer = true;
+	averagelfBuffer_full = true;
 }
 
 void	fmProcessor::setTestTone		(const bool iTTEnabled) {
