@@ -204,7 +204,7 @@ private:
 	std::atomic<ERunStates>	runMode;
 	void		setup_IQPlot		();
 
-	QLineEdit	*myLine;
+	QLineEdit	myLine;
 	programList	*myProgramList;
   /*
    *	The private slots link the GUI elements

@@ -195,18 +195,21 @@ int16_t i;
 QString h;
 int     k;
 
-	setupUi (this);
-	fmSettings		= Si;
+   setupUi (this);
+   fmSettings		= Si;
 	this	-> themeChooser	= themeChooser;
 
 	configWidget. setupUi (&configDisplay);
 	runMode. store (ERunStates::IDLE);
 	squelchMode		= false;
 //
-//	Added: cannot compile on Ubuntu 16
+//	Added: cannot compile on Ubuntu 16 -> using old QT version?
+// with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
-//	setWindowFlag (Qt::WindowMinimizeButtonHint, true);
-//	setWindowFlag (Qt::WindowMaximizeButtonHint, true);
+// Providing following via QDialog constructor was not working properly
+	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
+	fprintf (stderr, "Window size width %d, height %d\n", size().width(),  size().height());
+	//resize (1200, 540);
 
 	thermoPeakLevelLeft	-> setFillBrush (Qt::darkBlue);
 	thermoPeakLevelRight	-> setFillBrush (Qt::darkBlue);
@@ -386,7 +389,6 @@ int     k;
 	scrollStationList	-> setWidgetResizable (true);
 	myProgramList		= new programList (this, saveName, scrollStationList);
 //
-	myLine = nullptr;
 	connect (freqSave, SIGNAL (clicked ()),
 	         this, SLOT (handle_freqSaveButton ()));
 	connect	(cbAfc, SIGNAL (stateChanged (int)),
@@ -1584,9 +1586,9 @@ void	RadioInterface::setStationLabel (const QString &s) {
 
 void	RadioInterface::setMusicSpeechFlag (int n) {
 	if (n != 0)
-	   speechLabel -> setText (QString ("music"));
+	   speechLabel -> setText (QString ("Music"));
 	else
-	   speechLabel -> setText (QString ("speech"));
+	   speechLabel -> setText (QString ("Speech"));
 }
 
 void	RadioInterface::clearMusicSpeechFlag () {
@@ -1733,8 +1735,8 @@ int32_t	numberofDigits (int32_t f) {
 }
 
 void	RadioInterface::Display	(int32_t freq) {
-	lcd_Frequency	-> setDigitCount (6);
-	lcd_Frequency	-> display ((int)freq / KHz (1));
+	// do rounding as AFC can cause a tiny drift in frequency
+	lcd_Frequency	-> display ((int)(freq + Hz (500)) / KHz (1));
 }
 
 void	RadioInterface::handle_fmFilterSelect (const QString &s) {
@@ -2245,25 +2247,26 @@ void	RadioInterface::newFrequency	(int f) {
 }
 
 void	RadioInterface::handle_freqSaveButton	() {
-	myLine	= new QLineEdit ();
-	myLine	-> show ();
-	connect (myLine, SIGNAL (returnPressed ()),
+	//myLine	= new QLineEdit ();
+	myLine. show ();
+	connect (&myLine, SIGNAL (returnPressed ()),
 	         this, SLOT (handle_myLine ()));
 }
 
 void	RadioInterface::handle_myLine () {
 int32_t freq        = myRig -> getVFOFrequency () + LOFrequency;
-QString programName	= myLine -> text ();
+QString programName	= myLine . text ();
+   myLine. setText(""); // next "show" should be empty text
+   disconnect (&myLine, SIGNAL (returnPressed ()),
+               this, SLOT (handle_myLine ()));
+   myLine. hide ();
 
 	fprintf (stderr, "adding %s %s\n",
 	                 programName. toLatin1 (). data (),
 	                 QString::number (freq / Khz(1)). toLatin1 ().data());
-	myProgramList	-> addRow (programName, QString::number (freq / Khz(1)));
+	myProgramList	-> addRow (programName, QString::number ((freq + Hz (500)) / Khz(1)));
 //	fprintf (stderr, "added %s %d gelukt\n",
 //	                     programName. toLatin1 (). data (), freq);
-	delete myLine;
-//	fprintf (stderr, "delete line afgerond\n");
-	myLine = nullptr;
 }
 
 void	RadioInterface::reset_afc () {

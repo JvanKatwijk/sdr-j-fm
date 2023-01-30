@@ -242,7 +242,10 @@ uint16_t textPart1, textPart2;
 
 //	Reset the segment buffer
 	   textSegmentRegister = 0;
-	   memset (textBuffer, (new_txtABflag == 0 ? '.' : ','),
+// Test output for debug reasons but annoying a bit in GUI
+//	   memset (textBuffer, (new_txtABflag == 0 ? '.' : ','),
+//	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
+		memset (textBuffer, ' ',
 	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
 	   setRadioText (textBuffer);
 	}
