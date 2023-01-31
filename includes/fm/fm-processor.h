@@ -202,6 +202,7 @@ private:
 	fftFilter	rdsBandPassFilter;
 	fftFilterHilbert rdsHilbertFilter;
 	squelch		mySquelch;
+	newConverter	theConverter;
 	fm_Demodulator	theDemodulator;
 
 	std::atomic<bool>	fmFilterOn;
@@ -234,7 +235,6 @@ private:
 	DSPCOMPLEX	*spectrumBuffer_hf;
 	std::vector<std::complex<float>> spectrumBuffer_lf;
 	double		*displayBuffer_lf;
-	newConverter	*theConverter;
 	int32_t		loFrequency;
 	std::atomic<bool> running;
 	int32_t		fmBandwidth;
@@ -274,7 +274,7 @@ private:
 
 	DelayLine<DSPCOMPLEX> delayLine {std::complex<float> (-40.0f, -40.0f)};
 
-	void	process_signal_with_rds (const float,
+	void		process_signal_with_rds (const float,
 	                                 std::complex<float> *,
 	                                 std::complex<float> *);
 //	RDS

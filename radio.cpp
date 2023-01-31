@@ -34,11 +34,9 @@
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
-//#include	"popup-keypad.h"
 #include	"rds-decoder.h"
 #include	"themechoser.h"
 #include	"program-list.h"
-#include	"themechoser.h"
 #include	"device-handler.h"
 #include	"filereader.h"
 #ifdef HAVE_SDRPLAY

@@ -13,10 +13,13 @@ QMAKE_CXXFLAGS  += -std=c++14
 MAKE_CFLAGS	+= -flto -ffast-math
 QMAKE_CXXFLAGS	+= -flto -ffast-math
 QMAKE_LFLAGS	+= -flto -ffast-math
-#QMAKE_CXXFLAGS	+= -pg
-#QMAKE_CFLAGS	+= -pg
-#QMAKE_LFLAGS	+= -pg
-QMAKE_CXXFLAGS += -isystem $$[QT_INSTALL_HEADERS]
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_CFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
+#QMAKE_CXXFLAGS	+= -fsanitize=address
+#QMAKE_CFLAGS	+= -fsanitize=address
+#QMAKE_LFLAGS	+= -fsanitize=address
+QMAKE_CXXFLAGS	+= -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
 

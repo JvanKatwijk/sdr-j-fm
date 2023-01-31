@@ -88,6 +88,9 @@
 	                                                PILOTFILTER_SIZE),
 	                             mySquelch (1, 70000, fmRate / 20,
 	                                                   fmRate),
+		                     theConverter  (workingRate,
+	                                            audioRate,
+	                                            workingRate / 20),
 //
 //	K_FM depends on bandwidth and so,
 //	it is precomputed here
@@ -133,7 +136,7 @@
 	this	-> panorama		= 1.0f;
 
 	this	-> suppressAudioSampleCntMax	= workingRate / 2; // suppress audio 0.5 second
-	this	-> suppressAudioSampleCnt		= suppressAudioSampleCntMax; // suppress audio while startup
+	this	-> suppressAudioSampleCnt	= suppressAudioSampleCntMax; // suppress audio while startup
 
 	this	-> rdsModus		= rdsDecoder::ERdsMode::RDS_OFF;
 	this	-> DCREnabled		= true;
@@ -226,21 +229,15 @@
 	squelchValue     = 0;
 	oldSquelchValue = 0;
 
-	theConverter = nullptr;
-	if (audioRate != workingRate) {
-	   theConverter = new newConverter (workingRate,
-	                                    audioRate, workingRate / 20);
-	}
 	myCount = 0;
 }
 
 fmProcessor::~fmProcessor() {
 	stop();
 
-	delete theConverter;
-	delete spectrum_fft_hf;
-	delete spectrum_fft_lf;
-	delete theConverter;
+	delete	spectrum_fft_hf;
+	delete	spectrum_fft_lf;
+	delete	spectrumBuffer_hf;
 	delete[] displayBuffer_lf;
 }
 
@@ -850,6 +847,8 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
+//
+//	The "range" of the Phase is now -6 * M_PI .. 6 * M_PI
 	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
 	}
 }
@@ -926,9 +925,9 @@ void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {
 	   return;
 	}
 
-	DSPCOMPLEX out [theConverter -> getOutputsize ()];
+	DSPCOMPLEX out [theConverter. getOutputsize ()];
 	int32_t    amount;
-	if (theConverter -> convert (s, out, &amount)) {
+	if (theConverter. convert (s, out, &amount)) {
 	   for (int32_t i = 0; i < amount; i++) {
 	      theSink -> putSample (out [i]);
 	   }

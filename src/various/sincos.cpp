@@ -79,21 +79,15 @@ DSPFLOAT	SinCos::getSin (DSPFLOAT Phase) {
 }
 
 DSPFLOAT	SinCos::getCos (DSPFLOAT Phase) {
-	if (Phase >= 0)
-	   return real (Table [(int32_t (Phase * C)) % Rate]);
-	else
-	   return real (Table [Rate - (int32_t ( - Phase * C)) % Rate]);
-	if (Phase < 0)
-	   Phase = -Phase;
-	return real (Table [fromPhasetoIndex (Phase)]);
+	while (Phase < 0) Phase += 2 * M_PI;
+	Phase = fmod (Phase, 2 * M_PI);
+	return  real (Table [(int32_t (Phase * C)) % Rate]);
 }
 
 DSPCOMPLEX	SinCos::getComplex (DSPFLOAT Phase) {
-	if (Phase >= 0)
-	   return Table [(int32_t (Phase * C)) % Rate];
-	else
-	   return Table [Rate - (int32_t ( - Phase * C)) % Rate];
-	return Table [fromPhasetoIndex (Phase)];
+	while (Phase < 0) Phase += 2 * M_PI;
+	Phase = fmod (Phase, 2 * M_PI);
+	return Table [(int32_t (Phase * C)) % Rate];
 }
 
 
