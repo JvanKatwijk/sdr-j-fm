@@ -369,12 +369,12 @@ int     k;
 	currentPIcode		= 0;
 	frequencyforPICode	= 0;
 	theSelector		-> hide ();
-	myRig			= new deviceHandler ();
+	theDevice		= new deviceHandler ();
 	currentFreq		= setTuner (Khz (94700));
-	inputRate		= myRig -> getRate ();
+	inputRate		= theDevice -> getRate ();
 
-	hfScope		-> setBitDepth (myRig -> bitDepth ());
-	lfScope		-> setBitDepth (myRig -> bitDepth ());
+	hfScope		-> setBitDepth (theDevice -> bitDepth ());
+	lfScope		-> setBitDepth (theDevice -> bitDepth ());
 //
 	connect (configWidget. fm_increment, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fm_increment (int)));
@@ -541,7 +541,7 @@ bool r = false;
 	   return;
 	}
 
-	r = myRig	-> restartReader ();
+	r = theDevice	-> restartReader ();
 //	qDebug ("Starting %d\n", r);
 	if (!r) {
 	   QMessageBox::warning(this, tr("sdr"),
@@ -649,7 +649,7 @@ void	RadioInterface::TerminateProcess () {
   //	It is pretty important that no one is attempting to
   //	set things within the FMprocessor when it is
   //	being deleted
-	myRig		-> stopReader ();
+	theDevice		-> stopReader ();
   	myFMprocessor	-> stop ();
 //
 //	fmProcessor and device are stopped
@@ -660,7 +660,7 @@ void	RadioInterface::TerminateProcess () {
 	accept();
 
 	qDebug () << "Termination started";
-	delete myRig;
+	delete		theDevice;
 	delete		our_audioSink;
 	delete		myProgramList;
 	delete		hfScope;
@@ -698,7 +698,7 @@ void	RadioInterface::stopDumping () {
 //	the other one, ExtFreq, requests the client program
 //	to adapt its (local) tuning settings to a new frequency
 void	RadioInterface::set_ExtFrequency (int f) {
-int32_t vfo	= myRig -> getVFOFrequency ();
+int32_t vfo	= theDevice -> getVFOFrequency ();
 	(void)f;
 	currentFreq	= vfo + inputRate / 4;
 	LOFrequency	= inputRate / 4;
@@ -726,12 +726,12 @@ void	RadioInterface::set_unlockLO	() {
 }
 
 void	RadioInterface::set_stopHW	() {
-	myRig	-> stopReader ();
+	theDevice	-> stopReader ();
 }
 
 void	RadioInterface::set_startHW	() {
 	if (runMode. load () == ERunStates::RUNNING)
-	   myRig -> restartReader();
+	   theDevice -> restartReader();
 }
 //
 ////	This is a difficult one, everything should go down first
@@ -740,7 +740,7 @@ void	RadioInterface::set_startHW	() {
 //	if (r == inputRate)
 //	   return;
 //	fprintf (stderr, "request for changerate\n");
-//	myRig	-> stopReader ();
+//	theDevice	-> stopReader ();
 //	if (myFMprocessor != nullptr) {
 //	   myFMprocessor	-> stop();
 //	   delete myFMprocessor;
@@ -754,15 +754,15 @@ void	RadioInterface::set_startHW	() {
 //	if (inputRate < Khz (176)) { // rather arbitrarily
 //	   QMessageBox::warning (this, tr("sdr"),
 //	                         tr("Sorry, rate low\n"));
-//	   delete myRig;
-//	   myRig	= new deviceHandler ();
-//	   inputRate	= myRig -> getRate ();
+//	   delete theDevice;
+//	   theDevice	= new deviceHandler ();
+//	   inputRate	= theDevice -> getRate ();
 //	}
 ////
 ////	compute the new fmRate
 ////	fmRate			= mapRates (inputRate);
 ////	ask the new for the frequency
-//	currentFreq		= myRig -> getVFOFrequency () + fmRate / 4;
+//	currentFreq		= theDevice -> getVFOFrequency () + fmRate / 4;
 ////	and show everything
 //	Display (currentFreq);
 //	lcd_fmRate		-> display ((int)this -> fmRate);
@@ -781,9 +781,11 @@ bool    success;
 
 //	The fm processor is a client of the rig, so the
 //	fm processor has to go first
-	if (myRig != nullptr) 
-	   myRig	-> stopReader ();
-	myRig	= nullptr;
+	if (theDevice != nullptr) {
+	   theDevice	-> stopReader ();
+	   delete theDevice;
+	   theDevice	= nullptr;
+	}
 	if (myFMprocessor != nullptr) {
 	   myFMprocessor	->stop ();
 	   delete myFMprocessor;
@@ -792,12 +794,12 @@ bool    success;
 
 	runMode. store (ERunStates::IDLE);
 	ExtioLock	= false;
-	delete myRig;
+	delete theDevice;
 	success		= true;		// default for now
 #ifdef HAVE_SDRPLAY
 	if (s == D_SDRPLAY) {
 	   try {
-	      myRig = new sdrplayHandler (fmSettings);
+	      theDevice = new sdrplayHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -807,7 +809,7 @@ bool    success;
 #ifdef HAVE_SDRPLAY_V3
 	if (s == D_SDRPLAY_V3) {
 	   try {
-	      myRig = new sdrplayHandler_v3 (fmSettings);
+	      theDevice = new sdrplayHandler_v3 (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -817,7 +819,7 @@ bool    success;
 #ifdef HAVE_AIRSPY
 	if (s == D_AIRSPY) {
 	   try {
-	      myRig = new airspyHandler (fmSettings);
+	      theDevice = new airspyHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -827,7 +829,7 @@ bool    success;
 #ifdef HAVE_HACKRF
 	if (s == D_HACKRF) {
 	   try {
-	      myRig = new hackrfHandler (fmSettings);
+	      theDevice = new hackrfHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -837,7 +839,7 @@ bool    success;
 #ifdef HAVE_LIME
 	if (s == D_LIME) {
 	   try {
-	      myRig = new limeHandler (fmSettings);
+	      theDevice = new limeHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -847,7 +849,7 @@ bool    success;
 #ifdef HAVE_PLUTO
 	if (s == D_PLUTO) {
 	   try {
-	      myRig = new plutoHandler (fmSettings);
+	      theDevice = new plutoHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -857,7 +859,7 @@ bool    success;
 #ifdef HAVE_ELAD_S1
 	if (s == D_ELAD_S1) {
 	   try {
-	      myRig = new eladHandler (fmSettings, true, &success);
+	      theDevice = new eladHandler (fmSettings, true, &success);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -867,7 +869,7 @@ bool    success;
 #ifdef HAVE_DABSTICK
 	if (s == D_RTLSDR) {
 	   try {
-	      myRig = new rtlsdrHandler (fmSettings);
+	      theDevice = new rtlsdrHandler (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
@@ -877,7 +879,7 @@ bool    success;
 #ifdef HAVE_EXTIO
 	if (s == D_EXTIO) {
 	   try {
-	      myRig = new ExtioHandler (fmSettings, theSelector, &success);
+	      theDevice = new ExtioHandler (fmSettings, theSelector, &success);
 	   } catch (int e) {
 	      success = false;
 	}
@@ -885,41 +887,41 @@ bool    success;
 #endif
 	if (s == "filereader") {
 	   try {
-	      myRig	= new fileReader (fmSettings);
+	      theDevice	= new fileReader (fmSettings);
 	   } catch (int e) {
 	      success = false;
 	   }
 	}
 	else 
-	   myRig	= new deviceHandler ();
+	   theDevice	= new deviceHandler ();
 
 	if (!success) {
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("loading device failed"));
-	   if (myRig == nullptr)
-	      myRig = new deviceHandler ();	// the empty one
+	   if (theDevice == nullptr)
+	      theDevice = new deviceHandler ();	// the empty one
 	   return nullptr;
 	}
 
-	inputRate = myRig -> getRate ();
+	inputRate = theDevice -> getRate ();
 	if (inputRate < Khz (176)) { // rather arbitrarily
 	   QMessageBox::warning (this, tr ("sdr"),
 	                               tr ("Sorry, rate low\n"));
-	   delete myRig;
-	   myRig	= new deviceHandler ();
-	   inputRate	= myRig -> getRate ();
+	   delete theDevice;
+	   theDevice	= new deviceHandler ();
+	   inputRate	= theDevice -> getRate ();
 	}
 //
 //	ask the new rig for the frequency
 //	fmRate		= mapRates (inputRate);
-	currentFreq	= myRig -> defaultFrequency () + fmRate / 4;
+	currentFreq	= theDevice -> defaultFrequency () + fmRate / 4;
 	currentFreq	= fmSettings -> value ("currentFreq",
 	                                        currentFreq). toInt ();
 	Display (currentFreq);
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
 	lcd_OutputRate		-> display ((int)this -> audioRate);
-//	connect (myRig, SIGNAL (set_changeRate (int)),
+//	connect (theDevice, SIGNAL (set_changeRate (int)),
 //	         this, SLOT (set_changeRate (int)));
 
 #ifdef __MINGW32__
@@ -927,24 +929,24 @@ bool    success;
 	if (s == D_EXTIO) {
 //	and for the extio:
 //	The following signals originate from the Winrad Extio interface
-	   connect (myRig, SIGNAL (set_ExtFrequency (int)),
+	   connect (theDevice, SIGNAL (set_ExtFrequency (int)),
 	            this, SLOT (set_ExtFrequency (int)));
-	   connect (myRig, SIGNAL (set_ExtLO (int)),
+	   connect (theDevice, SIGNAL (set_ExtLO (int)),
 	            this, SLOT (set_ExtLO (int)));
-	   connect (myRig, SIGNAL (set_lockLO ()),
+	   connect (theDevice, SIGNAL (set_lockLO ()),
 	            this, SLOT (set_lockLO ()));
-	   connect (myRig, SIGNAL (set_unlockLO ()),
+	   connect (theDevice, SIGNAL (set_unlockLO ()),
 	            this, SLOT (set_unlockLO ()));
-	   connect (myRig, SIGNAL (set_stopHW ()),
+	   connect (theDevice, SIGNAL (set_stopHW ()),
 	            this, SLOT (set_stopHW ()));
-	   connect (myRig, SIGNAL (set_startHW ()),
+	   connect (theDevice, SIGNAL (set_startHW ()),
 	            this, SLOT (set_startHW ()));
 	}
 #endif
-	myRig -> setVFOFrequency (currentFreq);
+	theDevice -> setVFOFrequency (currentFreq);
 	setStart ();
 	fmSettings	-> setValue ("device", s);
-	return myRig;
+	return theDevice;
 }
 //
 
@@ -979,7 +981,7 @@ void	RadioInterface::make_newProcessor () {
 	int thresHold	
 	         =  fmSettings -> value ("threshold", 20). toInt ();
 	 
-	myFMprocessor = new fmProcessor (myRig,
+	myFMprocessor = new fmProcessor (theDevice,
 	                                 this,
 	                                 our_audioSink,
 	                                 inputRate,
@@ -998,7 +1000,7 @@ void	RadioInterface::make_newProcessor () {
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
 	lcd_OutputRate		-> display ((int)this -> audioRate);
-	hfScope			-> setBitDepth (myRig -> bitDepth ());
+	hfScope			-> setBitDepth (theDevice -> bitDepth ());
 
 	handle_fmFilterSelect	(configWidget. fmFilterSelect	-> currentText ());
 	handle_fmModeSelector	(fmModeSelector		-> currentText ());
@@ -1009,7 +1011,7 @@ void	RadioInterface::make_newProcessor () {
 	handle_squelchSlider	(squelchSlider		-> value ());
 	handle_fmLFcutoff	(fmLFcutoff		-> currentText ());
 	handle_loggingButton	(configWidget. loggingButton	-> currentText ());
-	hfScope			->setBitDepth		(myRig	-> bitDepth ());
+	hfScope			->setBitDepth		(theDevice	-> bitDepth ());
 
 	handle_sbDispDelay	(configWidget. sbDispDelay	-> value ());
 	handle_fmStereoBalanceSlider	(fmStereoBalanceSlider	-> value ());
@@ -1080,7 +1082,7 @@ void	RadioInterface::IncrementFrequency (int32_t n) {
 int32_t vfoFreq;
 
 	stopIncrementing	();
-	vfoFreq		= myRig -> getVFOFrequency	();
+	vfoFreq		= theDevice -> getVFOFrequency	();
 	currentFreq	= setTuner (vfoFreq + LOFrequency + n);
 }
 //	AdjustFrequency is called whenever someone clicks
@@ -1109,12 +1111,12 @@ void	RadioInterface::wheelEvent (QWheelEvent *e) {
 int32_t	RadioInterface::setTuner (int32_t n) {
 int32_t	vfo;
 
-	if (!myRig -> legalFrequency (n))
+	if (!theDevice -> legalFrequency (n))
 	   return Khz (94700);
 //	as long as the requested frequency fits within the current
 //	range - i.e. the full width required for fm demodulation fits -
 //	the vfo remains the same, while the LO is adapted.
-	vfo = myRig -> getVFOFrequency ();
+	vfo = theDevice -> getVFOFrequency ();
 
 	if (ExtioLock) {
 	   return vfo;
@@ -1122,8 +1124,8 @@ int32_t	vfo;
 //
 //	check whether new frequency fits in current window
 	if (abs (n - vfo) > inputRate / 2 - fmRate / 2) {
-	   myRig -> setVFOFrequency (n);
-	   vfo = myRig -> getVFOFrequency ();
+	   theDevice -> setVFOFrequency (n);
+	   vfo = theDevice -> getVFOFrequency ();
 //
 //	we create a new spectrum on a different frequency
 	if (runMode. load () == ERunStates::RUNNING) 
@@ -1921,7 +1923,7 @@ void	RadioInterface::handle_pauseButton () {
 	   if (autoIncrementTimer. isActive ())
 	      autoIncrementTimer. stop ();
 
-	   myRig		-> stopReader	();
+	   theDevice		-> stopReader	();
 	   our_audioSink	-> stop		();
 	   pauseButton -> setText (QString ("Continue"));
 	   runMode = ERunStates::PAUSED;
@@ -1930,7 +1932,7 @@ void	RadioInterface::handle_pauseButton () {
 	if (runMode. load () == ERunStates::PAUSED) {
 	   if (IncrementIndex != 0)	// restart the incrementtimer if needed
 	      autoIncrementTimer. start (IncrementInterval (IncrementIndex));
-	   myRig		-> restartReader ();
+	   theDevice		-> restartReader ();
 	   our_audioSink	-> restart ();
 	   pauseButton		-> setText (QString ("Pause"));
 	   runMode. store (ERunStates::RUNNING);
@@ -1999,7 +2001,7 @@ int32_t vfoFrequency;
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
 
-	vfoFrequency	= myRig -> getVFOFrequency ();
+	vfoFrequency	= theDevice -> getVFOFrequency ();
 
 //	first X axis labels
 	for (int i = 0; i < displaySize; i++) {
@@ -2255,7 +2257,7 @@ void	RadioInterface::handle_freqSaveButton	() {
 }
 
 void	RadioInterface::handle_myLine () {
-int32_t freq        = myRig -> getVFOFrequency () + LOFrequency;
+int32_t freq        = theDevice -> getVFOFrequency () + LOFrequency;
 QString programName	= myLine . text ();
    myLine. setText(""); // next "show" should be empty text
    disconnect (&myLine, SIGNAL (returnPressed ()),

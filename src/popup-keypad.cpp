@@ -89,21 +89,20 @@
 
 
 	keyPad::~keyPad	(void) {
-//	delete	oneButton;
-//	delete	twoButton;
-//	delete	threeButton;
-//	delete	fourButton;
-//	delete	fiveButton;
-//	delete	sixButton;
-//	delete	sevenButton;
-//	delete	eightButton;
-//	delete	nineButton;
-//	delete	zeroButton;
-//	delete	KHzButton;
-//	delete	clearButton;
-//	delete	theDisplay;
-//	delete	theDisplay;
-//	delete	thePad;
+	delete	oneButton;
+	delete	twoButton;
+	delete	threeButton;
+	delete	fourButton;
+	delete	fiveButton;
+	delete	sixButton;
+	delete	sevenButton;
+	delete	eightButton;
+	delete	nineButton;
+	delete	zeroButton;
+	delete	KHzButton;
+	delete	clearButton;
+	delete	theDisplay;
+	delete	thePad;
 	delete	theFrame;
 }
 //

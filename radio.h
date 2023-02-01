@@ -121,7 +121,7 @@ private:
 	int16_t		repeatRate;
 	audioSink	*our_audioSink;
 	int8_t		channelSelector;
-	deviceHandler	*myRig;
+	deviceHandler	*theDevice;
 	std::vector<int16_t>	outTable;
 //	int16_t		numberofDevices;
 

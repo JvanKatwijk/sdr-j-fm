@@ -111,7 +111,7 @@ ThemeChoser	themeChooser;
 	   delete myRadioInterface;
 	qDebug ("It is done\n");
 	ISettings	-> sync ();
-	ISettings	-> ~QSettings ();
+	delete ISettings;
 	return exitCode;
 }
 
