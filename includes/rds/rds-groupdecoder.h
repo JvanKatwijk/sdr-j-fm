@@ -57,7 +57,7 @@ static const uint32_t STATION_LABEL_LENGTH =
 static const uint32_t NUM_CHARS_PER_RTXT_SEGMENT	= 4;
 static const uint32_t NUM_OF_FRAGMENTS			= 16;
 static const uint32_t NUM_OF_CHARS_RADIOTEXT =
-	      NUM_CHARS_PER_RTXT_SEGMENT * NUM_OF_FRAGMENTS - 10;
+	      NUM_CHARS_PER_RTXT_SEGMENT * NUM_OF_FRAGMENTS;
 
 static const char END_OF_RADIO_TEXT = 0x0D;
 
