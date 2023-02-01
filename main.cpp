@@ -95,9 +95,10 @@ ThemeChoser	themeChooser;
 
 	   a.setWindowIcon (QIcon (":fm-icon.ico"));
 	   exitCode = a. exec ();
-#ifdef	__MINGW32__
+//#ifdef	__MINGW32__
 	   delete myRadioInterface;
-#endif
+	   myRadioInterface	= nullptr;
+//#endif
 	} while (exitCode == PROGRAM_RESTART_EXIT_CODE );
 
 	fprintf (stderr, "Terug van de exec\n");
@@ -106,9 +107,11 @@ ThemeChoser	themeChooser;
  */
 	fflush (stdout);
 	fflush (stderr);
+	if (myRadioInterface != nullptr)
+	   delete myRadioInterface;
 	qDebug ("It is done\n");
 	ISettings	-> sync ();
-//	ISettings	-> ~QSettings ();
+	ISettings	-> ~QSettings ();
 	return exitCode;
 }
 

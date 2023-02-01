@@ -451,8 +451,11 @@ void	RadioInterface::quickStart () {
 //	delete		hfScope;
 //	delete		lfScope;
 	
+	delete		hfBuffer;
+	delete		lfBuffer;
 //	delete		our_audioSink;
 //	delete		myProgramList;
+
 }
 //
 //	Function used to "dump" settings into the ini file

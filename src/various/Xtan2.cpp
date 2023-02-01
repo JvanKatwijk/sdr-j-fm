@@ -39,14 +39,14 @@
 }
 
 	compAtan::~compAtan	(void) {
-	delete	ATAN2_TABLE_PPY;
-	delete	ATAN2_TABLE_PPX;
-	delete	ATAN2_TABLE_PNX;
-	delete	ATAN2_TABLE_PNY;
-	delete	ATAN2_TABLE_NPY;
-	delete	ATAN2_TABLE_NPX;
-	delete	ATAN2_TABLE_NNY;
-	delete	ATAN2_TABLE_NNX;
+	delete[]	ATAN2_TABLE_PPY;
+	delete[]	ATAN2_TABLE_PPX;
+	delete[]	ATAN2_TABLE_PNX;
+	delete[]	ATAN2_TABLE_PNY;
+	delete[]	ATAN2_TABLE_NPY;
+	delete[]	ATAN2_TABLE_NPX;
+	delete[]	ATAN2_TABLE_NNY;
+	delete[]	ATAN2_TABLE_NNX;
 }
 
 /**

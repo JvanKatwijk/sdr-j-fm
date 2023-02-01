@@ -31,8 +31,11 @@ static IqScopeData * sIQData = nullptr;
 
 		IQDisplay::IQDisplay(QwtPlot * plot, int16_t x):
 	                                        QwtPlotSpectrogram () {
+	//                           colorMap (Qt::darkBlue, Qt::yellow) {
+
 	QwtLinearColorMap * colorMap =
 	                 new QwtLinearColorMap(Qt::darkBlue, Qt::yellow);
+//
 
 //	setRenderThreadCount (1);
 	pointsPerRadius = 50;
@@ -69,10 +72,10 @@ static IqScopeData * sIQData = nullptr;
 }
 
 		IQDisplay::~IQDisplay () {
-	this	-> detach ();
-	delete	sIQData;
+//	this	-> detach ();
 	delete [] plotData2;
 	delete [] plotData1;
+//	delete	sIQData;
 }
 
 template<class T> inline

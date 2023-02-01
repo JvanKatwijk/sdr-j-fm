@@ -40,6 +40,7 @@ public:
 	                                 const int32_t n, const float);
 
 private:
+//	QwtLinearColorMap colorMap;
 	int32_t		amount;
 	double		*plotData1;
 	double		*plotData2;

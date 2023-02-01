@@ -237,7 +237,6 @@ fmProcessor::~fmProcessor() {
 
 	delete	spectrum_fft_hf;
 	delete	spectrum_fft_lf;
-	delete	spectrumBuffer_hf;
 	delete[] displayBuffer_lf;
 }
 
@@ -457,8 +456,8 @@ double		displayBuffer_hf [displaySize];
 int32_t		hfCount		= 0;
 int32_t		lfCount		= 0;
 int32_t		scanPointer	= 0;
-common_fft	*scan_fft	= new common_fft (1024);
-DSPCOMPLEX	*scanBuffer	= scan_fft -> getVector ();
+common_fft	scan_fft (1024);
+DSPCOMPLEX	*scanBuffer	= scan_fft. getVector ();
 const float rfDcAlpha = 1.0f / inputRate;
 newConverter	audioDecimator (fmRate,  workingRate,  fmRate / 1000);
 DSPCOMPLEX	audioOut [audioDecimator. getOutputsize ()];
@@ -594,7 +593,7 @@ int		iqCounter	= 0;
 
 	         if (scanPointer >= 1024) {
 	            scanPointer = 0;
-	            scan_fft -> do_FFT ();
+	            scan_fft. do_FFT ();
 	            float signal	= getSignal (scanBuffer, 1024);
 	            float Noise		= getNoise (scanBuffer, 1024);
 	            if (get_db (signal, 256) - get_db (Noise, 256) > thresHold) {

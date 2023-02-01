@@ -200,6 +200,7 @@ void	Scope::setBitDepth	(int16_t b) {
 	delete		grid;
 	delete		lm_picker;
 	delete		rm_picker;
+	delete		ourBrush;
 }
 
 void	SpectrumViewer::leftMouseClick (const QPointF &point) {
@@ -309,8 +310,8 @@ int	i, j;
 	rightAxis = plotgrid -> axisWidget (QwtPlot::yRight);
 // A color bar on the right axis
 	rightAxis -> setColorBarEnabled (true);
-
 	plotData = new double [2 * Displaysize * Rastersize];
+
 	for (i = 0; i < Rastersize; i ++)
  	   for (j = 0; j < Displaysize; j ++)
 	      plotData [i * Displaysize + j] = (double)i / Rastersize;
@@ -367,6 +368,7 @@ int	i, j;
 	plotgrid	-> enableAxis (QwtPlot::xBottom, false);
 	plotgrid	-> enableAxis (QwtPlot::yLeft, false);
 	this		-> detach ();
+	delete [] plotData;
 }
 
 void	WaterfallViewer::leftMouseClick (const QPointF &point) {
