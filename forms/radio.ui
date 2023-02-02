@@ -593,7 +593,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,20,6">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="8,1,64,1,0,8">
+      <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="8,1,64,1,0,0,8">
        <item>
         <widget class="QLabel" name="stationLabelTextBox">
          <property name="minimumSize">
@@ -677,6 +677,16 @@
        </item>
        <item>
         <widget class="QLabel" name="timeDisplay">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="copyrightLabel">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright J van Katwijk, J.vanKatwijk@gmail.com.&lt;/p&gt;&lt;p&gt;Copyright of  packages used, e.g. the Qt toolkit, fftw3, libsndfile, portaudio etc is gratefully acknowledged.&lt;/p&gt;&lt;p&gt;Copyright of contributions from TomNeda gratefully acknowledged.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;The fm receiver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License f&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="frameShape">
           <enum>QFrame::Panel</enum>
          </property>
@@ -684,7 +694,7 @@
           <enum>QFrame::Raised</enum>
          </property>
          <property name="text">
-          <string>TextLabel</string>
+          <string>©</string>
          </property>
         </widget>
        </item>
@@ -1809,7 +1819,7 @@
             <widget class="QComboBox" name="theSelector"/>
            </item>
            <item>
-            <widget class="QComboBox" name="fmDecoder">
+            <widget class="QComboBox" name="fmDecoderSelector">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a demodulator, one of 5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>

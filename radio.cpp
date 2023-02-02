@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -71,6 +72,7 @@
 #include	<windows.h>
 #endif
 
+#define	FM_RATE			192000
 #ifdef	__MINGW32__
 __int64 FileTimeToInt64 (FILETIME & ft) {
 	ULARGE_INTEGER foo;
@@ -164,8 +166,6 @@ static
 constexpr int16_t delayTable[] = { 1, 3, 5, 7, 9, 10, 15 };
 constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)));
 
-//std::array<const char * const, 2> sThemes = { "Adaptic", "Combinear" };
-
 /*
  *	We use the creation function merely to set up the
  *	user interface and make the connections between the
@@ -179,22 +179,25 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
  * @version 0.98
  * @date 2015-01-07
  */
-	RadioInterface::RadioInterface (QSettings	*Si,
-	                                QString		saveName,
-	                                ThemeChoser	*themeChooser,
-	                                int32_t outputRate,
-	                                QWidget *parent):
-	                                        QDialog (parent),
-	                                        iqBuffer (IQ_SCOPE_SIZE),
-	                                        configDisplay (nullptr),
-	                                        mykeyPad () {
+		RadioInterface::RadioInterface (QSettings	*Si,
+						QString		saveName,
+						ThemeChoser	*themeChooser,
+						int32_t outputRate,
+						QWidget *parent):
+							QDialog (parent),
+							iqBuffer (IQ_SCOPE_SIZE),
+	                                                theDemodulator (
+	                                                        FM_RATE,
+                                                                15.466302),
+							configDisplay (nullptr),
+							mykeyPad () {
 
-int16_t i;
-QString h;
-int     k;
+	int16_t i;
+	QString h;
+	int     k;
 
-   setupUi (this);
-   fmSettings		= Si;
+	setupUi (this);
+	fmSettings		= Si;
 	this	-> themeChooser	= themeChooser;
 
 	configWidget. setupUi (&configDisplay);
@@ -202,12 +205,13 @@ int     k;
 	squelchMode		= false;
 //
 //	Added: cannot compile on Ubuntu 16 -> using old QT version?
-// with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
+//	with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
 // Providing following via QDialog constructor was not working properly
+
 	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
-	fprintf (stderr, "Window size width %d, height %d\n", size().width(),  size().height());
-	//resize (1200, 540);
+//	fprintf (stderr, "Window size width %d, height %d\n", size().width(),  size().height());
+//	resize (1200, 540);
 
 	thermoPeakLevelLeft	-> setFillBrush (Qt::darkBlue);
 	thermoPeakLevelRight	-> setFillBrush (Qt::darkBlue);
@@ -215,7 +219,7 @@ int     k;
 	thermoPeakLevelRight	-> setAlarmBrush (Qt::red);
 	thermoPeakLevelLeft	-> setAlarmEnabled (true);
 	thermoPeakLevelRight	-> setAlarmEnabled(true);
-	
+
 	reset_afc ();
 //
 //	added inits for various class variables
@@ -224,16 +228,17 @@ int     k;
 	afcCurrOffFreq		= 0;
 
 	peakLeftDamped		= -100;
-	peakRightDamped	= -100;
+	peakRightDamped		= -100;
 //	end added
 //
-//	dummies, needed for a.o. LFScope
 	this		-> inputRate = 192000;
-	this		-> fmRate    = 192000;
-  /**
-   *	We allow the user to set the displaysize
-   *	(as long as it is reasonable)
-   */
+	this		-> fmRate    = FM_RATE;
+	this		-> workingRate = 48000;
+
+/**
+  *	We allow the user to set the displaysize
+  *	(as long as it is reasonable)
+  */
 	this	-> displaySize =
 	             fmSettings -> value ("displaySize", 512).toInt();
 	if ((displaySize & (displaySize - 1)) != 0) 
@@ -251,10 +256,21 @@ int     k;
 	                     fmSettings -> value ("averageCount", 5). toInt ();
 	this		-> audioRate    =
 	                     fmSettings -> value ("audioRate",
-	                                             outputRate). toInt ();
+						     outputRate). toInt ();
 //
-	this		-> workingRate = 48000;
+//	fill the decodeer selector
+	QStringList names = theDemodulator.  listNameofDecoder ();
+	for (QString decoderName: names)
+	   fmDecoderSelector -> addItem (decoderName);
 
+	h	= fmSettings -> value ("fmDecoder", "PLL Decoder"). toString ();
+	k	= fmDecoderSelector -> findText (h);
+
+	if (k != -1) {
+	   fmDecoderSelector -> setCurrentIndex (k);
+	   handle_fmDecoderSelector (fmDecoderSelector -> currentText ());
+	}
+//
 
 	myFMprocessor	= nullptr;
 	our_audioSink	= new audioSink (this -> audioRate, 16384);
@@ -263,17 +279,17 @@ int     k;
 	   outTable [i] = -1;
 
 	if (!setupSoundOut (configWidget. streamOutSelector,
-	                    our_audioSink,
-	                    this -> audioRate,
-	                    outTable)) {
+			    our_audioSink,
+			    this -> audioRate,
+			    outTable)) {
 	   fprintf(stderr, "Cannot open any output device\n");
 	   abortSystem (33);
 	}
-  /**
-   *	Use, if possible, the outputstream the user had previous time
-   */
+/**
+  *	Use, if possible, the outputstream the user had previous time
+  */
 	h = fmSettings -> value ("streamOutSelector",
-	                              "default"). toString ();
+				      "default"). toString ();
 	k = configWidget. streamOutSelector -> findText (h);
 	if (k != -1) {
 	   configWidget. streamOutSelector -> setCurrentIndex (k);
@@ -291,22 +307,22 @@ int     k;
 	audiofilePointer	= nullptr;
 //
 //	Set relevant sliders etc to the value they had last time
-  	restoreGUIsettings (fmSettings);
+	restoreGUIsettings (fmSettings);
 //
 //
 	int x = fmSettings -> value ("closeDirect", 0). toInt ();
-        if (x != 0)
-           configWidget. closeDirect -> setChecked (true);
+	if (x != 0)
+	   configWidget. closeDirect -> setChecked (true);
 
 	configWidget. incrementFlag ->
-	                 setStyleSheet ("QLabel {background-color:blue}");
+			 setStyleSheet ("QLabel {background-color:blue}");
 	configWidget. incrementFlag -> setText(" ");
 	IncrementIndex		= 0;
 //	settings for the auto tuner
 	IncrementIndex		=
-	             fmSettings -> value ("IncrementIndex", 0). toInt ();
+		     fmSettings -> value ("IncrementIndex", 0). toInt ();
 	fmIncrement		=
-	             fmSettings -> value ("fm_increment", 100). toInt ();
+		     fmSettings -> value ("fm_increment", 100). toInt ();
 
 	minLoopFrequency	=
 	   fmSettings -> value ("min_loop_frequency", 86500). toInt ();
@@ -326,30 +342,28 @@ int     k;
 	localConnects		();
 
 	connect (freqButton, SIGNAL (clicked ()),
-	         this, SLOT (handle_freqButton ()));
+		 this, SLOT (handle_freqButton ()));
 	connect (&mykeyPad, SIGNAL (newFrequency (int)),
-                 this, SLOT (newFrequency (int)));
+		 this, SLOT (newFrequency (int)));
 
 	connect (configButton, SIGNAL (clicked ()),
-	         this, SLOT (handle_configButton ()));
+		 this, SLOT (handle_configButton ()));
 
 
 //	Create a timer for autoincrement/decrement of the tuning
 //	autoIncrementTimer	= new QTimer ();
 	autoIncrementTimer. setSingleShot (true);
 	autoIncrementTimer. setInterval (5000);
-	connect (&autoIncrementTimer,
-	         SIGNAL (timeout()),
-	         this,
-	         SLOT (autoIncrement_timeout ()));
+	connect (&autoIncrementTimer, SIGNAL (timeout()),
+		 this, SLOT (autoIncrement_timeout ()));
 
 //	create a timer for displaying the "real" time
 //	displayTimer		= new QTimer ();
 	displayTimer. setInterval (1000);
 	connect (&displayTimer,
-	         SIGNAL (timeout ()),
-	         this,
-	         SLOT (updateTimeDisplay ()));
+		 SIGNAL (timeout ()),
+		 this,
+		 SLOT (updateTimeDisplay ()));
 //
 //
 //	Display the version
@@ -362,9 +376,9 @@ int     k;
 	ExtioLock		= false;
 	logFile			= nullptr;
 	pauseButton		-> setText (QString ("Pause"));
-	configWidget. dumpButton		-> setText ("inputDump");
+	configWidget. dumpButton	-> setText ("inputDump");
 	sourceDumping		= false;
-	configWidget. audioDumpButton		-> setText ("audioDump");
+	configWidget. audioDumpButton	-> setText ("audioDump");
 	audioDumping		= false;
 	currentPIcode		= 0;
 	frequencyforPICode	= 0;
@@ -393,18 +407,18 @@ int     k;
 	         this,  SLOT (handle_afcSelector (int)));
 
 	QString country	= 
-	             fmSettings -> value ("ptyLocale", "Europe"). toString ();
+	         fmSettings -> value ("ptyLocale", "Europe"). toString ();
 	if ((country == "Europe") || (country == "USA")) {
 	   k = configWidget. countrySelector -> findText (country);
 	   if (k != -1)
 	      configWidget. countrySelector	-> setCurrentIndex (k);
 	}
 	connect (configWidget. countrySelector,
-	                        SIGNAL (activated (const QString &)),
+	                      SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_countrySelector (const QString &)));
 
 	QString device =
-	             fmSettings -> value ("device", "no device").toString ();
+	          fmSettings -> value ("device", "no device").toString ();
 
 	k = -1;
 	for (int i = 0; deviceTable [i] != nullptr; i ++)
@@ -455,8 +469,8 @@ void	RadioInterface::quickStart () {
 	delete		lfBuffer;
 //	delete		our_audioSink;
 //	delete		myProgramList;
-
 }
+
 //
 //	Function used to "dump" settings into the ini file
 //	pointed to by s
@@ -466,73 +480,73 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	if (s == nullptr)
 	   return;
 
-//	s	-> setValue ("device", deviceSelector -> currentText ());
+	//	s	-> setValue ("device", deviceSelector -> currentText ());
 	s	-> setValue ("rasterSize", rasterSize);
 	s	-> setValue ("averageCount", averageCount);
 
 	s	-> setValue ("repeatRate", repeatRate);
 
 	s	-> setValue ("fm_increment",
-	                             configWidget. fm_increment -> value ());
+				     configWidget. fm_increment -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider_hf",
-	                             spectrumAmplitudeSlider_hf -> value ());
+				     spectrumAmplitudeSlider_hf -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider_lf",
-	                             spectrumAmplitudeSlider_lf -> value ());
+				     spectrumAmplitudeSlider_lf -> value ());
 	s	-> setValue ("IQbalanceSlider",
-	                             IQbalanceSlider	-> value());
+				     IQbalanceSlider	-> value());
 	s	-> setValue ("afc",
-	                             cbAfc -> checkState ());
+				     cbAfc -> checkState ());
 	s	-> setValue ("dcRemove",
-	                             cbDCRemove -> checkState ());
+				     cbDCRemove -> checkState ());
 	s	-> setValue ("autoMono",
-	                             cbAutoMono -> checkState ());
+				     cbAutoMono -> checkState ());
 	s	-> setValue ("pss",
-	                             cbPSS -> checkState ());
-//	now setting the parameters for the fm decoder
+				     cbPSS -> checkState ());
+	//	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
-	                             configWidget. fmFilterSelect -> currentText ());
+				     configWidget. fmFilterSelect -> currentText ());
 	s	-> setValue ("fmMode",
-	                             fmModeSelector	-> currentText ());
+				     fmModeSelector	-> currentText ());
 	s	-> setValue ("fmDecoder",
-	                             fmDecoder		-> currentText ());
+				     fmDecoderSelector	-> currentText ());
 	s	-> setValue ("volumeHalfDb",
-	                             volumeSlider	-> value ());
+				     volumeSlider	-> value ());
 	s	-> setValue ("fmRdsSelector",
-	                             fmRdsSelector	-> currentText ());
+				     fmRdsSelector	-> currentText ());
 	s	-> setValue ("fmChannelSelect",
-	                             fmChannelSelect	-> currentText ());
+				     fmChannelSelect	-> currentText ());
 	s	-> setValue ("fmDeemphasisSelector",
-	                             configWidget. fmDeemphasisSelector -> currentText ());
+				     configWidget. fmDeemphasisSelector -> currentText ());
 	s	-> setValue ("fmStereoPanoramaSlider",
-	                             fmStereoPanoramaSlider -> value ());
+				     fmStereoPanoramaSlider -> value ());
 	s	-> setValue ("fmStereoBalanceSlider",
-	                             fmStereoBalanceSlider	-> value ());
+				     fmStereoBalanceSlider	-> value ());
 	s	-> setValue ("fmLFcutoff",
-	                             fmLFcutoff		-> currentText ());
+				     fmLFcutoff		-> currentText ());
 	s	-> setValue ("logging",
-	                             configWidget. loggingButton	-> currentText ());
+				     configWidget. loggingButton	-> currentText ());
 	s	-> setValue ("streamOutSelector",
-	                             configWidget. streamOutSelector	-> currentText ());
+				     configWidget. streamOutSelector	-> currentText ());
 
 	s	-> setValue ("currentFreq",
-	                             currentFreq);
+				     currentFreq);
 	s	-> setValue ("min_loop_frequency",
-	                             minLoopFrequency);
+				     minLoopFrequency);
 	s	-> setValue ("max_loop_frequency",
-	                             maxLoopFrequency);
+				     maxLoopFrequency);
 
 	s	-> setValue ("peakLevelDelaySteps",
-	                             configWidget. sbDispDelay	-> value ());
+				     configWidget. sbDispDelay	-> value ());
 
 	s -> setValue ("styleSheet", configWidget. cbThemes -> currentText ());
 
 	s	-> sync ();
-//	Note that settings for the device used will be restored
-//	on termination of the device handling class
-}
+	//	Note that settings for the device used will be restored
+	//	on termination of the device handling class
+	}
 
-//	On start, we ensure that the streams are stopped so
-//	that they can be restarted again.
+	//	On start, we ensure that the streams are stopped so
+	//	that they can be restarted again.
 void	RadioInterface::setStart	() {
 bool r = false;
 
@@ -545,7 +559,7 @@ bool r = false;
 //	qDebug ("Starting %d\n", r);
 	if (!r) {
 	   QMessageBox::warning(this, tr("sdr"),
-	                           tr("Opening  input stream failed\n"));
+				   tr("Opening  input stream failed\n"));
 	   return;
 	}
 
@@ -562,26 +576,8 @@ bool r = false;
 //	toggle sequelch off (TODO: make this nicer)
 	handle_squelchSelector ("SQ OFF");
 
-//	populate FM decoder combo box
 
-//	disconnect GUI link temporary as filling the GUI-list
-//	will trigger the signal
-	disconnect (fmDecoder, SIGNAL (activated (const QString &)),
-	            this, SLOT (handle_fmDecoder (const QString &)));
-
-	for (const auto & dc : myFMprocessor -> listNameofDecoder ()) 
-	   fmDecoder -> addItem (dc);
-
-	QString h =
-	         fmSettings -> value ("fmDecoder", "PLL Decoder"). toString ();
-	int k = fmDecoder -> findText (h);
-
-	if (k != -1) {
-	   fmDecoder -> setCurrentIndex (k);
-	   handle_fmDecoder (fmDecoder -> currentText ());
-	}
-
-	k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
+	int k	= fmSettings -> value ("dcRemove", Qt::CheckState::Checked).toInt ();
 	cbDCRemove	-> setCheckState (k ? Qt::CheckState::Checked :
 	                                  Qt::CheckState::Unchecked);
 
@@ -601,8 +597,6 @@ bool r = false;
 	volumeSlider -> setValue (vol);
 	handle_AudioGainSlider (vol);
 
-	connect (fmDecoder, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmDecoder (const QString &)));
 
 	connect (cbAutoMono, &QCheckBox::clicked,
 	         this, [this](bool isChecked){myFMprocessor -> setAutoMonoMode(isChecked); });
@@ -984,6 +978,7 @@ void	RadioInterface::make_newProcessor () {
 	myFMprocessor = new fmProcessor (theDevice,
 	                                 this,
 	                                 our_audioSink,
+	                                 &theDemodulator,
 	                                 inputRate,
 	                                 fmRate,
 	                                 workingRate,
@@ -1005,7 +1000,6 @@ void	RadioInterface::make_newProcessor () {
 	handle_fmFilterSelect	(configWidget. fmFilterSelect	-> currentText ());
 	handle_fmModeSelector	(fmModeSelector		-> currentText ());
 	handle_fmRdsSelector	(fmRdsSelector 		-> currentText ());
-//	setfmDecoder		(fmDecoder		-> currentText ());
 	handle_fmChannelSelector (fmChannelSelect	-> currentText ());
 	handle_fmDeemphasis	(configWidget. fmDeemphasisSelector	-> currentText ());
 	handle_squelchSlider	(squelchSlider		-> value ());
@@ -1095,16 +1089,15 @@ void	RadioInterface::AdjustFrequency (int n) {
 //	Whenever the mousewheel is changed, the frequency
 //	is adapted
 void	RadioInterface::wheelEvent (QWheelEvent *e) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-	if (e -> angleDelta	().y	() > 0)
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 0)
+	if (e -> angleDelta ().y () > 0)
 #else
 	if (e -> delta () > 0)
 #endif
-		IncrementFrequency (KHz (1));
+	   IncrementFrequency (KHz (1));
 	else
 	   IncrementFrequency (-KHz (1));
 }
-
 //
 //	The generic setTuner.
 //
@@ -1118,9 +1111,9 @@ int32_t	vfo;
 //	the vfo remains the same, while the LO is adapted.
 	vfo = theDevice -> getVFOFrequency ();
 
-	if (ExtioLock) {
-	   return vfo;
-	}
+//	if (ExtioLock) {
+//	   return vfo;
+//	}
 //
 //	check whether new frequency fits in current window
 	if (abs (n - vfo) > inputRate / 2 - fmRate / 2) {
@@ -1128,8 +1121,8 @@ int32_t	vfo;
 	   vfo = theDevice -> getVFOFrequency ();
 //
 //	we create a new spectrum on a different frequency
-	if (runMode. load () == ERunStates::RUNNING) 
-	   myFMprocessor -> triggerDrawNewHfSpectrum ();
+	   if (runMode. load () == ERunStates::RUNNING) 
+	      myFMprocessor -> new_hfSpectrum ();
 	}
 	LOFrequency = n - vfo;
 
@@ -1145,8 +1138,8 @@ int32_t	vfo;
 	   myFMprocessor -> set_localOscillator (LOFrequency);
 //	redraw LF frequency and reset RDS only with bigger frequency steos
 //	AFC will trigger this too
-		if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100))
-			myFMprocessor -> triggerFrequencyChange ();
+	   if (std::abs (vfo + LOFrequency - currentFreq) >= KHz (100))
+	      myFMprocessor -> triggerFrequencyChange ();
 	}
 	
 	Display (vfo + LOFrequency);
@@ -1483,8 +1476,8 @@ void    RadioInterface::localConnects (void) {
 	         this, SLOT (handle_fmChannelSelector (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_fmRdsSelector (const QString &)));
-	connect (fmDecoder, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmDecoder (const QString &)));
+	connect (fmDecoderSelector, SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_fmDecoderSelector (const QString &)));
 	connect (fmStereoPanoramaSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fmStereoPanoramaSlider (int)));
 	connect (fmStereoBalanceSlider, SIGNAL (valueChanged (int)),
@@ -1707,12 +1700,8 @@ void	RadioInterface::handle_fmRdsSelector (const QString &s) {
 	myFMprocessor	-> resetRds ();
 }
 
-void	RadioInterface::handle_fmDecoder (const QString &decoder) {
-
-	if (myFMprocessor == nullptr) 
-	   return;
-
-	myFMprocessor -> setFMdecoder (decoder);
+void	RadioInterface::handle_fmDecoderSelector (const QString &decoder) {
+	theDemodulator. setDecoder (decoder);
 }
 
 void	RadioInterface::handle_fmLFcutoff (const QString &s) {
@@ -1786,11 +1775,11 @@ bool triggerLog = false;
 	}
 
 	if (ipMD -> PilotPllLocked) {
-		pll_isLocked -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
+	   pll_isLocked -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Locked");
 	}
 	else {
-		pll_isLocked -> setStyleSheet ("QLabel {background-color:red} QLabel {color:white}");
+	   pll_isLocked -> setStyleSheet ("QLabel {background-color:red} QLabel {color:white}");
 	   pll_isLocked -> setText("Pilot PLL Unlocked");
 	}
 
@@ -1802,28 +1791,28 @@ bool triggerLog = false;
 
 	switch (ipMD -> PssState) {
 	case fmProcessor::SMetaData::EPssState::OFF:
-		pss_state -> setStyleSheet ("QLabel {background-color:grey} QLabel {color:black}");
-		pss_state -> setText("PSS off");
-		break;
+	   pss_state -> setStyleSheet ("QLabel {background-color:grey} QLabel {color:black}");
+	   pss_state -> setText("PSS off");
+	   break;
 	case fmProcessor::SMetaData::EPssState::ANALYZING:
-		pss_state -> setStyleSheet ("QLabel {background-color:yellow} QLabel {color:black}");
-		pss_state -> setText("PSS analyzing ... ");
-		break;
+	   pss_state -> setStyleSheet ("QLabel {background-color:yellow} QLabel {color:black}");
+	   pss_state -> setText ("PSS analyzing ... ");
+	   break;
 	case fmProcessor::SMetaData::EPssState::ESTABLISHED:
-		pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
-		pss_state -> setText("PSS established");
-		break;
+	   pss_state -> setStyleSheet ("QLabel {background-color:green} QLabel {color:white}");
+	   pss_state -> setText("PSS established");
+	   break;
 	}
 
 	pss_phase_corr -> display (QString("%1").arg(ipMD -> PssPhaseShiftDegree, 0, 'f', 2));
 	pss_phase_error -> display (QString("%1").arg(ipMD -> PssPhaseChange, 0, 'f', 2));
 
-	//thermoPSSCorr -> setValue ((ipMD -> PssPhaseChange < 0.0f ? -1 : 1) * w * std::log10(std::abs(ipMD -> PssPhaseChange) + 1.0f));
+//	thermoPSSCorr -> setValue ((ipMD -> PssPhaseChange < 0.0f ? -1 : 1) * w * std::log10(std::abs(ipMD -> PssPhaseChange) + 1.0f));
 	thermoPSSCorr -> setValue (ipMD -> PssPhaseChange);
 
 //	some kind of AFC
 	if (afcActive) {
-		int32_t afcOffFreq = ipMD -> DcValIf * 10000;
+	   int32_t afcOffFreq = ipMD -> DcValIf * 10000;
 // the_dcComponent is positive with too little frequency
 	   afcCurrOffFreq = (1 - afcAlpha) * afcCurrOffFreq +
 	                                           afcAlpha * afcOffFreq;
@@ -1950,7 +1939,7 @@ uint16_t ocnt = 1;
 	for (int i = 0; i < our_audioSink -> numberofDevices (); i++) {
 	   const char *so =
 	             our_audioSink -> outputChannelwithRate (i, cardRate);
-	   qDebug("Investigating Device %d\n", i);
+	   qDebug ("Investigating Device %d\n", i);
 
 	   if (so != nullptr) {
 	      streamOutSelector -> insertItem (ocnt, so, QVariant(i));
@@ -2115,7 +2104,6 @@ void	RadioInterface::handle_squelchSelector (const QString& s) {
 	squelchSlider	-> setEnabled (squelchMode);
 	myFMprocessor	-> set_squelchMode (sqMode);
 	
-//	setSquelchIsActive (myFMprocessor->getSquelchObj()->getSquelchActive());
 	setSquelchIsActive (myFMprocessor -> getSquelchState ());
 }
 
@@ -2220,6 +2208,7 @@ int     k;
 //	fm decoding (the fmrate). Decimating from inputRate to fmRate
 //	is always integer. Decimating from fmRate to audioRate maybe
 //	fractional which costs a lot of power.
+//	NOT USED IN THIS VERSION
 int32_t	RadioInterface::mapRates (int32_t inputRate) {
 int32_t res;
 
@@ -2250,7 +2239,6 @@ void	RadioInterface::newFrequency	(int f) {
 }
 
 void	RadioInterface::handle_freqSaveButton	() {
-	//myLine	= new QLineEdit ();
 	myLine. show ();
 	connect (&myLine, SIGNAL (returnPressed ()),
 	         this, SLOT (handle_myLine ()));
@@ -2259,17 +2247,16 @@ void	RadioInterface::handle_freqSaveButton	() {
 void	RadioInterface::handle_myLine () {
 int32_t freq        = theDevice -> getVFOFrequency () + LOFrequency;
 QString programName	= myLine . text ();
-   myLine. setText(""); // next "show" should be empty text
-   disconnect (&myLine, SIGNAL (returnPressed ()),
-               this, SLOT (handle_myLine ()));
-   myLine. hide ();
+
+	myLine. setText(""); // next "show" should be empty text
+	disconnect (&myLine, SIGNAL (returnPressed ()),
+	            this, SLOT (handle_myLine ()));
+	myLine. hide ();
 
 	fprintf (stderr, "adding %s %s\n",
 	                 programName. toLatin1 (). data (),
 	                 QString::number (freq / Khz(1)). toLatin1 ().data());
 	myProgramList	-> addRow (programName, QString::number ((freq + Hz (500)) / Khz(1)));
-//	fprintf (stderr, "added %s %d gelukt\n",
-//	                     programName. toLatin1 (). data (), freq);
 }
 
 void	RadioInterface::reset_afc () {

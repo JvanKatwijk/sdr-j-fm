@@ -24,6 +24,7 @@
 #define __FM_DEMODULATOR_H
 
 #include	<QString>
+#include	<QStringList>
 #include 	<vector>
 #include 	"fm-constants.h"
 #include	"Xtan2.h"
@@ -35,11 +36,17 @@
 
 class	fm_Demodulator {
 public:
-	using TDecoderListNames = const std::vector<const char *>;
+		fm_Demodulator (int32_t Rate_in, DSPFLOAT K_FM);
+		~fm_Demodulator ();
+
+	void		setDecoder	(const QString &);
+	QStringList	listNameofDecoder	() const;
+	DSPFLOAT	demodulate	(DSPCOMPLEX);
+	DSPFLOAT	get_DcComponent	();
+	DSPFLOAT	get_carrier_ampl () { return am_carr_ampl; }
 
 private:
-	static TDecoderListNames sIdx2DecoderName;
-
+	SinCos		mySinCos;
 	int16_t		selectedDecoder;
 	DSPFLOAT	max_freq_deviation;
 	int32_t 	rateIn;
@@ -47,7 +54,6 @@ private:
 	DSPFLOAT	fm_cvt;
 	DSPFLOAT        K_FM;
 	pllC		*myfm_pll;
-	SinCos          *mySinCos;
 	int32_t		arcSineSize;
 	std::vector<DSPFLOAT>	Arcsine;
 	compAtan	myAtan;
@@ -57,15 +63,5 @@ private:
 	DSPFLOAT	Qmin2;
 	DSPFLOAT	am_carr_ampl;
 
-public:
-		fm_Demodulator (int32_t Rate_in,
-	                        SinCos *mySinCos, DSPFLOAT K_FM);
-		~fm_Demodulator ();
-
-	void		setDecoder	(const QString &);
-	TDecoderListNames & listNameofDecoder() const;
-	DSPFLOAT	demodulate	(DSPCOMPLEX);
-	DSPFLOAT	get_DcComponent	();
-	DSPFLOAT	get_carrier_ampl () { return am_carr_ampl; }
 };
 #endif

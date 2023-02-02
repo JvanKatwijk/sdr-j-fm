@@ -45,7 +45,7 @@
 #include	"rds-decoder.h"
 #include	<atomic>
 #include	"popup-keypad.h"
-
+#include	"fm-demodulator.h"
 #include	"ui_configwidget.h"
 //class	keyPad;
 class	QSettings;
@@ -83,6 +83,7 @@ public:
 
 private:
 	RingBuffer<std::complex<float>>	iqBuffer;
+	fm_Demodulator		theDemodulator;
 	IQDisplay	*iqScope;
 
 //	Processing modes
@@ -225,7 +226,7 @@ private slots:
 	void		handle_fmFilterSelect	(const QString &);
 	void		handle_fmModeSelector	(const QString &);
 	void		handle_fmRdsSelector	(const QString &);
-	void		handle_fmDecoder	(const QString &);
+	void		handle_fmDecoderSelector	(const QString &);
 	void		handle_fmChannelSelector (const QString &);
 	void		handle_fmDeemphasis	(const QString &);
 	void		handle_fmLFcutoff	(const QString &);

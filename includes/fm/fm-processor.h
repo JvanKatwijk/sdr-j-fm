@@ -104,6 +104,7 @@ public:
 		fmProcessor (deviceHandler *,
 	              RadioInterface *,
 	              audioSink *,
+	              fm_Demodulator *,
 	              int32_t,                  // inputRate
 	              int32_t,                  // decimation
 	              int32_t,                  // workingRate
@@ -146,8 +147,8 @@ public:
 	void		setAutoMonoMode		(const bool iAutoMonoMode);
 	void		setPSSMode		(const bool iPSSMode);
 	void		setDCRemove		(const bool iDCREnabled);
-	void		triggerDrawNewHfSpectrum ();
-	void		triggerDrawNewLfSpectrum ();
+	void		new_hfSpectrum 		();
+	void		new_lfSpectrum 		();
 	void		setTestTone		(const bool iTTEnabled);
 	void		setDispDelay		(const int iDelay);
 
@@ -160,7 +161,6 @@ public:
 	DSPFLOAT	get_demodDcComponent	();
 	void		startScanning		();
 	void		stopScanning		();
-	fm_Demodulator::TDecoderListNames & listNameofDecoder();
 	void		set_squelchValue	(int16_t);
 	void		set_ptyLocale		(int);
 //
@@ -172,7 +172,7 @@ private:
 	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
 	                                         double * const, int32_t &);
 	void		processLfSpectrum	(std::vector<std::complex<float>> &);
-	void		fill_average_buffer	(const double * const,
+	void		set_average_buffer	(const double * const,
 	                                             double * const);
 	void		add_to_average		(const double * const,
 	                                             double * const);
@@ -190,6 +190,7 @@ private:
 //	the privates
 private:
 	rdsDecoder	myRdsDecoder;
+	fm_Demodulator	*theDemodulator;
 	Oscillator	localOscillator;
 	SinCos		mySinCos;
 	AGC		pssAGC;
@@ -203,7 +204,6 @@ private:
 	fftFilterHilbert rdsHilbertFilter;
 	squelch		mySquelch;
 	newConverter	theConverter;
-	fm_Demodulator	theDemodulator;
 
 	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
@@ -220,8 +220,8 @@ private:
 	int32_t		averageCount;
 	int32_t		repeatRate;
 	int		ptyLocale;
-	bool		averagehfBuffer_full;
-	bool		averagelfBuffer_full;
+	bool		hfBuffer_newFlag;
+	bool		lfBuffer_newFlag;
 	RingBuffer<double> *hfBuffer;
 	RingBuffer<double> *lfBuffer;
 	RingBuffer<DSPCOMPLEX> *iqBuffer;

@@ -75,6 +75,7 @@
 	       sdrplaySettings -> value ("sdrplay-agcMode", 0). toInt() != 0;
 	sdrplaySettings	-> endGroup	();
 
+	theRsp		= nullptr;
 	if (agcMode) {
 	   agcControl -> setChecked (true);
 	   GRdBSelector         -> hide ();
@@ -135,6 +136,8 @@
 	                                  agcControl -> isChecked() ? 1 : 0);
 	sdrplaySettings	-> endGroup ();
 	sdrplaySettings	-> sync();
+	if (theRsp != nullptr)
+	   delete theRsp;
 }
 
 int	sdrplayHandler_v3::getRate	() {

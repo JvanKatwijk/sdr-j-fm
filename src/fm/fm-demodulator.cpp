@@ -24,13 +24,23 @@
 #include  "Xtan2.h"
 #include  <assert.h>
 
-fm_Demodulator::TDecoderListNames fm_Demodulator::sIdx2DecoderName = {
-	"AM",
-	"FM PLL Decoder",
-	"FM Mixed Demod",
-	"FM Complex Baseband Delay",
-	"FM Real Baseband Delay",
-	"FM Difference Based"
+#define	AM_DECODER		1
+#define	PLL_DECODER		2
+#define	MIXED_DECODER		3
+#define	COMPLEX_BB_DECODER	4
+#define	REAL_BB_DECODER		5
+#define	DIFF_DECODER		6
+struct {
+	int code;
+	QString name;
+} nameTable [] = { 
+	{AM_DECODER, 		"AM"},
+	{PLL_DECODER,		"FM PLL Decoder"},
+	{MIXED_DECODER,		"FM Mixed Demod"},
+	{COMPLEX_BB_DECODER,	"FM Complex Baseband Delay"},
+	{REAL_BB_DECODER,	"FM Real Baseband Delay"},
+	{DIFF_DECODER,		"FM Difference Based"},
+	{0,		""}
 };
 
 //	Just to play around a little, I implemented 5 common
@@ -38,13 +48,13 @@ fm_Demodulator::TDecoderListNames fm_Demodulator::sIdx2DecoderName = {
 //	a Diploma Thesis "Implementation of FM demodulator Algorithms
 //	on a High Performance Digital Signal Processor", especially
 //	chapter 3.
+//	see https://docplayer.net/32191874-Dsp-implementation-of-fm-demodulator-algorithms-on-a-high-performance-digital-signal-processor-diploma-thesis-11-1.html
 		fm_Demodulator::fm_Demodulator (int32_t rateIn,
-	                                        SinCos  *mySinCos,
-	                                        DSPFLOAT K_FM) {
+	                                        DSPFLOAT K_FM):
+	                                          mySinCos (rateIn) {
 int32_t i;
 
 	this	-> rateIn		= rateIn;
-	this	-> mySinCos		= mySinCos;
 	this	-> K_FM			= 2 * K_FM;
 
 	this	-> selectedDecoder 	= 3;
@@ -54,7 +64,7 @@ int32_t i;
 	                            -max_freq_deviation,
 	                            +max_freq_deviation,
 	                            0.85 * rateIn,
-	                            mySinCos);
+	                            &mySinCos);
 	arcSineSize			= 4 * 8192;
 	Arcsine. resize (arcSineSize + 1);
 	for (i = 0; i <= arcSineSize; i ++)
@@ -77,16 +87,19 @@ int32_t i;
 void	fm_Demodulator::setDecoder (const QString &decoder) {
 	this -> selectedDecoder = -1;
 
-	for (const auto & dc : listNameofDecoder ()) {
-	   this -> selectedDecoder ++;
-	   if (decoder == dc)
+	for (int i = 0; nameTable [i]. code != 0; i ++) {
+	   if (nameTable [i]. name == decoder) {
+	      selectedDecoder = nameTable [i]. code;
 	      break;
+	   }
 	}
 }
 
-fm_Demodulator::TDecoderListNames
-	&fm_Demodulator::listNameofDecoder() const {
-	return sIdx2DecoderName;
+QStringList fm_Demodulator::listNameofDecoder() const {
+QStringList res;
+	for (int i = 0; nameTable [i]. code != 0; i ++)
+	   res = res << nameTable [i]. name;
+	return res;
 }
 
 DSPFLOAT	fm_Demodulator::demodulate (DSPCOMPLEX z) {
@@ -106,12 +119,12 @@ float fmDcAlpha    = 0.0001f;
 	   Q = imag (z) / zAbs;
 	}
 //
-//	added for demodation of AM
+//	added for demodulation of AM
 //	get DC component or mean carrier power (needed also for level squelch)
 	am_carr_ampl	= (1.0f - carrierAlpha) *
 	                       am_carr_ampl + carrierAlpha * zAbs;
 
-	if (selectedDecoder == 0) { // AM
+	if (selectedDecoder == AM_DECODER) { // AM
 //	get carrier offset to have AFC for AM, too
 	   myfm_pll	-> do_pll (DSPCOMPLEX (I, Q));
 	   res		= myfm_pll -> getPhaseIncr ();
@@ -137,27 +150,26 @@ float fmDcAlpha    = 0.0001f;
 //	Now for FM
 	z = DSPCOMPLEX (I, Q);
 	int	index	= 0;
-//	see https://docplayer.net/32191874-Dsp-implementation-of-fm-demodulator-algorithms-on-a-high-performance-digital-signal-processor-diploma-thesis-11-1.html
 	float	Scaler	= sqrt (2);
 	switch (selectedDecoder) {
 	   default:		// fall trhough
-	   case 1: // PllDecoder
+	   case PLL_DECODER: // PllDecoder
 	      myfm_pll		-> do_pll (z);
 	      res		= myfm_pll -> getPhaseIncr ();
 	      break;
 
-	   case 2: // MixedDemodulator
+	   case MIXED_DECODER: // MixedDemodulator
 	      res = myAtan. atan2 (Q * Imin1 - I * Qmin1,
 	                           I * Imin1 + Q * Qmin1);
 //	is same as ComplexBasebandDelay (expanded complex multiplication)
 	      break;
 
-	   case 3: // ComplexBasebandDelay
+	   case COMPLEX_BB_DECODER: // ComplexBasebandDelay
 	      res = myAtan. argX (z * DSPCOMPLEX (Imin1, -Qmin1));
 //	is same as MixedDemodulator
 	      break;
 
-	   case 4: // RealBasebandDelay
+	   case REAL_BB_DECODER: // RealBasebandDelay
 	      res = (Imin1 * Q - Qmin1 * I + 1) / 2.0;
 	      index	= (int)floor (res * arcSineSize);
 	      if (index < 0)
@@ -167,7 +179,7 @@ float fmDcAlpha    = 0.0001f;
 	      res	= Arcsine [index];
 	      break;
 
-	   case 5: // DifferenceBased
+	   case DIFF_DECODER: // DifferenceBased
 	      res	= (Imin1 * (Q - Qmin2) - Qmin1 * (I - Imin2));
 	      res	/= (Imin1 * Imin1 + Qmin1 * Qmin1) * Scaler;
 	      Imin2	= Imin1;
