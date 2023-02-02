@@ -41,7 +41,7 @@ The main widget has a button, labeled *Config* with which one can select
 and deselect the controls widget.
 
 
-![fm receiver](/fm-config.png?raw=true)
+![fm receiver](/fm-configwidget.png?raw=true)
 
 Buttons on the control widget are typically those that are not
 often touches when just listening to the radio.
