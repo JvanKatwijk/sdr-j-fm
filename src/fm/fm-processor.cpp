@@ -818,19 +818,24 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	if (fmModus != FM_Mode::Mono &&
 	        (pilotLocked || !autoMono)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT PhaseforLRDiff =
+	   DSPFLOAT phaseforLRDiff =
 	               2 * (currentPilotPhase + M_PI_4 + PILOTTESTDELAY) -
 	                                                   pilotDelayPSS;
+//
+//	Note that there is no constraint on the phase
+	   if (phaseforLRDiff < - 2 * M_PI)
+	      phaseforLRDiff += 4 * M_PI;
+	   phaseforLRDiff	= fmod (phaseforLRDiff, 2 * M_PI);
 //	perform perfect stereo separation (PSS)
 	   pilotDelayPSS = pssActive ?
-	              this -> pPSS. process_sample (demod, PhaseforLRDiff)
+	              this -> pPSS. process_sample (demod, phaseforLRDiff)
 	              : 0;
 
 //	we look for minimum correlation so mix with PI/2 phase shift
 	   DSPFLOAT LRDiff =
 	             2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?
-	                      mySinCos. getSin (PhaseforLRDiff) :
-	                      mySinCos. getCos (PhaseforLRDiff)) * demod;
+	                      mySinCos. getSin (phaseforLRDiff) :
+	                      mySinCos. getCos (phaseforLRDiff)) * demod;
 	   DSPFLOAT LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
@@ -847,8 +852,11 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
 //
-//	The "range" of the Phase is now -6 * M_PI .. 6 * M_PI
-	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
+//	The "range" of the Phase is now at least  -6 * 2 * M_PI .. 6 * 2 * M_PI
+	   std::complex<float> xxx = std::complex<float> (cos (thePhase),
+	                                                  -sin (thePhase));
+	   *rdsValueCmpl = xxx * rdsBaseBp;
+//	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
 	}
 }
 //

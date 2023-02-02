@@ -57,7 +57,9 @@ int	get_lnaGRdB (int hwVersion, int lnaState) {
 
 //
 //	here we start
-	sdrplayHandler::sdrplayHandler  (QSettings *s) {
+	sdrplayHandler::sdrplayHandler  (QSettings *s):
+	                                    _I_Buffer (2 * 1024 * 1024),
+	                                    myFrame (nullptr) {
 mir_sdr_ErrT	err;
 float	ver;
 mir_sdr_DeviceT devDesc [4];
@@ -65,14 +67,12 @@ mir_sdr_GainValuesT gainDesc;
 sdrplaySelect	*sdrplaySelector;
 
 	sdrplaySettings		= s;
-	this	-> myFrame	= new QFrame (nullptr);
-	setupUi (this -> myFrame);
-	this	-> myFrame	-> show ();
+	setupUi (& myFrame);
+	myFrame. show ();
 	antennaSelector	-> hide ();
 	tunerSelector	-> hide ();
 	this	-> inputRate	= Khz (12 * 192);
 
-	_I_Buffer	= nullptr;
 	libraryLoaded	= false;
 
 #ifdef	__MINGW32__
@@ -138,7 +138,6 @@ ULONG APIkeyValue_length = 255;
 #else
            dlclose (Handle);
 #endif
-           delete myFrame;
            throw (24);
         }
 
@@ -149,13 +148,12 @@ ULONG APIkeyValue_length = 255;
 #else
            dlclose (Handle);
 #endif
-           delete myFrame;
+	   myFrame. hide ();
 	   throw (24);
         }
 
 	api_version	-> display (ver);
 	
-	_I_Buffer	= new RingBuffer<DSPCOMPLEX>(2 * 1024 * 1024);
 	vfoFrequency	= Khz (94700);
 
 	sdrplaySettings		-> beginGroup ("sdrplaySettings");
@@ -191,7 +189,7 @@ ULONG APIkeyValue_length = 255;
 #else
            dlclose (Handle);
 #endif
-           delete myFrame;
+	   myFrame. hide ();
            throw (25);
         }
 
@@ -202,7 +200,7 @@ ULONG APIkeyValue_length = 255;
 #else
            dlclose (Handle);
 #endif
-           delete myFrame;
+	   myFrame. hide ();
 	   throw (25);
 	}
 
@@ -236,7 +234,7 @@ ULONG APIkeyValue_length = 255;
 #else
            dlclose (Handle);
 #endif
-           delete myFrame;
+	   myFrame. hide ();
            throw (25);
         }
 
@@ -332,13 +330,11 @@ ULONG APIkeyValue_length = 255;
         sdrplaySettings -> endGroup ();
         sdrplaySettings -> sync ();
 
-	delete myFrame;
+	myFrame. hide ();
 	if (!libraryLoaded)
 	   return;
 	if (numofDevs > 0)
 	   my_mir_sdr_ReleaseDeviceIdx (deviceIndex);
-	if (_I_Buffer != nullptr)
-	   delete _I_Buffer;
 #ifdef __MINGW32__
         FreeLibrary (Handle);
 #else
@@ -418,7 +414,7 @@ int	GRdB		= GRdBSelector	-> value ();
 int	lnaState	= lnaGainSetting -> value ();
 
 	if (!running. load ()) {
-	   QMessageBox::warning (myFrame, tr ("Warning"),
+	   QMessageBox::warning (&myFrame, tr ("Warning"),
                              tr ("Changing slider value only has effect after start\n"));
 	   return;
 	}
@@ -440,7 +436,7 @@ void	sdrplayHandler::set_lnagainReduction (int lnaState) {
 mir_sdr_ErrT err;
 
 	if (!running. load ()) {
-	   QMessageBox::warning (myFrame, tr ("Warning"),
+	   QMessageBox::warning (&myFrame, tr ("Warning"),
                              tr ("Altering setting only has effect after start\n"));
 	   return;
 	}
@@ -479,7 +475,7 @@ float	denominator	= (float)(p -> denominator);
 	for (i = 0; i <  (int)numSamples; i ++)
 	   localBuf [i] = DSPCOMPLEX (float (xi [i]) / (float)denominator,
 	                              float (xq [i]) / (float)denominator);
-	p -> _I_Buffer -> putDataIntoBuffer (localBuf, numSamples);
+	p -> _I_Buffer. putDataIntoBuffer (localBuf, numSamples);
 	(void)	firstSampleNum;
 	(void)	grChanged;
 	(void)	rfChanged;
@@ -565,11 +561,11 @@ void	sdrplayHandler::stopReader	(void) {
 int32_t	sdrplayHandler::getSamples (DSPCOMPLEX *V,
 	                            int32_t size, uint8_t Mode) { 
 	(void)Mode;
-	return _I_Buffer	-> getDataFromBuffer (V, size);
+	return _I_Buffer. getDataFromBuffer (V, size);
 }
 
 int32_t	sdrplayHandler::Samples	(void) {
-	return _I_Buffer	-> GetRingBufferReadAvailable ();
+	return _I_Buffer. GetRingBufferReadAvailable ();
 }
 
 uint8_t	sdrplayHandler::myIdentity	(void) {
@@ -577,7 +573,7 @@ uint8_t	sdrplayHandler::myIdentity	(void) {
 }
 
 void	sdrplayHandler::resetBuffer	(void) {
-	_I_Buffer	-> FlushRingBuffer ();
+	_I_Buffer. FlushRingBuffer ();
 }
 
 int16_t	sdrplayHandler::bitDepth	(void) {

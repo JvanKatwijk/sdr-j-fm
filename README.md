@@ -1,5 +1,5 @@
 
-A simple FM receiver V3.01
+    FM receiver V3.1
 -------------------------
 
 ========================================================================
@@ -9,18 +9,47 @@ Some significant modifications were made by Thomas Neder, apart from the
 
 The version number is now 3.1
 
-![fm receiver](/fmreceiver.png?raw=true)
+![fm receiver](/fm-mainwidget.png?raw=true)
 
-The most recent version has an additional button to set the theme (style sheet).
+New is a so-called PSS (perfect stereo sound) control on the main widget,
+contributed by TomNeda.
+As known, the stereo sound is encoded as an L+R signal, ccompatible with 
+non stereo transmissions, and an L-R signal, modulated as AM signal on
+on offset of 38 KHz. The pilot, transmitted on an offset of 19 KHz
+is used to precisely synchronize the L-R signal with the L+R signal.
 
-Some buttons are moved to a separate "configuration" window (as in Qt-DAB),
-the widget can be made visible (or can be hidden) by touching the
-"config" button on the main widget.
+In computing the 38 Khz signal from the 19 KHz pilot signal, an error
+may occur, an offset of a few Hz. The PSS algorithm applies some
+more advanced techniques to figute out what the correction on the recomputed
+39 KHz carrier that has to be applied for a perfect match.
 
-Buttons on the configuration widget are typically those that are not
+While in previous versions the list of configure devices was
+checked on program start up, to find an attacted device, the
+current version is slightly different.
+On program start up, the software will try to start the device
+(if any) that was used on the last occasion, if no such device
+can be found, a small devide selection widget will show.
+(Note that different from e.g. Qt-DAB, once a device is selected
+and opened, no selection for another device is possible
+during this program invocation)
+
+![fm receiver](/fm-deviceselectwidget.png?raw=true)
+
+Since the number of controls in the main widget was growing,
+some controls were  transferred to a separate "control" widget.
+The main widget has a button, labeled *Config* with which one can select
+and deselect the controls widget.
+
+
+![fm receiver](/fm-config.png?raw=true)
+
+Buttons on the control widget are typically those that are not
 often touches when just listening to the radio.
 Buttons for setting the deemphasis and the pty labels are therefore now
-on the configuration widget.
+on the configuration widget, since their setting depends on the country
+you are in.
+Furthermore, the control widget contains a widget, *Combinear* on the
+picture, that can be used to dynamically set another "skin"
 
 The filtering, i.e. separation between transmissions close to each other
 in frequency, or even with (slightly) overlapping frequencies,
@@ -33,11 +62,23 @@ If the filter is switched "Off", it is excluded from the processing chain.
 As usual, next to the sources, an AppImage (for Linux x64) and a Windows
 installer are available in the releases section.
 
-Supported devices are sdrplay, hackrf, adalm pluto, line and the good 
-old dabstick. Note that on Windows, if you have installed a library 3.10
-for SDRplay devices, the "old" 2.13 library will not be accessible.
-(Note that in the most  recent versions of the SDRplay drivers the biasT selectors seem to work.)
+-------------------------------------------------------------------------
+Supported devices
+-------------------------------------------------------------------------
 
+Devices that are supported are
+ * SDRplay devices. Note that on Windows, whenever you have installed a library 3.10 or up, the 2.13 library is not accessible. On Linux there is the
+cjoice between using the 2.13 library and 3.07 (or up) library. Note that
+wwhile the 2.13 library supports the original SDRplay RSP I, the 2.13
+library does noot provide support for the RSPdx, the 3.0X library
+does not provide support for the RSP I.
+ * Airspy devices;
+ * Lime devices;
+ * Hackrf devices;
+ * Dabsticks, i.e. rtlsdr devices.
+
+There is also support for file input, however, right now only for
+"wav" files with a samplerate of 2304000.
 
 ------------------------------------------------------------------------
 Buiding an executable
