@@ -122,7 +122,6 @@ private:
 
 	uint8_t		HFviewMode;
 	uint8_t		inputMode;
-	int16_t		currAttSliderValue;
 	float		attValueL;
 	float		attValueR;
 

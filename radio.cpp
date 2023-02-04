@@ -1011,8 +1011,8 @@ int16_t bl, br;
 #else
 	bl		= 100 - n;
 	br		= 100 + n;
-	attValueL	= currAttSliderValue * (float)bl / 100;
-	attValueR	= currAttSliderValue * (float)br / 100;
+	attValueL	= (float)bl / 100;
+	attValueR	= (float)br / 100;
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
 #endif
