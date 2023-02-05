@@ -63,7 +63,6 @@ ThemeChoser	themeChooser;
 	                break;
 	      }
 	}
-
 /*
  *	... and the settings of the "environment"
  */

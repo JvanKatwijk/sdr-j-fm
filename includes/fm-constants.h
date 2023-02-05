@@ -113,7 +113,7 @@ using namespace std;
 *  My RDS is not working well with only 2600/2 bandwith.
 */
 #define	RDS_WIDTH		(2 * 2400)
-//#define	RDS_WIDTH		(2600)
+//#define	RDS_WIDTH	(2600)
 //
 //	common functions
 static inline

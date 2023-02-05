@@ -4,11 +4,12 @@
 
 class Costas {
 public:
-		Costas (float iSR, float iAlpha, float iBeta, float iFreqLimitHz):
-	                                                    mSmplRate (iSR)
-	                                                  , mAlpha (iAlpha)
-	                                                  , mBeta (iBeta)
-	                                                  , mFreqLimit (2 * M_PI * iFreqLimitHz / iSR) {
+		Costas (float iSR, float iAlpha,
+	                    float iBeta, float iFreqLimitHz):
+	                            mSmplRate (iSR)
+	                          , mAlpha (iAlpha)
+	                          , mBeta (iBeta)
+	                          , mFreqLimit (2 * M_PI * iFreqLimitHz / iSR) {
 
 	mFreq = 0;
 	mPhase = 0;
@@ -18,9 +19,9 @@ public:
 		~Costas() = default;
 
 inline
-	DSPCOMPLEX	process_sample (const DSPCOMPLEX z) {
+	DSPCOMPLEX process_sample (const DSPCOMPLEX z) {
 	   const DSPCOMPLEX r	= z * std::exp (DSPCOMPLEX (0, -mPhase));
-	   const float error	= real(r) * imag(r);
+	   const float error	= real (r) * imag (r);
 
 	   mFreq += (mBeta * error);
 	   if (abs (mFreq) > mFreqLimit) {
@@ -31,8 +32,6 @@ inline
 	   mPhase	= PI_Constrain (mPhase);
 	   return r;
 	}
-
-//	float get_cur_freq () const { return mFreq * mSampleRate / (2 * M_PI); }
 
 private:
 	const float mSmplRate;

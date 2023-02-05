@@ -204,14 +204,13 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	runMode. store (ERunStates::IDLE);
 	squelchMode		= false;
 //
-//	Added: cannot compile on Ubuntu 16 -> using old QT version?
+//	Added: cannot compile on Ubuntu 16, the system where
+//	I build the appImage
+//
 //	with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
+//	so, feel free to uncomment
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
-// Providing following via QDialog constructor was not working properly
-
-	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
-//	fprintf (stderr, "Window size width %d, height %d\n", size().width(),  size().height());
-//	resize (1200, 540);
+//	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
 
 	thermoPeakLevelLeft	-> setFillBrush (Qt::darkBlue);
 	thermoPeakLevelRight	-> setFillBrush (Qt::darkBlue);
@@ -270,8 +269,12 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	   fmDecoderSelector -> setCurrentIndex (k);
 	   handle_fmDecoderSelector (fmDecoderSelector -> currentText ());
 	}
-//
 
+	h	= fmSettings -> value ("rdsSelector", "RDS 1"). toString ();
+	k	= fmRdsSelector -> findText (h);
+	if (k != -1)
+	   fmRdsSelector -> setCurrentIndex (k);
+//
 	myFMprocessor	= nullptr;
 	our_audioSink	= new audioSink (this -> audioRate, 16384);
 	outTable. resize (our_audioSink -> numberofDevices () + 1);
@@ -1591,10 +1594,10 @@ void	RadioInterface::clearMusicSpeechFlag () {
 	speechLabel	-> setText (QString (""));
 }
 
-//void	RadioInterface::clearRadioText () {
-//	RadioText = QString ("");
-//	radioTextBox    -> setText (RadioText);
-//}
+void	RadioInterface::clearRadioText () {
+	RadioText = QString ("");
+	radioTextBox    -> setText (RadioText);
+}
 
 void	RadioInterface::setRadioText (const QString &s) {
 	radioTextBox	-> setText (s);
@@ -1694,6 +1697,8 @@ void	RadioInterface::handle_fmRdsSelector (const QString &s) {
 	            rdsDecoder::ERdsMode::RDS_1:
 	         s == "RDS 2" ?
 	            rdsDecoder::ERdsMode::RDS_2:
+	         s == "RDS 3" ?
+	            rdsDecoder::ERdsMode::RDS_3:
 	            rdsDecoder::ERdsMode::RDS_OFF);
 
 	myFMprocessor	-> setfmRdsSelector (rdsModus);

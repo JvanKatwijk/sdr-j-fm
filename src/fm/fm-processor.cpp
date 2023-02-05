@@ -794,7 +794,7 @@ int		iqCounter	= 0;
 }
 
 void	fmProcessor::process_signal_with_rds (const float demod,
-	                                      std::complex<float> *audioOut,
+	                                     std::complex<float> *audioOut,
                                          std::complex<float> *rdsValueCmpl) {
 
 //	Get the phase for the "carrier to be inserted" right.
@@ -840,7 +840,8 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
 //	currentPilotPhase shifts also about 19kHz without
 //	existing pilot signal
-	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
+	   float thePhase	= 3 * (currentPilotPhase);
+//	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
@@ -849,7 +850,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   std::complex<float> xxx = std::complex<float> (cos (thePhase),
 	                                                  -sin (thePhase));
 	   *rdsValueCmpl = xxx * rdsBaseBp;
-//	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
+	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
 	}
 }
 //

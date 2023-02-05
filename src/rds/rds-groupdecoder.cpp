@@ -56,8 +56,8 @@
 //		 MyRadioInterface, SLOT (clearStationLabel (void)));
 	connect (this, SIGNAL (setRadioText (const QString &)),
 	         MyRadioInterface, SLOT (setRadioText (const QString &)));
-//	connect (this, SIGNAL (clearRadioText (void)),
-//		 MyRadioInterface, SLOT (clearRadioText (void)));
+	connect (this, SIGNAL (clearRadioText (void)),
+		 MyRadioInterface, SLOT (clearRadioText (void)));
 	connect (this, SIGNAL (setAFDisplay (int, int)),
 	         MyRadioInterface, SLOT (setAFDisplay (int, int)));
 	connect (this, SIGNAL (setMusicSpeechFlag (int)),
@@ -88,10 +88,9 @@ void	rdsGroupDecoder::reset () {
 	textABflag		= -1;   // Not defined
 	textSegmentRegister	= 0;
 
-//	clearRadioText		();
+	clearRadioText		();
 //	clearStationLabel	();
 	setStationLabel		(stationLabel);
-	setRadioText		(textBuffer);
 	clearMusicSpeechFlag	();
 	setPTYCode		(0, "");
 	setPiCode		(0);
@@ -223,13 +222,13 @@ void	rdsGroupDecoder::Handle_RadioText (RDSGroup * grp) {
 const uint16_t new_txtABflag	= (grp ->  getBlock_B () >> 4) & 1;
 const uint16_t currentSegment	= (grp -> getBlock_B ()) & 0xF;
 char* textFragment = &textBuffer [4 * currentSegment];
-//  bool endF = false;
+bool endF = false;
 uint16_t textPart1, textPart2;
 
 	if (textABflag != new_txtABflag) {
 	   textABflag = new_txtABflag;
 //	If the textA/B has changed, we clear the old displayed message ...
-	   setRadioText ("");
+	   clearRadioText ();
 
 //	... and we check if we have received a continous stream of segments
 //	in which case we show the text
@@ -245,9 +244,10 @@ uint16_t textPart1, textPart2;
 // Test output for debug reasons but annoying a bit in GUI
 //	   memset (textBuffer, (new_txtABflag == 0 ? '.' : ','),
 //	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-		memset (textBuffer, ' ',
+	   memset (textBuffer, ' ',
 	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-	   setRadioText (textBuffer);
+	   textBuffer [NUM_OF_CHARS_RADIOTEXT] = 0;
+	   clearRadioText ();
 	}
 
 	textPart1	= grp -> getBlock_C ();
@@ -265,22 +265,23 @@ uint16_t textPart1, textPart2;
 //	print only radio text if all data from begin are
 //	collected until now (but there may come more...)
 	if (textSegmentRegister + 1 == (1U << (currentSegment + 1))) {
-	   prepareText (textBuffer, currentSegment * NUM_CHARS_PER_RTXT_SEGMENT);
+	   prepareText (textBuffer,
+	                  currentSegment * NUM_CHARS_PER_RTXT_SEGMENT);
 	}
 
 //	check for end of message
-//	for (uint16_t i = 0; i < 4; i++)
-//	   if (textFragment[i] == END_OF_RADIO_TEXT)
-//	      endF = true;
+	for (uint16_t i = 0; i < 4; i++)
+	   if (textFragment [i] == END_OF_RADIO_TEXT)
+	      endF = true;
 
 //	Check if all fragments are in or we had an end of message
-//	if (endF ||
-//	    (textSegmentRegister + 1 == (1 << NUM_OF_FRAGMENTS))) {
-//	   prepareText (textBuffer, NUM_OF_CHARS_RADIOTEXT);
+	if (endF ||
+	    (textSegmentRegister + 1 == (1 << NUM_OF_FRAGMENTS))) {
+	   prepareText (textBuffer, NUM_OF_CHARS_RADIOTEXT);
 //	   textSegmentRegister = 0;
 //	   memset (textBuffer, ' ',
 //	   	  NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-//	}
+	}
 }
 
 void	rdsGroupDecoder::Handle_Time_and_Date (RDSGroup * grp) {
@@ -315,9 +316,12 @@ QString outString = QString ("");
 }
 
 bool	rdsGroupDecoder::alfabetSwitcher (uint8_t c1, uint8_t c2) {
-	if ((c1 == 0x0F) && (c2 == 0x0F))	return true;
-	if ((c1 == 0x0E) && (c2 == 0x0E))	return true;
-	if ((c1 == 0x1B) && (c2 == 0x6E))	return true;
+	if ((c1 == 0x0F) && (c2 == 0x0F))
+	   return true;
+	if ((c1 == 0x0E) && (c2 == 0x0E))
+	   return true;
+	if ((c1 == 0x1B) && (c2 == 0x6E))
+	   return true;
 	return false;
 }
 //
@@ -325,7 +329,7 @@ bool	rdsGroupDecoder::alfabetSwitcher (uint8_t c1, uint8_t c2) {
 //	called with alfabetSwitcher == true, we only have to
 //	look at the first character
 uint8_t	rdsGroupDecoder::setAlfabetTo (uint8_t c1, uint8_t c2) {
-	fprintf(stderr, "setting alfabet to %x %x\n", c1, c2);
+//	fprintf(stderr, "setting alfabet to %x %x\n", c1, c2);
 	switch (c1) {
 	   default:   // should not happen
 	   case 0x0F:

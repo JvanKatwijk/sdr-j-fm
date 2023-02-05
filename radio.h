@@ -285,7 +285,7 @@ public slots:
 	void		iqBufferLoaded		();
 	void		setPTYCode		(int, const QString &);
 //	void		clearStationLabel	();
-//	void		clearRadioText		();
+	void		clearRadioText		();
 	void		setAFDisplay		(int, int);
 	void		setSquelchIsActive	(bool);
 //	void		showStrength		(float, float);
