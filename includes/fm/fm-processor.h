@@ -113,7 +113,6 @@ public:
 	              int32_t,                  // spectrumSize
 	              int32_t,                  // averageCount
 	              int32_t,                  // repeatRate
-	              int,			// locale, Europe or US
 	              RingBuffer<double> *,     // HFScope
 	              RingBuffer<double> *,     // LFScope
 	              RingBuffer<DSPCOMPLEX> *, // IQScope
@@ -133,10 +132,11 @@ public:
 	void		stopDumping		();
 	void		setBandwidth		(const QString &);
 	void		setAttenuation		(DSPFLOAT, DSPFLOAT);
-	void		setfmRdsSelector	(rdsDecoder::ERdsMode);
+	void		setRdsMode		(rdsDecoder::ERdsMode);
+	void		setRdsTpyLocale		(rdsDecoder::ERdsTpyLocale);
+	void		setRdsTextFilter		(rdsDecoder::ERdsTextFilter);
 	void		triggerFrequencyChange	();
 	void		restartPssAnalyzer	();
-	void		resetRds		();
 	void		set_localOscillator	(int32_t);
 	void		set_squelchMode		(ESqMode iSqMode);
 	bool		getSquelchState		();
@@ -162,7 +162,6 @@ public:
 	void		startScanning		();
 	void		stopScanning		();
 	void		set_squelchValue	(int16_t);
-	void		set_ptyLocale		(int);
 //
 //	some private functions:
 private:
@@ -219,7 +218,6 @@ private:
 	int32_t		displaySize;
 	int32_t		averageCount;
 	int32_t		repeatRate;
-	int		ptyLocale;
 	bool		hfBuffer_newFlag;
 	bool		lfBuffer_newFlag;
 	RingBuffer<double> *hfBuffer;

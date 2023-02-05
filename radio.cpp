@@ -407,15 +407,22 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	         this,  SLOT (handle_afcSelector (int)));
 
 	QString country	= 
-	         fmSettings -> value ("ptyLocale", "Europe"). toString ();
-	if ((country == "Europe") || (country == "USA")) {
-	   k = configWidget. countrySelector -> findText (country);
-	   if (k != -1)
-	      configWidget. countrySelector	-> setCurrentIndex (k);
-	}
+	         fmSettings -> value ("ptyLocale", "RDS PTY Europe"). toString ();
+	k = configWidget. countrySelector -> findText (country);
+	if (k != -1)
+		configWidget. countrySelector	-> setCurrentIndex (k);
 	connect (configWidget. countrySelector,
 	                      SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_countrySelector (const QString &)));
+	
+	QString rdsTextFilter	= 
+	         fmSettings -> value ("rdsTextFilter", "RDS Text show at any place"). toString ();
+	k = configWidget. rdsFilterSelector -> findText (rdsTextFilter);
+	if (k != -1)
+		configWidget. rdsFilterSelector	-> setCurrentIndex (k);
+	connect (configWidget. rdsFilterSelector,
+	                      SIGNAL (activated (const QString &)),
+	         this, SLOT (handle_rdsTextFilterSelector (const QString &)));
 
 	QString device =
 	          fmSettings -> value ("device", "no device").toString ();
@@ -970,8 +977,7 @@ QStringList devices;
 //	Just for convenience packed as a function
 void	RadioInterface::make_newProcessor () {
 	QString area
-	         = fmSettings -> value ("ptyLocale", "Europe"). toString ();
-	int ptyLocale	= area == "Europe" ? 0 : 1;
+	         = fmSettings -> value ("ptyLocale", "RDS PTY Europe"). toString ();
 	int thresHold	
 	         =  fmSettings -> value ("threshold", 20). toInt ();
 	 
@@ -987,7 +993,6 @@ void	RadioInterface::make_newProcessor () {
 	                                 spectrumSize,
 	                                 averageCount,
 	                                 repeatRate,
-	                                 ptyLocale,
 	                                 hfBuffer,
 	                                 lfBuffer,
 	                                 &iqBuffer,
@@ -1001,6 +1006,8 @@ void	RadioInterface::make_newProcessor () {
 	handle_fmModeSelector	(fmModeSelector		-> currentText ());
 	handle_fmRdsSelector	(fmRdsSelector 		-> currentText ());
 	handle_fmChannelSelector (fmChannelSelect	-> currentText ());
+	handle_countrySelector(configWidget. countrySelector -> currentText ());
+	handle_rdsTextFilterSelector(configWidget. rdsFilterSelector -> currentText ());
 	handle_fmDeemphasis	(configWidget. fmDeemphasisSelector	-> currentText ());
 	handle_squelchSlider	(squelchSlider		-> value ());
 	handle_fmLFcutoff	(fmLFcutoff		-> currentText ());
@@ -1369,7 +1376,8 @@ static QString audioTempFile;
            if (!file. endsWith (".wav", Qt::CaseInsensitive))
               file.append (".wav");
 	   QString cmdline = QString ("mv ") + audioTempFile + " "  + file;
-	   system (cmdline. toLatin1 (). data ());
+	   int res = system (cmdline. toLatin1 (). data ()); // return val needed to avoid warning
+		(void) res; 
 	   return;
 	}
 
@@ -1542,9 +1550,8 @@ void	RadioInterface::setbitErrorRate (double v) {
 	bitErrorRate	-> display (v);
 }
 
-void	RadioInterface::setGroup (int n) {
-	(void)n;
-//	rdsGroupDisplay	-> display (n);
+void	RadioInterface::setGroup (const QString & s) {
+	gtc_text	-> setText(s);
 }
 
 void	RadioInterface::setPTYCode (int n, const QString &ptyText) {
@@ -1696,8 +1703,7 @@ void	RadioInterface::handle_fmRdsSelector (const QString &s) {
 	            rdsDecoder::ERdsMode::RDS_2:
 	            rdsDecoder::ERdsMode::RDS_OFF);
 
-	myFMprocessor	-> setfmRdsSelector (rdsModus);
-	myFMprocessor	-> resetRds ();
+	myFMprocessor	-> setRdsMode (rdsModus);
 }
 
 void	RadioInterface::handle_fmDecoderSelector (const QString &decoder) {
@@ -2297,10 +2303,21 @@ void	RadioInterface::handle_afcSelector	(int b) {
 }
 
 void	RadioInterface::handle_countrySelector	(const QString &country) {
-int ptyLocale	= country == "Europe" ? 0 : 1;
+rdsDecoder::ERdsTpyLocale ptyLocale	= country == "RDS PTY Europe" 
+                                      ? rdsDecoder::ERdsTpyLocale::EUROPE 
+                                      : rdsDecoder::ERdsTpyLocale::USA;
 	fmSettings -> setValue ("ptyLocale", country);
 	if (myFMprocessor != nullptr)
-	   myFMprocessor -> set_ptyLocale (ptyLocale);
+	   myFMprocessor -> setRdsTpyLocale (ptyLocale);
+}
+
+void	RadioInterface::handle_rdsTextFilterSelector	(const QString &filter) {
+rdsDecoder::ERdsTextFilter rdsFilter = filter == "RDS Text show at any place" 
+                                       ? rdsDecoder::ERdsTextFilter::ANY_PLACE
+                                       : rdsDecoder::ERdsTextFilter::BEGIN_TO_CURRENT;
+	fmSettings -> setValue ("rdsTextFilter", filter);
+	if (myFMprocessor != nullptr)
+	   myFMprocessor -> setRdsTextFilter (rdsFilter);
 }
 
 void	RadioInterface::handle_configButton	() {

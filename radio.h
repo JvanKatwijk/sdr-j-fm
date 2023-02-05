@@ -258,6 +258,8 @@ private slots:
 	void		handle_cbTestTone	(int v);
 
 	void		handle_countrySelector	(const QString &);
+	void		handle_rdsTextFilterSelector(const QString &);
+	
 	void		handle_freqButton	();
 	void		newFrequency		(int);
 	void		closeEvent		(QCloseEvent *event);
@@ -271,7 +273,7 @@ public slots:
 	void		setCRCErrors		(int);
 	void		setSyncErrors		(int);
 	void		setbitErrorRate		(double);
-	void		setGroup		(int);
+	void		setGroup		(const QString &);
 	void		setPiCode		(int);
 	void		setStationLabel		(const QString &);
 	void		setRadioText		(const QString &);

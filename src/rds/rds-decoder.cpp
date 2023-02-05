@@ -45,10 +45,11 @@ constexpr DSPFLOAT RDS_BITCLK_HZ = 1187.5;
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
-	                            my_AGC (2e-3f, 0.38f, 9.0f),
-	                            my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f),
-	                            //my_Costas1 (RDS_BITCLK_HZ, 1.0f, 0.02f, 20.0f) ,
-	                            my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
+	                           mode (ERdsMode::RDS_OFF),
+	                           my_AGC (2e-3f, 0.38f, 9.0f),
+	                           my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f),
+	                           //my_Costas1 (RDS_BITCLK_HZ, 1.0f, 0.02f, 20.0f) ,
+	                           my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
 	{
 
 DSPFLOAT	synchronizerSamples;
@@ -114,6 +115,21 @@ DSPFLOAT	synchronizerSamples;
 	delete		mySinCos;
 }
 
+void rdsDecoder::setMode	(ERdsMode m) {
+	mode = m;
+	reset();
+}
+
+void rdsDecoder::setTpyLocale	(ERdsTpyLocale m) {
+	my_rdsGroupDecoder -> setPtyLocale(m == ERdsTpyLocale::EUROPE ? 0 : 1);
+	reset();
+}
+
+void rdsDecoder::setTextFilter	(ERdsTextFilter m) {
+	my_rdsGroupDecoder -> setShowOnlyFullRecText(m == ERdsTextFilter::BEGIN_TO_CURRENT);
+	reset();
+}
+	
 void	rdsDecoder::reset () {
 	my_rdsGroupDecoder -> reset ();
 }
@@ -136,8 +152,7 @@ DSPCOMPLEX tmp = 0;
 }
 
 bool	rdsDecoder::doDecode (DSPCOMPLEX v,
-	                      DSPCOMPLEX * const m,
-	                      ERdsMode  mode, int ptyLocale) {
+	                      DSPCOMPLEX * const m) {
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
 
@@ -152,7 +167,7 @@ DSPCOMPLEX r;
 #endif
 	if (mode	==  rdsDecoder::ERdsMode::RDS_2) {
 		*m = v;
-		doDecode2 (real (v), ptyLocale);
+		doDecode2 (real (v));
 	   return true;
 	}
 
@@ -160,7 +175,7 @@ DSPCOMPLEX r;
 //	this runs 19000/16 = 1187.5 1/s times
 		//r = my_Costas1. process_sample (r); // the Costas is now made above
 	   bool bit	= (real (r) >= 0);
-	   processBit	(bit ^ previousBit, ptyLocale);
+	   processBit	(bit ^ previousBit);
 	   previousBit	= bit;
 	   *m		= r;
 
@@ -170,7 +185,7 @@ DSPCOMPLEX r;
 	return false;
 }
 
-void	rdsDecoder::processBit (bool bit, int ptyLocale) {
+void	rdsDecoder::processBit (bool bit) {
 
 	switch (my_rdsBlockSync -> pushBit (bit, my_rdsGroup)) {
 	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
@@ -191,7 +206,7 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 	      break;
 
 	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup, ptyLocale)) {
+	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup)) {
 	         ;   // error decoding the rds group
 	      }
 //	      my_rdsGroup -> clear ();
@@ -199,7 +214,7 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 	}
 }
 
-void	rdsDecoder::doDecode2	(float v, int ptyLocale) {
+void	rdsDecoder::doDecode2	(float v) {
 DSPFLOAT clkState;
 std::complex<float> tt;
 
@@ -219,7 +234,7 @@ std::complex<float> tt;
 //	rising edge -> look at integrator
 	if (prev_clkState <= 0 && clkState > 0) {
 	   bool currentBit	= bitIntegrator >= 0;
-	   processBit (currentBit ^ previousBit, ptyLocale);
+	   processBit (currentBit ^ previousBit);
 	   bitIntegrator	= 0;		// we start all over
 	   previousBit		= currentBit;
 	}

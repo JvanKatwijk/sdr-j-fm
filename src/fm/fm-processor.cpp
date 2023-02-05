@@ -59,7 +59,6 @@
 	                          int32_t spectrumSize,
 	                          int32_t averageCount,
 	                          int32_t repeatRate,
-	                          int	ptyLocale,
 	                          RingBuffer<double> *hfBuffer,
 	                          RingBuffer<double> *lfBuffer,
 	                          RingBuffer<DSPCOMPLEX> *iqBuffer,
@@ -106,7 +105,6 @@
 	this	-> displaySize		= displaySize;
 	this	-> averageCount		= averageCount;
 	this	-> repeatRate		= repeatRate;
-	this	-> ptyLocale		= ptyLocale;
 	this	-> hfBuffer		= hfBuffer;
 	this	-> lfBuffer		= lfBuffer;
 	this	-> thresHold		= thresHold;
@@ -145,8 +143,8 @@
 	this	-> spectrumSampleRate	= fmRate;
 	this	-> zoomFactor		= 1;
 
-	int	Df			= 1000;
-	int	f			= 192000;
+//	int	Df			= 1000;
+//	int	f			= 192000;
 //	fprintf (stderr, "order = %f\n", (float)f / Df * 40 / 22);
 // workingRate is typ. 48000S/s
 	peakLevelSampleMax		= workingRate / 50;
@@ -330,13 +328,12 @@ void	fmProcessor::setlfPlotType (ELfPlot m) {
 	      showFullSpectrum = false;
 	      break;
 	}
-
-	lfBuffer_newFlag = true;
+   new_lfSpectrum();
 }
 
 void	fmProcessor::setlfPlotZoomFactor (int32_t ZoomFactor) {
 	zoomFactor = ZoomFactor;
-	lfBuffer_newFlag = true;
+	new_lfSpectrum();
 }
 
 void	fmProcessor::setSoundMode (uint8_t selector) {
@@ -664,9 +661,7 @@ int		iqCounter	= 0;
 	           
 	               static std::complex<float> magCplx;
 //	   input SR 19000S/s, output SR 19000/16S/s
-	               if (myRdsDecoder. doDecode (pcmSample,
-	                                           &magCplx,
-	                                           rdsModus, ptyLocale)) {
+	               if (myRdsDecoder. doDecode (pcmSample, &magCplx)) {
 	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
 	                  iqCounter ++;
 	                  if (iqCounter > 100) {
@@ -842,8 +837,6 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 //	existing pilot signal
 	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
-	   std::complex<float> rdsBaseHilb =
-	                          rdsHilbertFilter. Pass (rdsBaseBp);
 //
 //	The "range" of the Phase is now at least  -6 * 2 * M_PI .. 6 * 2 * M_PI
 	   std::complex<float> xxx = std::complex<float> (cos (thePhase),
@@ -934,13 +927,22 @@ void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {
 	}
 }
 
-void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
+void	fmProcessor::setRdsMode (rdsDecoder::ERdsMode m) {
 	this -> rdsModus = m;
+	myRdsDecoder.	setMode	(m);
 
 	if (lfPlotType == ELfPlot::RDS_INPUT ||
 	                 lfPlotType == ELfPlot::RDS_DEMOD) {
 	   new_lfSpectrum ();
 	}
+}
+
+void	fmProcessor::setRdsTpyLocale (rdsDecoder::ERdsTpyLocale m) {
+	myRdsDecoder.	setTpyLocale	(m);
+}
+
+void	fmProcessor::setRdsTextFilter (rdsDecoder::ERdsTextFilter m) {
+	myRdsDecoder.	setTextFilter (m);
 }
 
 void	fmProcessor::triggerFrequencyChange() {
@@ -949,7 +951,7 @@ void	fmProcessor::triggerFrequencyChange() {
 // suppress audio to avoid transient noise
 	suppressAudioSampleCnt = suppressAudioSampleCntMax;
 
-	resetRds ();
+	myRdsDecoder.reset ();
 	restartPssAnalyzer ();
 	new_lfSpectrum ();
 }
@@ -957,10 +959,6 @@ void	fmProcessor::triggerFrequencyChange() {
 void	fmProcessor::restartPssAnalyzer	() {
 	pilotDelayPSS = 0;
 	pPSS. reset (); // TODO shift this as it is called while RDS switch, too
-}
-
-void	fmProcessor::resetRds	() {
-	myRdsDecoder. reset ();
 }
 
 void	fmProcessor::set_localOscillator (int32_t lo) {
@@ -1195,6 +1193,7 @@ void	fmProcessor::new_hfSpectrum	() {
 }
 
 void	fmProcessor::new_lfSpectrum	() {
+	spectrumBuffer_lf. resize (0);
 	lfBuffer_newFlag = true;
 }
 
@@ -1204,9 +1203,5 @@ void	fmProcessor::setTestTone		(const bool iTTEnabled) {
 
 void	fmProcessor::setDispDelay		(const int iDelay) {
 	delayLine. set_delay_steps (iDelay);
-}
-
-void	fmProcessor::set_ptyLocale		(int ptyLocale) {
-	this	-> ptyLocale	= ptyLocale;
 }
 

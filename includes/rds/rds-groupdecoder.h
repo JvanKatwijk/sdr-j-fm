@@ -38,14 +38,29 @@
 
 class RadioInterface;
 
+class GroupStatistic {
+public:
+	GroupStatistic();
+	~GroupStatistic() = default;
+	
+	void reset();
+	bool collect_group_code(uint16_t iGroupTypeCode, uint16_t iGroupBType);
+	QString get_group_code_list_string() const;
+	
+private:
+	std::array< std::array<bool, 2>, 16 > gc_list; // [GroupCode][iGroupType]
+};
+
 class rdsGroupDecoder : public QObject {
 Q_OBJECT
 public:
 	rdsGroupDecoder		(RadioInterface *);
 	~rdsGroupDecoder	();
-bool	decode			(RDSGroup *, int);
-void	reset			();
-
+	bool	decode		(RDSGroup *);
+	void	reset			();
+	void	setShowOnlyFullRecText	(bool s);
+	void	setPtyLocale	(int32_t v);
+	
 //	group 1 constants
 //
 static const uint32_t NUMBER_OF_NAME_SEGMENTS	= 4;
@@ -67,11 +82,15 @@ private:
 	void		Handle_RadioText		  (RDSGroup *);
 	void		Handle_Time_and_Date		  (RDSGroup *);
 	void		addtoStationLabel	(uint32_t, uint32_t);
+	void		clearTextBuffer(uint16_t fromIdx, char fillChar);
 	void		additionalFrequencies	(uint16_t);
 	void		addtoRadioText		(uint16_t, uint16_t, uint16_t);
 	void		prepareText		(char *, int16_t);
-	int32_t 	piCode;
+	
+	GroupStatistic	groupStatistic;
+	int32_t		piCode;
 	int32_t		ptyCode;
+	int32_t     ptyLocale;
 	uint8_t		theAlfabet;
 	bool		alfabetSwitcher		(uint8_t, uint8_t);
 	uint8_t		setAlfabetTo		(uint8_t, uint8_t);
@@ -86,9 +105,10 @@ private:
 	uint32_t textSegmentRegister;
 	int32_t	 textABflag;
 	char	textBuffer [NUM_OF_CHARS_RADIOTEXT + 1];
-
+	bool	showOnlyFullRecText;
+	
 signals:
-	void	setGroup		(int);
+	void	setGroup		(const QString &);
 //	void	setPTYCode		(int);
 	void	setPTYCode		(int, const QString &);
 	void	setMusicSpeechFlag	(int);

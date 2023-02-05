@@ -65,17 +65,32 @@ public:
 		RDS_1,
 		RDS_2
 	};
+	
+	enum class ERdsTpyLocale {
+		EUROPE,
+		USA
+	};
 
+	enum class ERdsTextFilter {
+		ANY_PLACE,
+		BEGIN_TO_CURRENT
+	};
+
+	void setMode	(ERdsMode);
+	void setTpyLocale	(ERdsTpyLocale);
+	void setTextFilter	(ERdsTextFilter);
+	
+	
 	bool	doDecode	(const DSPCOMPLEX,
-	                         DSPCOMPLEX * const,
-	                         ERdsMode mode, int ptyLocale);
+	                         DSPCOMPLEX * const);
 	void	reset		();
 
 private:
-	void			doDecode2	(float v, int);
-	void			processBit	(bool, int);
+	void			doDecode2	(float v);
+	void			processBit	(bool);
 
-	ERdsMode		mode;
+	ERdsMode			mode;
+	
 	AGC			my_AGC;
 	TimeSync		my_timeSync;
 	//Costas			my_Costas1;

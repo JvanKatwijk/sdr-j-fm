@@ -40,12 +40,55 @@
 #define G1 1
 #define G2 2
 
+
 #include "ebu-codetables.c"
 
-	rdsGroupDecoder::rdsGroupDecoder (RadioInterface * RI) { 
+GroupStatistic::GroupStatistic() {
+	reset();
+}
+
+void GroupStatistic::reset() {
+	for (auto & gc : gc_list ) {
+		for (auto & gb : gc) {
+		  gb = false;
+		}
+	}
+}
+
+bool GroupStatistic::collect_group_code(uint16_t iGroupTypeCode, uint16_t iGroupBType) {
+	assert(iGroupTypeCode < gc_list. size());
+	assert(iGroupBType < gc_list [0]. size());
+	
+	bool listChanged = false;
+	bool & gcb = gc_list[iGroupTypeCode][iGroupBType];
+
+   if (gcb == false) {
+      gcb = true;
+      listChanged = true;
+   }
+   
+   return listChanged;
+}
+
+QString GroupStatistic::get_group_code_list_string() const {
+	QString outString;
+	for (uint16_t gci = 0; gci < gc_list. size(); ++gci ) {
+		for (uint16_t gbi = 0; gbi < gc_list [0]. size(); ++gbi ) {
+			if (gc_list[gci][gbi]) {
+				outString += QString::number(gci) + (gbi ? "B " : "A ");
+			}
+		}
+	}
+	return outString;
+}
+
+rdsGroupDecoder::rdsGroupDecoder (RadioInterface * RI) { 	
 	MyRadioInterface	= RI;
-	connect (this, SIGNAL (setGroup(int)),
-	         MyRadioInterface, SLOT (setGroup (int)));
+	showOnlyFullRecText = false;
+	ptyLocale = 0;
+	
+	connect (this, SIGNAL (setGroup(const QString &)),
+	         MyRadioInterface, SLOT (setGroup (const QString &)));
 	connect (this, SIGNAL (setPTYCode (int, const QString &)),
 	         MyRadioInterface, SLOT (setPTYCode (int, const QString &)));
 	connect (this, SIGNAL (setPiCode (int)),
@@ -67,12 +110,13 @@
 	reset ();
 }
 
-	rdsGroupDecoder::~rdsGroupDecoder	() {
+rdsGroupDecoder::~rdsGroupDecoder	() {
 }
 
 void	rdsGroupDecoder::reset () {
 	piCode = 0;
 	ptyCode = -1;
+	theAlfabet = G0;
 
 // Initialize Group 1 members
 	memset (stationLabel, ' ', STATION_LABEL_LENGTH * sizeof (char));
@@ -88,19 +132,23 @@ void	rdsGroupDecoder::reset () {
 	textABflag		= -1;   // Not defined
 	textSegmentRegister	= 0;
 
-//	clearRadioText		();
-//	clearStationLabel	();
-	setStationLabel		(stationLabel);
-	setRadioText		(textBuffer);
-	clearMusicSpeechFlag	();
-	setPTYCode		(0, "");
-	setPiCode		(0);
-	setAFDisplay		(0, 0);
+	groupStatistic. reset();
+//	emit clearRadioText		();
+//	emit clearStationLabel	();
+	emit setStationLabel		(stationLabel);
+	emit setRadioText		(textBuffer);
+	emit clearMusicSpeechFlag	();
+	emit setPTYCode		(0, "");
+	emit setPiCode		(0);
+	emit setAFDisplay		(0, 0);
+	emit setGroup		("--");
 }
 
-bool	rdsGroupDecoder::decode (RDSGroup * grp, int ptyLocale) {
-//	fprintf (stderr, "Got group %d\n", grp -> getGroupType ());
-	setGroup	(grp -> getGroupType ());
+bool	rdsGroupDecoder::decode (RDSGroup * grp) {
+	
+	if (groupStatistic.collect_group_code(grp -> getGroupType (), grp -> isTypeBGroup ())) {
+		emit setGroup(groupStatistic. get_group_code_list_string() );
+	}
 
 //	PI-code has changed -> new station received
 //	Reset the decoder
@@ -118,8 +166,9 @@ bool	rdsGroupDecoder::decode (RDSGroup * grp, int ptyLocale) {
 	}
 
 //	Cannot decode B type groups
-	if (grp -> isTypeBGroup ())
+	if (grp -> isTypeBGroup ()) {
 	   return false;
+	}
 
 //	Decide by group type code
 	switch (grp -> getGroupType ()) {
@@ -179,30 +228,36 @@ uint32_t charsforStationName	= grp -> getBlock_D () & 0xFFFF;
 	setMusicSpeechFlag	((grp -> getBlock_B () >> 3) & 1);
 
 //	Fill DI code
-	m_grp1_diCode |= ((grp -> getBlock_B () >> 2) & 1) << segIndex;
+	m_grp1_diCode |= ((grp -> getBlock_B () >> 2) & 1) << (3 - segIndex);
 }
 
 void	rdsGroupDecoder::addtoStationLabel (uint32_t index,
 	                                    uint32_t name) {
 	stationLabel [2 * index] = (char)(name >> 8);
 	stationLabel [2 * index + 1] = (char)(name & 0xFF);
-	const QString stat = QString (stationLabel);
-	setStationLabel (stat);
 
 //	Reset segment counter on first segment
 	if (index == 0)
 	   stationNameSegmentRegister = 0;
 
 //	Mark current segment as received, (set bit in segment register to 1)
-	stationNameSegmentRegister |= (2 * index);
+	stationNameSegmentRegister |= (1U << index);
 
 //	check whether all segments are in
-	if ((int32_t)stationNameSegmentRegister + 1 ==
-	                       (1 << NUMBER_OF_NAME_SEGMENTS)) {
+	if (!showOnlyFullRecText ||
+	    stationNameSegmentRegister + 1U ==
+	                       (1U << NUMBER_OF_NAME_SEGMENTS)) {
 	   const QString stat2 = QString (stationLabel);
 	   setStationLabel (stat2);
 	   stationNameSegmentRegister = 0;
 	}
+}
+
+void rdsGroupDecoder::clearTextBuffer(uint16_t fromIdx, char fillChar) {
+	assert(fromIdx < NUM_OF_CHARS_RADIOTEXT);
+	memset (&textBuffer[fromIdx], fillChar,
+			(NUM_OF_CHARS_RADIOTEXT - fromIdx) * sizeof (char));
+	textBuffer[NUM_OF_CHARS_RADIOTEXT] = '\0';
 }
 
 void	rdsGroupDecoder::additionalFrequencies (uint16_t blockContents) {
@@ -223,31 +278,14 @@ void	rdsGroupDecoder::Handle_RadioText (RDSGroup * grp) {
 const uint16_t new_txtABflag	= (grp ->  getBlock_B () >> 4) & 1;
 const uint16_t currentSegment	= (grp -> getBlock_B ()) & 0xF;
 char* textFragment = &textBuffer [4 * currentSegment];
-//  bool endF = false;
 uint16_t textPart1, textPart2;
 
 	if (textABflag != new_txtABflag) {
 	   textABflag = new_txtABflag;
 //	If the textA/B has changed, we clear the old displayed message ...
-	   setRadioText ("");
-
-//	... and we check if we have received a continous stream of segments
-//	in which case we show the text
-//	   for (int i = 1; i < NUM_OF_FRAGMENTS; i++) //    {
-//	      if ((1 << i) == (int32_t)textSegmentRegister + 1) {
-//	         prepareText ((char *)textBuffer, i * NUM_CHARS_PER_RTXT_SEGMENT);
-//	         return;
-//	      }
-//	   }
-
+	   clearTextBuffer(0, showOnlyFullRecText ? ' ' : '.');
 //	Reset the segment buffer
 	   textSegmentRegister = 0;
-// Test output for debug reasons but annoying a bit in GUI
-//	   memset (textBuffer, (new_txtABflag == 0 ? '.' : ','),
-//	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-		memset (textBuffer, ' ',
-	   	   NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-	   setRadioText (textBuffer);
 	}
 
 	textPart1	= grp -> getBlock_C ();
@@ -258,29 +296,23 @@ uint16_t textPart1, textPart2;
 	textFragment [1] = (char)(textPart1 & 0xFF);
 	textFragment [2] = (char)(textPart2 >> 8);
 	textFragment [3] = (char)(textPart2 & 0xFF);
+	
+// if 0x0D is received the text has finished, so fill rest with spaces
+	for (uint16_t idx = 0; idx < NUM_CHARS_PER_RTXT_SEGMENT; ++idx) {
+		if (textFragment[idx] == END_OF_RADIO_TEXT) {
+			clearTextBuffer(currentSegment * NUM_CHARS_PER_RTXT_SEGMENT + idx, ' ');
+		}
+	}
 
 //	current segment is received (set bit in segment register to 1)
-	textSegmentRegister |= 1 << currentSegment;
+	textSegmentRegister |= 1U << currentSegment;
 
 //	print only radio text if all data from begin are
 //	collected until now (but there may come more...)
-	if (textSegmentRegister + 1 == (1U << (currentSegment + 1))) {
-	   prepareText (textBuffer, currentSegment * NUM_CHARS_PER_RTXT_SEGMENT);
+	if (!showOnlyFullRecText ||
+	    textSegmentRegister + 1U == (1U << (currentSegment + 1U))) {
+	   prepareText (textBuffer, /*currentSegment * NUM_CHARS_PER_RTXT_SEGMENT*/ NUM_OF_CHARS_RADIOTEXT);
 	}
-
-//	check for end of message
-//	for (uint16_t i = 0; i < 4; i++)
-//	   if (textFragment[i] == END_OF_RADIO_TEXT)
-//	      endF = true;
-
-//	Check if all fragments are in or we had an end of message
-//	if (endF ||
-//	    (textSegmentRegister + 1 == (1 << NUM_OF_FRAGMENTS))) {
-//	   prepareText (textBuffer, NUM_OF_CHARS_RADIOTEXT);
-//	   textSegmentRegister = 0;
-//	   memset (textBuffer, ' ',
-//	   	  NUM_OF_CHARS_RADIOTEXT * sizeof (char));
-//	}
 }
 
 void	rdsGroupDecoder::Handle_Time_and_Date (RDSGroup * grp) {
@@ -296,22 +328,39 @@ uint16_t offset = (grp -> getBlock_D ()) & 0x4F;
 //	handle the text, taking into account different alfabets
 void	rdsGroupDecoder::prepareText (char *v, int16_t length) {
 int16_t i;
-uint8_t previousChar = v[0];
 QString outString = QString ("");
 
-	for (i = 1; i < length; i++) {
-	   uint8_t currentChar = v[i];
-	   if (alfabetSwitcher (previousChar, currentChar)) {
-	      theAlfabet = setAlfabetTo (previousChar, currentChar);
-	      previousChar = v[i];
-	      i++;
-	   }
-	   else {
- 	      outString. append (mapEBUtoUnicode (theAlfabet, previousChar));
-	      previousChar = currentChar;
-	   }
-	}
-	setRadioText (outString. trimmed ());
+	for (i = 0; i < length; i++) {
+	   outString. append (mapEBUtoUnicode (theAlfabet, v[i]));
+   }
+
+	emit setRadioText (outString);
+	
+// the alphabet switching is not implemented yet fully and so it works not flawlessly	
+//	uint8_t previousChar = v[0];
+//	for (i = 1; i < length; i++) {
+//	   uint8_t currentChar = v[i];
+//	   if (alfabetSwitcher (previousChar, currentChar)) {
+//	      theAlfabet = setAlfabetTo (previousChar, currentChar);
+//	      previousChar = v[i];
+//	      i++;
+//	   }
+//	   else {
+// 	      outString. append (mapEBUtoUnicode (theAlfabet, previousChar));
+// here an additional output would be necessary if i == length-1	
+//	      previousChar = currentChar;
+//	   }
+//	}
+//   emit setRadioText (outString. trimmed ());
+}
+
+void rdsGroupDecoder::setShowOnlyFullRecText (bool s) {
+	showOnlyFullRecText = s; 
+}
+
+void rdsGroupDecoder::setPtyLocale(int32_t v) { 
+	assert(v < 2);
+	ptyLocale = v; 
 }
 
 bool	rdsGroupDecoder::alfabetSwitcher (uint8_t c1, uint8_t c2) {
