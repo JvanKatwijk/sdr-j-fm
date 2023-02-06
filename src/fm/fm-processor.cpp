@@ -32,7 +32,7 @@
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
 #define RDS_RATE		19000   // 16 samples for one RDS sympols
-#define OMEGA_PILOT	((DSPFLOAT(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
+#define OMEGA_PILOT	((float(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
 
@@ -42,7 +42,6 @@
 #else
    #define PILOTTESTDELAY (0)
 #endif
-
 
 //
 //	Note that no decimation done as yet: the samplestream is still
@@ -162,7 +161,7 @@
 	this	-> fmBandwidth		= 0.95 * fmRate;
 //
 //	fmFilter is rather heavy on resource consumption, it is usually off
-	fmFilter. setLowPass (0.95 * fmRate / 2, 2 * fmRate);
+	fmFilter. setLowPass (0.95 * fmRate / 2, inputRate);
 	this	-> fmFilterOn. store (false);
 	this	-> newFilter. store (false);
   /*
@@ -189,9 +188,9 @@
 //
 //	the constant K_FM is still subject to many questions
 // highest freq in message
-	DSPFLOAT F_G			= 0.65 * fmRate / 2;
-	DSPFLOAT Delta_F		= 0.95 * fmRate / 2;    //
-	DSPFLOAT B_FM			= 2 * (Delta_F + F_G);
+	float F_G			= 0.65 * fmRate / 2;
+	float Delta_F		= 0.95 * fmRate / 2;    //
+	float B_FM			= 2 * (Delta_F + F_G);
 
 //
 //	K_FM depends on fmRate which is known, it turns out that
@@ -253,20 +252,20 @@ void	fmProcessor::stop () {
 
 #ifdef USE_EXTRACT_LEVELS
 
-DSPFLOAT fmProcessor::get_pilotStrength () {
+float fmProcessor::get_pilotStrength () {
 	if (running. load ()) 
 	   return get_db (pilotLevel, 128) - get_db (0, 128);
 	return 0.0;
 }
 
-DSPFLOAT fmProcessor::get_rdsStrength () {
+float fmProcessor::get_rdsStrength () {
 	if (running. load ()) {
 	   return get_db (rdsLevel, 128) - get_db (0, 128);
 	}
 	return 0.0;
 }
 
-DSPFLOAT fmProcessor::get_noiseStrength () {
+float fmProcessor::get_noiseStrength () {
 	if (running. load ()) {
 	   return get_db (noiseLevel, 128) - get_db (0, 128);
 	}
@@ -282,7 +281,7 @@ bool	fmProcessor::getSquelchState	() {
 	return mySquelch. getSquelchActive  ();
 }
 
-DSPFLOAT fmProcessor::get_demodDcComponent () {
+float fmProcessor::get_demodDcComponent () {
 	if (running. load ()) {
 	   return theDemodulator -> get_DcComponent ();
 	}
@@ -345,7 +344,7 @@ void	fmProcessor::setSoundMode (uint8_t selector) {
 
 void	fmProcessor::setStereoPanorama(int16_t iStereoPan) {
 // iStereoPan range: 0 (Mono) ... +100 (Stereo) ... +200 (Stereo with widen panorama)
-	panorama = (DSPFLOAT)iStereoPan / 100.0f;
+	panorama = (float)iStereoPan / 100.0f;
 }
 
 void	fmProcessor::setSoundBalance (int16_t new_balance) {
@@ -361,11 +360,11 @@ void	fmProcessor::setSoundBalance (int16_t new_balance) {
 //	Deemphasis	= 75 usec (2122 Hz US)
 //	tau		= 2 * M_PI * Freq = 1000000 / time
 void	fmProcessor::setDeemphasis (int16_t v) {
-DSPFLOAT Tau;
+float Tau;
 	Q_ASSERT(v >= 1);
 
 	Tau   = 1000000.0 / v;
-	deemphAlpha = 1.0 / (DSPFLOAT(fmRate) / Tau + 1.0);
+	deemphAlpha = 1.0 / (float(fmRate) / Tau + 1.0);
 }
 
 void	fmProcessor::setVolume (const float iVolGainDb) {
@@ -373,14 +372,14 @@ void	fmProcessor::setVolume (const float iVolGainDb) {
 }
 
 DSPCOMPLEX fmProcessor::audioGainCorrection (DSPCOMPLEX z) {
-const DSPFLOAT left  = volumeFactor * leftChannel * real(z);
-const DSPFLOAT right = volumeFactor * rightChannel * imag(z);
+const float left  = volumeFactor * leftChannel * real(z);
+const float right = volumeFactor * rightChannel * imag(z);
 
 #if 0
 	{
-	   static DSPFLOAT leftAbsMax = -1e38f;
-	   static DSPFLOAT rightAbsMax = -1e38f;
-	   static DSPFLOAT lastVolume = 0.0f;
+	   static float leftAbsMax = -1e38f;
+	   static float rightAbsMax = -1e38f;
+	   static float lastVolume = 0.0f;
 	   bool printMaxValues = false;
 
 	   if (lastVolume != volumeFactor) {
@@ -421,7 +420,7 @@ void	fmProcessor::stopDumping () {
 	dumping = false;
 }
 
-void	fmProcessor::setAttenuation (DSPFLOAT l, DSPFLOAT r) {
+void	fmProcessor::setAttenuation (float l, float r) {
 #ifdef DO_STEREO_SEPARATION_TEST
 	(void)r;
 	PILOTTESTDELAY = l / 180.0f * M_PI;
@@ -471,7 +470,7 @@ int		iqCounter	= 0;
 
 //	First: update according to potentially changed settings
 	   if (newFilter. load ()) {
-	      fmFilter. setLowPass (fmBandwidth / 2, 2 * fmRate);
+	      fmFilter. setLowPass (fmBandwidth / 2, inputRate);
 	      fmFilterOn. store (true);
 	   }
 	   newFilter. store (false);
@@ -499,9 +498,9 @@ int		iqCounter	= 0;
 
 //	limit the maximum DC correction because an AM
 //	carrier at exactly 0 Hz could have been suppressed, too
-	         constexpr DSPFLOAT DCRlimit = 0.01f;
-	         DSPFLOAT rfDcReal = real (RfDC);
-	         DSPFLOAT rfDcImag = imag (RfDC);
+	         constexpr float DCRlimit = 0.01f;
+	         float rfDcReal = real (RfDC);
+	         float rfDcImag = imag (RfDC);
 	         if (rfDcReal > +DCRlimit)
 	            rfDcReal = +DCRlimit;
 	         else
@@ -530,15 +529,15 @@ int		iqCounter	= 0;
 
 	      spectrum_fft_hf -> do_FFT ();
 
-	      int32_t zoomFactor = 1;
+//	      int32_t zoomFactor = 1;
 	      mapSpectrum (spectrumBuffer_hf, Y_Values, zoomFactor);
 
-	      if (hfBuffer_newFlag) {
-	         set_average_buffer (Y_Values, displayBuffer_hf);
-	         hfBuffer_newFlag = false;
-	      }
-	      else {
+	      if (!hfBuffer_newFlag) 
 	         add_to_average (Y_Values, displayBuffer_hf);
+	      else {
+	         set_average_buffer (Y_Values, displayBuffer_hf);
+//	it is only for the first line, so now
+	         hfBuffer_newFlag = false;
 	      }
 
 	      hfBuffer -> putDataIntoBuffer (displayBuffer_hf, displaySize);
@@ -550,7 +549,6 @@ int		iqCounter	= 0;
 
 	   if (dumping) {
 	      float dumpBuffer [2 * amount];
-
 	      for (int32_t i = 0; i < amount; i++) {
 	         dumpBuffer [2 * i]	= real (dataBuffer [i]);
 	         dumpBuffer [2 * i + 1] = imag (dataBuffer [i]);
@@ -560,7 +558,7 @@ int		iqCounter	= 0;
 
 //	   Here we really start
 
-//	   We assume that if/when the pilot is no more than 3 db's above
+//	   We assume that if/when the pilot is less than 3 db's above
 //	   the noise around it, it is better to decode mono
 	   for (int32_t i = 0; i < amount; i++) {
 	      std::complex<float> v =
@@ -570,18 +568,17 @@ int		iqCounter	= 0;
 	      v = v * localOscillator. nextValue (loFrequency);
 
 //	   first step: decimating and  - optional - filtering
+	      if (fmFilterOn. load ())
+	         v = fmFilter. Pass (v);
 	      if (decimatingScale > 1) {
 	         if (!fmBand_1. Pass (v, &v)) 
 	            continue;
-	         if (fmFilterOn. load ())
-	            v = fmFilter. Pass (v);
 	         if (!fmBand_2. Pass (v, &v))
 	            continue;
 	      }
 
 //	   second step: if we are scanning, do the scan
 //	   Samplerate here is fmRate
-//
 	      if (scanning) {
 	         scanBuffer [scanPointer++] = v;
 
@@ -599,7 +596,7 @@ int		iqCounter	= 0;
 	         continue; // no signal processing!!!!
 	      }
 
-	      DSPFLOAT demod = theDemodulator -> demodulate (v);
+	      float demod = theDemodulator -> demodulate (v);
 
 	      switch (squelchMode) {
 	         case ESqMode::NSQ:
@@ -619,14 +616,14 @@ int		iqCounter	= 0;
 
 	      process_signal_with_rds (demod, &audio, &rdsDataCplx);
 
-	      const DSPFLOAT sumLR  = real (audio);
-	      const DSPFLOAT diffLR = imag (audio);
-	      const DSPFLOAT diffLRWeightend =
+	      const float sumLR  = real (audio);
+	      const float diffLR = imag (audio);
+	      const float diffLRWeightend =
 	                 diffLR * (fmModus == FM_Mode::StereoPano ?
 	                                                 panorama : 1.0f);
-	      const DSPFLOAT left  =
+	      const float left  =
 	                 sumLR + diffLRWeightend;  // 2L = (L+R) + (L-R)
-	      const DSPFLOAT right =
+	      const float right =
 	                 sumLR - diffLRWeightend;  // 2R = (L+R) - (L-R)
 
 	      switch (soundSelector) {
@@ -655,16 +652,15 @@ int		iqCounter	= 0;
 
 	      if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 	         int32_t rdsAmount;
-	         
 	         std::complex<float> rdsOut [rdsDecimator. getOutputsize ()];
 	         if (rdsDecimator. convert (rdsDataCplx, rdsOut, &rdsAmount)) {
 //	   here the sample rate is rdsRate (typ. 19000S/s)
 	            for (int32_t k = 0; k < rdsAmount; k++) {
-	               std::complex<float> pcmSample = rdsOut [k];
+	               std::complex<float> rdsSample = rdsOut [k];
 	           
 	               static std::complex<float> magCplx;
 //	   input SR 19000S/s, output SR 19000/16S/s
-	               if (myRdsDecoder. doDecode (pcmSample,
+	               if (myRdsDecoder. doDecode (rdsSample,
 	                                           &magCplx,
 	                                           rdsModus, ptyLocale)) {
 	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
@@ -677,7 +673,7 @@ int		iqCounter	= 0;
 
 	               switch (lfPlotType) {
 	                  case ELfPlot::RDS_INPUT:
-	                     spectrumBuffer_lf. push_back (20.0f * pcmSample);
+	                     spectrumBuffer_lf. push_back (20.0f * rdsSample);
 	                     break;
 
 	                  case ELfPlot::RDS_DEMOD:
@@ -742,7 +738,7 @@ int		iqCounter	= 0;
 
 //	   "result" now contains the audio sample, either stereo or mono
 	      audio = audioGainCorrection (audio);
-
+//
 	      int32_t audioAmount;
 	      if (audioDecimator.
 	              convert (audio, audioOut, &audioAmount)) {
@@ -754,6 +750,7 @@ int		iqCounter	= 0;
 						             / (float)suppressAudioSampleCntMax;
 	              --suppressAudioSampleCnt;
 	            }
+
 	            insertTestTone (pcmSample);
 	            evaluatePeakLevel (pcmSample);
 	            sendSampletoOutput (pcmSample);
@@ -799,7 +796,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 
 //	Get the phase for the "carrier to be inserted" right.
 //	Do this always to be able to check of a locked pilot PLL.
-	DSPFLOAT currentPilotPhase =
+	float currentPilotPhase =
 	                 pilotRecover. getPilotPhase (5 * demod);
 	const bool pilotLocked = pilotRecover. isLocked ();
 
@@ -811,7 +808,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	if (fmModus != FM_Mode::Mono &&
 	        (pilotLocked || !autoMono)) {
 //	Now we have the right - i.e. synchronized - signal to work with
-	   DSPFLOAT phaseforLRDiff =
+	   float phaseforLRDiff =
 	               2 * (currentPilotPhase + M_PI_4 + PILOTTESTDELAY) -
 	                                                   pilotDelayPSS;
 //
@@ -825,11 +822,11 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	              : 0;
 
 //	we look for minimum correlation so mix with PI/2 phase shift
-	   DSPFLOAT LRDiff =
+	   float LRDiff =
 	             2.0 * (soundSelector == S_LEFTminusRIGHT_Test ?
 	                      mySinCos. getSin (phaseforLRDiff) :
 	                      mySinCos. getCos (phaseforLRDiff)) * demod;
-	   DSPFLOAT LRPlus = demod;
+	   float LRPlus = demod;
 	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
 	}
 	else {
@@ -840,17 +837,16 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
 //	currentPilotPhase shifts also about 19kHz without
 //	existing pilot signal
-	   float thePhase	= 3 * (currentPilotPhase);
-//	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
+	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
 //
 //	The "range" of the Phase is now at least  -6 * 2 * M_PI .. 6 * 2 * M_PI
+//	and often gives "out of index" problems with sincos
 	   std::complex<float> xxx = std::complex<float> (cos (thePhase),
 	                                                  -sin (thePhase));
-	   *rdsValueCmpl = xxx * rdsBaseBp;
-	   *rdsValueCmpl = rdsBaseHilb * mySinCos. getComplex (-thePhase);
+	   *rdsValueCmpl = xxx * rdsBaseHilb;
 	}
 }
 //
@@ -867,8 +863,8 @@ void	fmProcessor::setlfcutoff (int32_t Hz) {
 }
 
 void	fmProcessor::evaluatePeakLevel (const DSPCOMPLEX s) {
-const DSPFLOAT absLeft  = std::abs (real (s));
-const DSPFLOAT absRight = std::abs (imag (s));
+const float absLeft  = std::abs (real (s));
+const float absRight = std::abs (imag (s));
 
 	if (absLeft  > absPeakLeft)  
 	   absPeakLeft  = absLeft;
@@ -906,7 +902,7 @@ float level = 0.9f;
 	   testTone. NoSamplRemain --;
 	   testTone. CurPhase		+= testTone. PhaseIncr;
 	   testTone. CurPhase		= PI_Constrain (testTone. CurPhase);
-	   const DSPFLOAT smpl		= sin (testTone. CurPhase);
+	   const float smpl		= sin (testTone. CurPhase);
 	   ioS += level * DSPCOMPLEX (smpl, smpl);
 	}
 	else
@@ -920,7 +916,6 @@ float level = 0.9f;
 }
 
 void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {
-
 	if (audioRate == workingRate) {
 	   theSink -> putSample (s);
 	   return;
@@ -984,8 +979,8 @@ void	fmProcessor::set_squelchMode	(ESqMode iSqMode) {
 	squelchMode = iSqMode;
 }
 
-DSPFLOAT	fmProcessor::getSignal	(DSPCOMPLEX *v, int32_t size) {
-DSPFLOAT sum = 0;
+float	fmProcessor::getSignal	(DSPCOMPLEX *v, int32_t size) {
+float sum = 0;
 
 	for (int i = 5; i < 25; i++)
 	   sum += abs (v [i]);
@@ -994,8 +989,8 @@ DSPFLOAT sum = 0;
 	return sum / 40;
 }
 
-DSPFLOAT	fmProcessor::getNoise	(DSPCOMPLEX *v, int32_t size) {
-DSPFLOAT sum = 0;
+float	fmProcessor::getNoise	(DSPCOMPLEX *v, int32_t size) {
+float sum = 0;
 
 	for (int i = 5; i < 25; i++)
 	   sum += abs (v [size / 2 - 1 - i]);
@@ -1027,7 +1022,7 @@ int16_t factor = spectrumSize / displaySize;  // typ factor = 4 (whole divider)
 	   out [displaySize / 2 + i] = f / factor;
 
 	   f = 0;
-//	read rate/2 down to 0Hz -> map to begin to mid of display
+//	read rate / 2 down to 0Hz -> map to begin to mid of display
 	   for (int32_t j = 0; j < factor; j++) {
 	      f += abs (in [spectrumSize - 1 - (i * factor + j)]);
 	   }

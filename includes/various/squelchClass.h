@@ -1,31 +1,28 @@
+#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J (JSDR).
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License.
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fm software
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fm software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fm software is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fm software; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 
-#ifndef __SQUELCHCLASS
-#define __SQUELCHCLASS
+#ifndef __SQUELCHCLASS_H
+#define __SQUELCHCLASS_H
 
 #include "fm-constants.h"
 #include "iir-filters.h"
@@ -48,32 +45,31 @@ Q_OBJECT
 
 private:
 // value between 0 (audio suppressed) and 1 (audio open)
-	DSPFLOAT	mNoiseSquelchThreshold;
+	float	noiseSquelchThreshold;
 // value between 0 (audio open) and 1 (audio suppressed)
-	DSPFLOAT	mLevelSquelchThreshold;
-	int32_t		mKeyFrequency;
-	int32_t		mHoldPeriod;
-	int32_t		mSampleRate;
-	bool		mSquelchSuppress;
-	bool		mSquelchSuppressLast;
-	int32_t		mSquelchCount;
-	DSPFLOAT	mAverage_High;
-	DSPFLOAT	mAverage_Low;
-	HighPassIIR	mSquelchHighpass;
-	LowPassIIR	mSquelchLowpass;
+	float	levelSquelchThreshold;
+	int32_t		keyFrequency;
+	int32_t		holdPeriod;
+	int32_t		sampleRate;
+	bool		squelchSuppress;
+	bool		squelchSuppressLast;
+	int32_t		squelchCount;
+	float	average_High;
+	float	average_Low;
+	HighPassIIR	squelchHighpass;
+	LowPassIIR	squelchLowpass;
 
 public:
-		squelch	(const int32_t iSquelchThreshold,
-	                 const int32_t iKeyFrequency,
-	                 const int32_t iBufsize, const int32_t iSampleRate);
-		~squelch (void) = default;
+		squelch	(int32_t squelchThreshold,
+	                 int32_t keyFrequency,
+	                 int32_t bufsize, int32_t sampleRate);
+		~squelch () = default;
 
 	void	setSquelchLevel		(int n);
-	bool	getSquelchActive	() const {
-	   return mSquelchSuppress; }
-	DSPFLOAT do_noise_squelch	(const DSPFLOAT soundSample);
-	DSPFLOAT do_level_squelch	(const DSPFLOAT soundSample,
-	                                 const DSPFLOAT iCarrierLevel);
+	bool	getSquelchActive	() {
+	   return squelchSuppress; }
+	float do_noise_squelch	(float soundSample);
+	float do_level_squelch	(float soundSample, float iCarrierLevel);
 
 signals:
 	void	setSquelchIsActive	(bool);

@@ -88,7 +88,7 @@ private:
 	std::vector<float>	rdsBuffer;
 	std::vector<float>	rdsKernel;
 	int16_t			ip;
-	int16_t			rdsfilterSize;
+	int16_t			rdsBufferSize;
 	float			Match		(float);
 	float			rdsLastSyncSlope;
 	float			rdsLastSync;

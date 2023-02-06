@@ -26,9 +26,9 @@
 #include	"rds-decoder.h"
 #include	"radio.h"
 #include	"sdr/shaping_filter.h"
-
-#include <vector>
-#include <fstream>
+#include	<cmath>
+#include	<vector>
+#include	<fstream>
 
 constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
 constexpr float RDS_BITCLK_HZ = 1187.5;
@@ -40,7 +40,6 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
  *	With a reduced sample rate of 19k this would mean
  *	19000 / 1187.5 samples per bit, i.e. 16
  *	samples per bit.
- *	Notice that complex mixing to zero IF has been done
  */
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
@@ -73,25 +72,57 @@ float	synchronizerSamples;
 //      two values of x, we better make the symbollength odd
 
 	int length		= (symbolCeiling & ~01) + 1;
-	rdsfilterSize		= 2 * length + 1;
-	rdsBuffer. resize (rdsfilterSize);
-	for (int i = 0; i < rdsfilterSize; i ++)
+	rdsBufferSize		= 2 * length + 1;
+	rdsBuffer. resize (rdsBufferSize);
+	for (int i = 0; i < rdsBufferSize; i ++)
 	   rdsBuffer [i] = 0;
 	ip			= 0;
-	rdsKernel. resize (rdsfilterSize);
+	rdsKernel. resize (rdsBufferSize);
 	rdsKernel [length]	= 0;
+//
+//	This matching version for rds decoding used to run very nicely
+//	on previous versions of the fm software.
+//	Tomneda adapted the rds decoding and found that this matching
+//	did not work well and removed the original options
+//	using his pull requests, that I took over without too much thinking.
+//
+//	His observation was absolutely correct, when running
+//	on 19000, matching with the kernel never gave a positive result,
+//	the elements 11, 15 //	19, and 23  of the kernel
+//	turned out to become undefined.
+//	In the originla versions of the fm software, the RDS decoding ran
+//	24000 samples/second (easy, 192000 / 8), that was changed
+//	to 19000, which caused the problem.
+//
+//	Since a test on an older version of the fm software showed
+//	that this matching worked very fine, I re-included it in the sources.
+//
+//	Since it worked fine on my development laptop, I created
+//	a test version for windows, and there it did NOT work.
+//	At first I was looking for an explanation in a change in the
+//	input, no success. Then I was looking for an uninitialized variable,
+//	no success.
+//	After blaming Windows (which is in 999 out of 1000 cases correct)
+//	I suddenly realized that the single difference between the Linux
+//	and the windows versions was that in the development version
+//	I use the sanitizer library, and - since that is not installed
+//	on Windiws - the normal libraries for Windows
+//	
+//	It was evident that the normal optimizing libraries removed
+//	the "isinf" check that there was, with the "fast math" option
+//	in the "pro" file the "isinf" test does not work,
+//	Anyway, a minor mod in the formula, changing 64 to 64.1, solved
+//	the problem.
+//
 	for (int i = 1; i <= length; i ++) {
 	   float x = ((float)i) / rate * RDS_BITCLK_HZ;
 	   rdsKernel [length + i] =  0.75 * cos (4 * M_PI * x) *
-					    ((1.0 / (1.0 / x - 64 * x)) -
-					    ((1.0 / (9.0 / x - 64 * x))) );
+					    ((1.0 / (1.0 / x - 64.01 * x)) -
+					    ((1.0 / (9.0 / x - 64.01 * x))) );
 	   rdsKernel [length - i] = - 0.75 * cos (4 * M_PI * x) *
-					    ((1.0 / (1.0 / x - 64 *  x)) -
-					    ((1.0 / (9.0 / x - 64 *  x))) );
+					    ((1.0 / (1.0 / x - 64.01 * x)) -
+					    ((1.0 / (9.0 / x - 64.01 * x))) );
 	}
-	for (int i = 0; i < rdsfilterSize; i ++)
-	   if (isinf (rdsKernel [i]))
-	         rdsKernel [i] = 0;
 //
 //	Matched with this filter is followed by a pretty sharp filter
 //	to eliminate noise
@@ -99,10 +130,11 @@ float	synchronizerSamples;
 	rdsLastSync		= 0;
 	rdsLastData		= 0;
 	previousBit		= false;
+	previousBit		= 0;
 
 //	Tomneda: a double inverted pulse (manchester code)
 //	as matched filter is not working in my opinion
-//	(got also no good results)
+//	(got also no good results) <-- since you ruined the filter
 //	so I use a matched RRC filter design with
 //	Ts = 1/(2 * 1187.5Hz), one side of the bi-phase puls
 	my_matchedFltKernelVec =
@@ -172,14 +204,14 @@ int16_t		i;
 float	tmp = 0;
 
 	rdsBuffer [ip] = v;
-	for (i = 0; i < rdsfilterSize; i ++) {
+	for (i = 0; i < rdsBufferSize; i ++) {
 	   int16_t index = (ip - i);
 	   if (index < 0)
-	      index += rdsfilterSize;
+	      index += rdsBufferSize;
 	   tmp += rdsBuffer [index] * rdsKernel [i];
 	}
 
-	ip = (ip + 1) % rdsfilterSize;
+	ip = (ip + 1) % rdsBufferSize;
 	return tmp;
 }
 
@@ -235,7 +267,6 @@ void	rdsDecoder::processBit (bool bit, int ptyLocale) {
 	      break;
 	}
 }
-
 //
 //	Decode 1 is the "original" rds decoder, based on the
 //	info from cuteSDR. 
@@ -248,9 +279,9 @@ float	rdsSlope;
 	rdsLastSync		= rdsMag;
 	if ((rdsSlope < 0.0) && (rdsLastSyncSlope >= 0.0)) {
 //	top of the sine wave: get the data
-	   bool bit	= rdsLastData >= 0;
-	   processBit (bit ^ previousBit, ptyLocale);
-	   previousBit = bit;
+	   uint8_t theBit	= rdsLastData >= 0 ? 1 : 0;
+	   processBit (theBit ^ previousBit, ptyLocale);
+	   previousBit = theBit;
 	}
 	rdsLastData		= v;
 	rdsLastSyncSlope	= rdsSlope;
@@ -296,7 +327,7 @@ std::complex<float> r;
 	v = doMatchFiltering (v);
 	v = my_AGC. process_sample (v);
 #ifndef DO_STEREO_SEPARATION_TEST
-	v = my_Costas. process_sample (v);
+	 v = my_Costas. process_sample (v);
 #endif
 	if (my_timeSync. process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
