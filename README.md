@@ -2,6 +2,11 @@
     FM receiver V3.1
 -------------------------
 
+    SOFTWARE UNDER CONSTRUCTION
+
+The software is contnuously changing since I am restructuring some parts
+Be advised NOT to use these sources now
+
 ========================================================================
 
 Some significant modifications were made by Thomas Neder, apart from the
