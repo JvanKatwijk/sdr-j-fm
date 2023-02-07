@@ -53,7 +53,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #
 #	if you want support for any of these devices, uncomment the line
 #	set(PMSDR true)
-#	set(SDRPLAY true)
+	set(SDRPLAY true)
 #	set(SDRPLAY_V3 true)
 #	set(AIRSPY true)
 	set(DABSTICK true)
@@ -199,15 +199,17 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/fm/stereo-separation.h 
 	     ./includes/fm/fm-processor.h 
 	     ./includes/rds/rds-decoder.h 
+	     ./includes/rds/rds-decoder-1.h 
+	     ./includes/rds/rds-decoder-2.h 
+	     ./includes/rds/rds-decoder-3.h 
 	     ./includes/rds/rds-blocksynchronizer.h 
 	     ./includes/rds/rds-group.h 
 	     ./includes/rds/rds-groupdecoder.h  
 	     ./includes/sdr/agc.h  
 	     ./includes/sdr/costas.h  
-	     ./includes/sdr/time_sync.h  
 	     ./includes/sdr/shaping_filter.h  
 	     ./devices/device-handler.h 
-	      ./devices/deviceselect.h
+	     ./devices/deviceselect.h
 	     ./devices/filereader/filereader.h 
 	     ./devices/filereader/filehulp.h
 	)
@@ -238,6 +240,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/fm/stereo-separation.cpp 
 	      ./src/fm/fm-processor.cpp 
 	      ./src/rds/rds-decoder.cpp 
+	      ./src/rds/rds-decoder-1.cpp 
+	      ./src/rds/rds-decoder-2.cpp 
+	      ./src/rds/rds-decoder-3.cpp 
 	      ./src/rds/rds-blocksynchronizer.cpp 
 	      ./src/rds/rds-group.cpp 
 	      ./src/rds/rds-groupdecoder.cpp 
@@ -513,6 +518,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./includes/rds/rds-groupdecoder.h 
 	      ./includes/rds/rds-blocksynchronizer.h
 	      ./includes/rds/rds-decoder.h
+	      ./includes/rds/rds-decoder-1.h
+	      ./includes/rds/rds-decoder-2.h
+	      ./includes/rds/rds-decoder-3.h
 	      ./includes/fm/fm-processor.h
 	      ./includes/scopes-qwt6/iqdisplay.h
 	      ./includes/scopes-qwt6/scope.h

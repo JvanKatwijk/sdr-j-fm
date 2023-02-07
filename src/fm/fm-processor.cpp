@@ -31,7 +31,7 @@
 #define AUDIO_FREQ_DEV_PROPORTION    0.85f
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
-#define RDS_RATE		19000   // 16 samples for one RDS sympols
+#define RDS_RATE		19000 
 #define OMEGA_PILOT	((float(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
@@ -83,7 +83,7 @@
 	                             pPSS (fmRate, 10.0f / fmRate,
 	                                            &mySinCos) ,
 	                             rdsBandPassFilter (FFT_SIZE,
-	                                           PILOTFILTER_SIZE),
+	                                                PILOTFILTER_SIZE),
 	                             rdsHilbertFilter (FFT_SIZE,
 	                                                PILOTFILTER_SIZE),
 	                             mySquelch (1, 70000, fmRate / 20,
@@ -186,20 +186,7 @@
 #endif
 	fmAudioFilterActive . store (false);
 //
-//	the constant K_FM is still subject to many questions
-// highest freq in message
-	float F_G			= 0.65 * fmRate / 2;
-	float Delta_F		= 0.95 * fmRate / 2;    //
-	float B_FM			= 2 * (Delta_F + F_G);
-
-//
-//	K_FM depends on fmRate which is known, it turns out that
-//	K_FM	is about 15
-	K_FM				= B_FM * M_PI / F_G;
-
-//
-	rdsBandPassFilter. setSimple(RDS_FREQUENCY - RDS_WIDTH / 2,
-//	rdsBandPassFilter. setBand  (RDS_FREQUENCY - RDS_WIDTH / 2,
+	rdsBandPassFilter. setBand  (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                             RDS_FREQUENCY + RDS_WIDTH / 2,
 	                             fmRate);
 
@@ -837,16 +824,19 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
 //	currentPilotPhase shifts also about 19kHz without
 //	existing pilot signal
-	   float thePhase	= 3 * (currentPilotPhase + PILOTTESTDELAY);
+//	A bandfilter is applied, and the delay taken into account
+	   int theDelay		= (FFT_SIZE - PILOTFILTER_SIZE) +
+	                                               PILOTTESTDELAY;
+	   float thePhase	= 3 * (currentPilotPhase + theDelay);
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
 //
 //	The "range" of the Phase is now at least  -6 * 2 * M_PI .. 6 * 2 * M_PI
 //	and often gives "out of index" problems with sincos
-	   std::complex<float> xxx = std::complex<float> (cos (thePhase),
-	                                                  -sin (thePhase));
-	   *rdsValueCmpl = xxx * rdsBaseHilb;
+	   std::complex<float> oscValue = std::complex<float> (cos (thePhase),
+	                                                      -sin (thePhase));
+	   *rdsValueCmpl = oscValue * rdsBaseHilb;
 	}
 }
 //

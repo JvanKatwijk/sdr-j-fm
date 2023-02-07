@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C)  2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -22,197 +23,42 @@
 
 #include	<stdlib.h>
 #include	<stdio.h>
-#include	<cassert>
 #include	"rds-decoder.h"
+#include	"rds-decoder-1.h"
+#include	"rds-decoder-2.h"
+#include	"rds-decoder-3.h"
 #include	"radio.h"
-#include	"sdr/shaping_filter.h"
-#include	<cmath>
-#include	<vector>
-#include	<fstream>
-
-constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
-constexpr float RDS_BITCLK_HZ = 1187.5;
-
-/*
- *	RDS is a bpsk-like signal, with a baudrate 1187.5
- *	on a carrier of  3 * 19 k.
- *	48 cycles per bit, 1187.5 bits per second.
- *	With a reduced sample rate of 19k this would mean
- *	19000 / 1187.5 samples per bit, i.e. 16
- *	samples per bit.
- */
+//
+//
+//	Since there are different decoders for rds,
+//	this interface one is merely a dispatcher
+//
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
 	                            my_rdsBlockSync (myRadio),
-	                            my_rdsGroupDecoder (myRadio),
-	                            mySinCos  (rate), 
-	                            sharpFilter (7, RDS_BITCLK_HZ - 6,
-	                                            RDS_BITCLK_HZ + 6,
-	                                            rate,
-	                                            S_BUTTERWORTH),
-	                            rdsFilter (21, RDS_WIDTH, rate),
-	                            my_AGC (2e-3f, 0.38f, 9.0f),
-	                            my_timeSync (ceil ((float)rate / (float)RDS_BITCLK_HZ) /*== 16.0*/, 0.01f),
-	                            my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
-	{
-
-float	synchronizerSamples;
-
-	this	-> myRadioInterface	= myRadio;
-	this	-> sampleRate		= rate;
-        synchronizerSamples		= sampleRate / (float)RDS_BITCLK_HZ;
-        symbolCeiling			= ceil (synchronizerSamples); 
-        symbolFloor			= floor (synchronizerSamples);
-//
-
-//      The matched filter is a borrowed from the cuteRDS, who in turn
-//      borrowed it from course material
-//      http://courses.engr.illinois.edu/ece463/Projects/RBDS/RBDS_project.doc
-//      Note that the formula down has a discontinuity for
-//      two values of x, we better make the symbollength odd
-
-	int length		= (symbolCeiling & ~01) + 1;
-	rdsBufferSize		= 2 * length + 1;
-	rdsBuffer. resize (rdsBufferSize);
-	for (int i = 0; i < rdsBufferSize; i ++)
-	   rdsBuffer [i] = 0;
-	ip			= 0;
-	rdsKernel. resize (rdsBufferSize);
-	rdsKernel [length]	= 0;
-//
-//	This matching version for rds decoding used to run very nicely
-//	on previous versions of the fm software.
-//	Tomneda adapted the rds decoding and found that this matching
-//	did not work well and removed the original options
-//	using his pull requests, that I took over without too much thinking.
-//
-//	His observation was absolutely correct, when running
-//	on 19000, matching with the kernel never gave a positive result,
-//	the elements 11, 15 //	19, and 23  of the kernel
-//	turned out to become undefined.
-//	In the originla versions of the fm software, the RDS decoding ran
-//	24000 samples/second (easy, 192000 / 8), that was changed
-//	to 19000, which caused the problem.
-//
-//	Since a test on an older version of the fm software showed
-//	that this matching worked very fine, I re-included it in the sources.
-//
-//	Since it worked fine on my development laptop, I created
-//	a test version for windows, and there it did NOT work.
-//	At first I was looking for an explanation in a change in the
-//	input, no success. Then I was looking for an uninitialized variable,
-//	no success.
-//	After blaming Windows (which is in 999 out of 1000 cases correct)
-//	I suddenly realized that the single difference between the Linux
-//	and the windows versions was that in the development version
-//	I use the sanitizer library, and - since that is not installed
-//	on Windiws - the normal libraries for Windows
-//	
-//	It was evident that the normal optimizing libraries removed
-//	the "isinf" check that there was, with the "fast math" option
-//	in the "pro" file the "isinf" test does not work,
-//	Anyway, a minor mod in the formula, changing 64 to 64.1, solved
-//	the problem.
-//
-	for (int i = 1; i <= length; i ++) {
-	   float x = ((float)i) / rate * RDS_BITCLK_HZ;
-	   rdsKernel [length + i] =  0.75 * cos (4 * M_PI * x) *
-					    ((1.0 / (1.0 / x - 64.01 * x)) -
-					    ((1.0 / (9.0 / x - 64.01 * x))) );
-	   rdsKernel [length - i] = - 0.75 * cos (4 * M_PI * x) *
-					    ((1.0 / (1.0 / x - 64.01 * x)) -
-					    ((1.0 / (9.0 / x - 64.01 * x))) );
-	}
-//
-//	Matched with this filter is followed by a pretty sharp filter
-//	to eliminate noise
-	rdsLastSyncSlope	= 0;
-	rdsLastSync		= 0;
-	rdsLastData		= 0;
-	previousBit		= false;
-	previousBit		= 0;
-
-//	Tomneda: a double inverted pulse (manchester code)
-//	as matched filter is not working in my opinion
-//	(got also no good results) <-- since you ruined the filter
-//	so I use a matched RRC filter design with
-//	Ts = 1/(2 * 1187.5Hz), one side of the bi-phase puls
-	my_matchedFltKernelVec =
-	            ShapingFilter ().
-	                root_raised_cosine (1.0, sampleRate,
-	                                    2 * RDS_BITCLK_HZ,
-	                                    1.0, TAPS_MF_RRC);
-
-	my_matchedFltBufSize	= my_matchedFltKernelVec. size ();
-	assert (my_matchedFltBufSize & 1); // is it odd?
-	my_matchedFltBuf. resize (my_matchedFltBufSize);
-	memset ((void*)my_matchedFltBuf. data (), 0,
-	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
-	my_matchedFltBufIdx	= 0;
-
-	my_rdsGroup. clear ();
-	my_rdsBlockSync. setFecEnabled (true);
-
-	omegaRDS                = (2 * M_PI * RDS_BITCLK_HZ) / (float)rate;
-//
-//      for the decoder a la FMStack we need:
-        syncBuffer. resize (symbolCeiling);
-	memset ((void*)syncBuffer. data (), 0,
-	                   symbolCeiling * sizeof (float));
-
-        p                       = 0;
-        bitIntegrator           = 0;
-        bitClkPhase             = 0;
-        prev_clkState           = 0;
-	prevBit                 = false;
-        Resync                  = true;
-//
-//	end 
-
-	connect (this, SIGNAL (setCRCErrors (int)),
-	         myRadioInterface, SLOT (setCRCErrors (int)));
-	connect (this, SIGNAL (setSyncErrors (int)),
-	         myRadioInterface, SLOT (setSyncErrors(int)));
+	                            my_rdsGroupDecoder (myRadio) {
+	decoder_1	= new rdsDecoder_1 (myRadio, rate,
+	                                    &my_rdsBlockSync,
+	                                    &my_rdsGroup,
+	                                    &my_rdsGroupDecoder);
+	decoder_2 	= new rdsDecoder_2 (myRadio, rate,
+	                                    &my_rdsBlockSync,
+	                                    &my_rdsGroup,
+	                                    &my_rdsGroupDecoder);
+	decoder_3 	= new rdsDecoder_3 (myRadio, rate,
+	                                    &my_rdsBlockSync,
+	                                    &my_rdsGroup,
+	                                    &my_rdsGroupDecoder);
 }
 
 	rdsDecoder::~rdsDecoder () {
+	delete decoder_1;
+	delete decoder_2;
+	delete decoder_3;
 }
 
 void	rdsDecoder::reset () {
 	my_rdsGroupDecoder. reset ();
-}
-
-DSPCOMPLEX	rdsDecoder::doMatchFiltering (DSPCOMPLEX v) {
-DSPCOMPLEX tmp = 0;
-
-	my_matchedFltBuf [my_matchedFltBufIdx] = v;
-
-	for (int16_t i = 0; i < my_matchedFltBufSize; i++) {
-	   int16_t index = (my_matchedFltBufIdx - i);
-	   if (index < 0) {
-	      index += my_matchedFltBufSize; // wrap around index
-	   }
-	   tmp += my_matchedFltBuf [index] * my_matchedFltKernelVec [i];
-	}
-
-	my_matchedFltBufIdx = (my_matchedFltBufIdx + 1) % my_matchedFltBufSize;
-	return tmp;
-}
-
-float	rdsDecoder::Match	(float v) {
-int16_t		i;
-float	tmp = 0;
-
-	rdsBuffer [ip] = v;
-	for (i = 0; i < rdsBufferSize; i ++) {
-	   int16_t index = (ip - i);
-	   if (index < 0)
-	      index += rdsBufferSize;
-	   tmp += rdsBuffer [index] * rdsKernel [i];
-	}
-
-	ip = (ip + 1) % rdsBufferSize;
-	return tmp;
 }
 
 bool	rdsDecoder::doDecode (DSPCOMPLEX v,
@@ -220,159 +66,24 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 	                      ERdsMode  mode, int ptyLocale) {
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
-//
-	if (mode == rdsDecoder::ERdsMode::RDS_1) {
-	   *m = v;
-	   bool b = doDecode1 (real (v), ptyLocale);
-	   return b;
-	}
-	else
-	if (mode == rdsDecoder::ERdsMode::RDS_2) {
-	   bool b = doDecode_tmn (v, m,  ptyLocale);
-	   return b;
-	}
-	else
-	if (mode == rdsDecoder::ERdsMode::RDS_3) {
-	   *m = v;
-	   bool b = doDecode2 (real (v), ptyLocale);
-	   return b;
-	}
-	return false;
-}
+bool	b;
+	switch (mode) {
+	   case rdsDecoder::ERdsMode::RDS_1:
+	      *m =  v * 4.0f;
+	      b = decoder_1 -> doDecode (real (v), ptyLocale);
+	      return b;
 
-void	rdsDecoder::processBit (bool bit, int ptyLocale) {
-	switch (my_rdsBlockSync. pushBit (bit, &my_rdsGroup)) {
-	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
-	      break;   // still waiting in block A
+	   case rdsDecoder::ERdsMode::RDS_2:
+	      b = decoder_2 -> doDecode (v, m,  ptyLocale);
+	      return b;
 
-	   case rdsBlockSynchronizer::RDS_BUFFERING:
-	      break;   // just buffer
+	   case rdsDecoder::ERdsMode::RDS_3:
+	      *m = v * 4.0f;
+	      b = decoder_3 -> doDecode (real (v), ptyLocale);
+	      return b;
 
-	   case rdsBlockSynchronizer::RDS_NO_SYNC:
-//	      resync if the last sync failed
-	      setSyncErrors (my_rdsBlockSync. getNumSyncErrors ());
-	      my_rdsBlockSync. resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_NO_CRC:
-	      setCRCErrors (my_rdsBlockSync. getNumCRCErrors ());
-	      my_rdsBlockSync. resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder. decode (&my_rdsGroup, ptyLocale)) {
-	         ;   // error decoding the rds group
-	      }
-//	      my_rdsGroup. clear ();
-	      break;
+	   default:
+	      return false;
 	}
 }
-//
-//	Decode 1 is the "original" rds decoder, based on the
-//	info from cuteSDR. 
-bool	rdsDecoder::doDecode1	(float v, int ptyLocale) {
-float	rdsSlope;
-	v			= rdsFilter. Pass (v);
-	v			= Match (v);
-	float rdsMag		= sharpFilter. Pass (v * v);
-	rdsSlope		= rdsMag - rdsLastSync;
-	rdsLastSync		= rdsMag;
-	if ((rdsSlope < 0.0) && (rdsLastSyncSlope >= 0.0)) {
-//	top of the sine wave: get the data
-	   uint8_t theBit	= rdsLastData >= 0 ? 1 : 0;
-	   processBit (theBit ^ previousBit, ptyLocale);
-	   previousBit = theBit;
-	}
-	rdsLastData		= v;
-	rdsLastSyncSlope	= rdsSlope;
-	my_rdsBlockSync. resetResyncErrorCounter ();
-	return true;
-}
-//
-//	Decode2 is based on the FMstack software of Michael Feilen
-//
-bool	rdsDecoder::doDecode2	(float v, int ptyLocale) {
-float clkState;
-std::complex<float> tt;
 
-	syncBuffer [p]	= rdsFilter. Pass (v);
-	p		= (p + 1) % symbolCeiling;
-
-	if (Resync || (my_rdsBlockSync. getNumSyncErrors () > 3)) {
-	   synchronizeOnBitClk (syncBuffer, p);
-	   my_rdsBlockSync. resync ();
-	   my_rdsBlockSync. resetResyncErrorCounter ();
-	   Resync = false;
-	}
-
-	clkState	= mySinCos. getSin (bitClkPhase);
-	bitIntegrator	+= clkState * v;
-//
-//	rising edge -> look at integrator
-	if (prev_clkState <= 0 && clkState > 0) {
-	   bool currentBit	= bitIntegrator >= 0;
-	   processBit (currentBit ^ previousBit, ptyLocale);
-	   bitIntegrator	= 0;		// we start all over
-	   previousBit		= currentBit;
-	}
-
-	prev_clkState	= clkState;
-	bitClkPhase	= fmod (bitClkPhase + omegaRDS, 2 * M_PI);
-	return true;
-}
-
-bool	rdsDecoder::doDecode_tmn (std::complex<float> v,
-	                          std::complex<float> *m, int ptyLocale) {
-std::complex<float> r;
-	v = doMatchFiltering (v);
-	v = my_AGC. process_sample (v);
-#ifndef DO_STEREO_SEPARATION_TEST
-	 v = my_Costas. process_sample (v);
-#endif
-	if (my_timeSync. process_sample (v, r)) {
-//	this runs 19000/16 = 1187.5 1/s times
-	   bool bit	= (real (r) >= 0);
-	   processBit	(bit ^ previousBit, ptyLocale);
-	   previousBit	= bit;
-	   *m		= r;
-	   return true; // tell caller a changed m value
-	}
-	return false;
-}
-
-void	rdsDecoder::synchronizeOnBitClk (const std::vector<float> & v,
-                                         int16_t first) {
-bool isHigh	= false;
-int32_t	k	= 0;
-float phase;
-float correlationVector [symbolCeiling];
-
-	memset (correlationVector, 0, symbolCeiling * sizeof (float));
-
-//	synchronizerSamples	= sampleRate / (float)RDS_BITCLK_HZ;
-	for (int i = 0; i < symbolCeiling; i ++) {
-	   phase = fmod (i * (omegaRDS / 2), 2 * M_PI);
-//	reset index on phase change
-	   if (mySinCos. getSin (phase) > 0 && !isHigh) {
-	      isHigh = true;
-	      k = 0;
-	   }
-	   else
-	   if (mySinCos. getSin (phase) < 0 && isHigh) {
-	      isHigh = false;
-	      k = 0;
-	   }
-
-	   correlationVector [k ++] += v [(first + i) % symbolCeiling];
-	}
-
-//	detect rising edge in correlation window
-	int32_t iMin	= 0;
-	while (iMin < symbolFloor && correlationVector [iMin ++] > 0);
-	while (iMin < symbolFloor && correlationVector [iMin ++] < 0);
-
-//	set the phase, previous sample (iMin - 1) is obviously the one
-	bitClkPhase = fmod (-omegaRDS * (iMin - 1), 2 * M_PI);
-	while (bitClkPhase < 0)
-	   bitClkPhase += 2 * M_PI;
-}

@@ -49,13 +49,20 @@ struct {
 //	on a High Performance Digital Signal Processor", especially
 //	chapter 3.
 //	see https://docplayer.net/32191874-Dsp-implementation-of-fm-demodulator-algorithms-on-a-high-performance-digital-signal-processor-diploma-thesis-11-1.html
-		fm_Demodulator::fm_Demodulator (int32_t rateIn,
-	                                        DSPFLOAT K_FM):
+		fm_Demodulator::fm_Demodulator (int32_t rateIn):
 	                                          mySinCos (rateIn) {
 int32_t i;
 
 	this	-> rateIn		= rateIn;
-	this	-> K_FM			= 2 * K_FM;
+
+// highest freq in message
+	float F_G			= 0.65 * rateIn / 2;
+	float Delta_F			= 0.95 * rateIn / 2;    //
+	float B_FM			= 2 * (Delta_F + F_G);
+//
+//	K_FM depends on fmRate which is known, it turns out that
+//	K_FM	is about 15
+	K_FM				=  2 * B_FM * M_PI / F_G;
 
 	this	-> selectedDecoder 	= 3;
 	this	-> max_freq_deviation	= 0.95 * (0.5 * rateIn);
@@ -70,10 +77,10 @@ int32_t i;
 	for (i = 0; i <= arcSineSize; i ++)
 	   Arcsine [i] = asin (2.0 * i / arcSineSize - 1.0) / 2.0;
 
-	Imin1			= 0.2;
-	Qmin1			= 0.2;
-	Imin2			= 0.2;
-	Qmin2			= 0.2;
+	Imin1			= 0.01;
+	Qmin1			= 0.01;
+	Imin2			= 0.01;
+	Qmin2			= 0.01;
 	fm_afc			= 0;
 	fm_cvt			= 1.0;
 //	fm_cvt		= 0.50 * (rateIn / (M_PI * 150000));

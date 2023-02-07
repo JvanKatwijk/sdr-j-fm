@@ -185,10 +185,10 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 						int32_t outputRate,
 						QWidget *parent):
 							QDialog (parent),
-							iqBuffer (IQ_SCOPE_SIZE),
+							iqBuffer (
+	                                                         IQ_SCOPE_SIZE),
 	                                                theDemodulator (
-	                                                        FM_RATE,
-                                                                15.466302),
+	                                                         FM_RATE),
 							configDisplay (nullptr),
 							mykeyPad () {
 

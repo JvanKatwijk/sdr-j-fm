@@ -81,8 +81,8 @@ HEADERS += ./radio.h \
 	   ./includes/various/fft-filters.h \
 	   ./includes/various/iir-filters.h \
 	   ./includes/various/Xtan2.h \
-		./includes/various/themechoser.h \
-		./includes/output/audiosink.h \
+	   ./includes/various/themechoser.h \
+	   ./includes/output/audiosink.h \
 	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
            ./includes/scopes-qwt6/spectrogramdata.h \
@@ -92,12 +92,14 @@ HEADERS += ./radio.h \
 	   ./includes/fm/stereo-separation.h \
 	   ./includes/fm/fm-processor.h \
 	   ./includes/rds/rds-decoder.h \
+	   ./includes/rds/rds-decoder-1.h \
+	   ./includes/rds/rds-decoder-2.h \
+	   ./includes/rds/rds-decoder-3.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
 	   ./includes/rds/rds-group.h \
 	   ./includes/rds/rds-groupdecoder.h  \
 	   ./includes/sdr/agc.h  \
            ./includes/sdr/costas.h  \
-           ./includes/sdr/time_sync.h  \
            ./includes/sdr/shaping_filter.h  \
 	   ./devices/device-handler.h \
 	   ./devices/deviceselect.h \
@@ -133,6 +135,9 @@ SOURCES += ./main.cpp \
 	   ./src/fm/stereo-separation.cpp \
 	   ./src/fm/fm-processor.cpp \
 	   ./src/rds/rds-decoder.cpp \
+	   ./src/rds/rds-decoder-1.cpp \
+	   ./src/rds/rds-decoder-2.cpp \
+	   ./src/rds/rds-decoder-3.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \
 	   ./src/rds/rds-group.cpp \
 	   ./src/rds/rds-groupdecoder.cpp \

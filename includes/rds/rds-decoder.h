@@ -43,14 +43,11 @@
 #include	"rds-group.h"
 #include	"rds-blocksynchronizer.h"
 #include	"rds-groupdecoder.h"
-#include	"sdr/agc.h"
-#include	"sdr/costas.h"
-#include	"sdr/time_sync.h"
-#include	"iir-filters.h"
-#include	"fir-filters.h"
-#include	"sincos.h"
 
 class RadioInterface;
+class	rdsDecoder_1;
+class	rdsDecoder_2;
+class	rdsDecoder_3;
 
 class rdsDecoder : public QObject {
 Q_OBJECT
@@ -71,66 +68,12 @@ public:
 	void	reset		();
 
 private:
-	bool			doDecode1	(float v, int);
-	bool			doDecode2	(float v, int);
-	bool			doDecode_tmn	(std::complex<float> v,
-	                                         std::complex<float> *m, int);
-	void			processBit	(bool, int);
-	RadioInterface		*myRadioInterface;
-	rdsBlockSynchronizer	my_rdsBlockSync;
-	rdsGroupDecoder		my_rdsGroupDecoder;
-	SinCos			mySinCos;
-//	
-//	for cuteRDS approach we need
-	BandPassIIR		sharpFilter;
-	LowPassFIR		rdsFilter;
 	RDSGroup		my_rdsGroup;
-	std::vector<float>	rdsBuffer;
-	std::vector<float>	rdsKernel;
-	int16_t			ip;
-	int16_t			rdsBufferSize;
-	float			Match		(float);
-	float			rdsLastSyncSlope;
-	float			rdsLastSync;
-	float			rdsLastData;
-	bool			previousBit;
-	std::vector<float>	syncBuffer;
-	void			synchronizeOnBitClk	(float *, int16_t);
-//
-//
-	ERdsMode		mode;
-	AGC			my_AGC;
-	TimeSync		my_timeSync;
-	Costas			my_Costas;
-
-	int32_t			sampleRate;
-
-	std::vector<float>	my_matchedFltKernelVec;
-	std::vector<DSPCOMPLEX> my_matchedFltBuf;
-	int16_t			my_matchedFltBufIdx;
-	int16_t			my_matchedFltBufSize;
-
-	float		omegaRDS;
-	int			symbolCeiling;
-	int			symbolFloor;
-	bool			prevBit;
-	float		bitIntegrator;
-	float		bitClkPhase;
-	float		prev_clkState;
-	bool			Resync;
-	int16_t			p;
-
-
-	float		doMatchFiltering	(float);
-	DSPCOMPLEX	doMatchFiltering	(DSPCOMPLEX);
-
-	void		synchronizeOnBitClk	(const std::vector<float> &, int16_t);
-
-
-signals:
-	void		setCRCErrors		(int);
-	void		setSyncErrors		(int);
-	void		setbitErrorRate		(int);
+	rdsGroupDecoder		my_rdsGroupDecoder;
+	rdsBlockSynchronizer	my_rdsBlockSync;
+	rdsDecoder_1		*decoder_1;
+	rdsDecoder_2		*decoder_2;
+	rdsDecoder_3		*decoder_3;
 };
 
 #endif

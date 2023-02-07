@@ -306,7 +306,6 @@ private:
 	float		rdsLevel;
 #endif
 
-	DSPFLOAT	K_FM;
 	bool		DCREnabled;
 	DSPCOMPLEX	RfDC;
 

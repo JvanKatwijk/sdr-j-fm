@@ -36,7 +36,7 @@
 
 class	fm_Demodulator {
 public:
-		fm_Demodulator (int32_t Rate_in, DSPFLOAT K_FM);
+		fm_Demodulator (int32_t Rate_in);
 		~fm_Demodulator ();
 
 	void		setDecoder	(const QString &);
