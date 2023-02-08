@@ -40,10 +40,10 @@ public:
 private slots:
 	void	collectData	(int);
 private:
-//	RadioInterface	*myRadio;
-	QWidget		*theFrame;
-	QGridLayout	*theLayout;
-	QButtonGroup	*thePad;
+//	RadioInterface		*myRadio;
+	QWidget			theFrame;
+	QGridLayout		*theLayout;
+	QButtonGroup		*thePad;
 	QPushButton		*zeroButton;
 	QPushButton		*oneButton;
 	QPushButton		*twoButton;

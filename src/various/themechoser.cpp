@@ -107,23 +107,23 @@
 	assert(vecStyleSheetCode.size() == vecStyleSheetName.size());
 }
 
-int ThemeChoser::get_idx_of_sheet_name (const char * const iName) const {
-	for (int idx = 0; idx < (int)vecStyleSheetName.size(); ++idx ) {
-	   if (strcmp (vecStyleSheetName [idx], iName) == 0)
+int	ThemeChoser::get_idx_of_sheet_name (const QString &name) const {
+	for (int idx = 0; idx < (int)vecStyleSheetName.size(); idx++ ) {
+	   if (vecStyleSheetName [idx] == name)
 	      return idx;
 	}
 	return 0; // choose "Default" when not found
 }
 
-const ThemeChoser::TStringVec & ThemeChoser::get_style_sheet_names() const {
+const	ThemeChoser::TStringVec & ThemeChoser::get_style_sheet_names() const {
 	return vecStyleSheetName;
 }
 
-const char * ThemeChoser::get_curr_style_sheet_string() const {
+const 	QString ThemeChoser::get_curr_style_sheet_string() const {
 	return vecStyleSheetCode.at(currIdx);
 }
 
-int ThemeChoser::get_style_sheet_size() const {
+int	ThemeChoser::get_style_sheet_size() const {
 	return vecStyleSheetCode.size();
 }
 
@@ -137,4 +137,4 @@ void ThemeChoser::set_curr_style_sheet_idx(std::size_t ci) {
 }
 
 
-ThemeChoser sThemeChoser;
+//ThemeChoser sThemeChoser;

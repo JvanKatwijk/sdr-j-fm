@@ -25,9 +25,10 @@
 //	A simple keypad for the FM receiver. 13 buttons and
 //	an LCD display
 	keyPad::keyPad () {
-//	keyPad::keyPad (RadioInterface *mr) {
+//	keyPad::keyPad (RadioInterface *mr):
+//		                      theFrame (nullptr) {
 //	this	-> myRadio	= mr;
-	theFrame	= new QWidget;
+//	theFrame	= new QWidget;
 	theLayout	= new QGridLayout;
 	thePad		= new QButtonGroup;
 	oneButton	= new QPushButton ("1");
@@ -62,7 +63,7 @@
 	theDisplay	-> setMode (QLCDNumber::Dec);
 	theDisplay	-> setSegmentStyle (QLCDNumber::Flat);
 	theLayout	-> addWidget (theDisplay, 5, 2);
-	theFrame	-> setLayout (theLayout);
+	theFrame. setLayout (theLayout);
 
 	thePad		-> addButton (zeroButton, 0);
 	thePad		-> addButton (oneButton, 1);
@@ -103,17 +104,17 @@
 	delete	clearButton;
 	delete	theDisplay;
 	delete	thePad;
-	delete	theFrame;
+//	delete	theFrame;
 }
 //
 void	keyPad::showPad	() {
-	theFrame	-> show ();
+	theFrame. show ();
 	shown		= true;
 	panel		= 0;
 }
 
 void	keyPad::hidePad	() {
-	theFrame	-> hide ();
+	theFrame. hide ();
 	shown		= false;
 }
 

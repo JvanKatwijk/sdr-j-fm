@@ -41,7 +41,7 @@
 #include	"rds-decoder.h"
 #include	"newconverter.h"
 #include	"squelchClass.h"
-#include	"sdr/agc.h"
+#include	"agc.h"
 
 
 class deviceHandler;

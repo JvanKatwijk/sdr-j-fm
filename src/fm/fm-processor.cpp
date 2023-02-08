@@ -4,20 +4,20 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J-FM program.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J-FM is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J-FM is distributed in the hope that it will be useful,
+ *    fmreceiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J-FM; if not, write to the Free Software
+ *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
@@ -825,9 +825,12 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 //	currentPilotPhase shifts also about 19kHz without
 //	existing pilot signal
 //	A bandfilter is applied, and the delay taken into account
-	   int theDelay		= (FFT_SIZE - PILOTFILTER_SIZE) +
+//	Actually, the delay has 2 components, the band filter
+//	and the Hilbert filter, both with size FFT_SIZE - PILOTFILTER_SIZE
+//	so, the overall delay is 
+	   int theDelay		=  2 * (FFT_SIZE - PILOTFILTER_SIZE) +
 	                                               PILOTTESTDELAY;
-	   float thePhase	= 3 * (currentPilotPhase + theDelay);
+	   float thePhase	= 3 * currentPilotPhase + theDelay;
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);

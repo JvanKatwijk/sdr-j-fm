@@ -4,8 +4,8 @@
 //	a Java discussion on the net
 //	http://www.java-gaming.org/index.php?topic=14647.0
 
-#ifndef		__COMP_ATAN
-#define		__COMP_ATAN
+#ifndef		__COMP_ATAN_H
+#define		__COMP_ATAN_H
 
 #include	<math.h>
 #include	<stdio.h>
@@ -16,8 +16,8 @@
 #
 class	compAtan {
 public:
-		compAtan	(void);
-		~compAtan	(void);
+		compAtan	();
+		~compAtan	();
 	float	atan2		(float, float);
 	float	argX		(DSPCOMPLEX);
 private:

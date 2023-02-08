@@ -1,4 +1,5 @@
-#include "sdr/shaping_filter.h"
+
+#include "shaping_filter.h"
 
 std::vector<float> ShapingFilter::root_raised_cosine (double gain,
 	                                              double sampling_freq,

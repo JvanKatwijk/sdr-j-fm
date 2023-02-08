@@ -82,6 +82,9 @@ HEADERS += ./radio.h \
 	   ./includes/various/iir-filters.h \
 	   ./includes/various/Xtan2.h \
 	   ./includes/various/themechoser.h \
+	   ./includes/various/agc.h  \
+           ./includes/various/costas.h  \
+           ./includes/various/shaping_filter.h  \
 	   ./includes/output/audiosink.h \
 	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
@@ -98,9 +101,6 @@ HEADERS += ./radio.h \
 	   ./includes/rds/rds-blocksynchronizer.h \
 	   ./includes/rds/rds-group.h \
 	   ./includes/rds/rds-groupdecoder.h  \
-	   ./includes/sdr/agc.h  \
-           ./includes/sdr/costas.h  \
-           ./includes/sdr/shaping_filter.h  \
 	   ./devices/device-handler.h \
 	   ./devices/deviceselect.h \
 	   ./devices/filereader/filereader.h \
@@ -126,6 +126,7 @@ SOURCES += ./main.cpp \
 	   ./src/various/iir-filters.cpp \
 	   ./src/various/Xtan2.cpp \
 	   ./src/various/themechoser.cpp \
+	   ./src/various/shaping_filter.cpp \
 	   ./src/output/audiosink.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
@@ -141,7 +142,6 @@ SOURCES += ./main.cpp \
 	   ./src/rds/rds-blocksynchronizer.cpp \
 	   ./src/rds/rds-group.cpp \
 	   ./src/rds/rds-groupdecoder.cpp \
-	   ./src/sdr/shaping_filter.cpp \
 	   ./devices/device-handler.cpp \
 	   ./devices/deviceselect.cpp \
 	   ./devices/filereader/filereader.cpp \

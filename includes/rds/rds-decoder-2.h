@@ -28,20 +28,15 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<cassert>
+#include	<cmath>
+#include	<vector>
+#include	<fstream>
 #include	"rds-decoder.h"
 #include        "rds-group.h"
 #include        "rds-blocksynchronizer.h"
 #include        "rds-groupdecoder.h"
-#include        "sdr/agc.h"
-#include        "sdr/costas.h"
-#include        "sdr/time_sync.h"
-#include        "iir-filters.h"
-#include        "fir-filters.h"
-#include        "sincos.h"
-#include	"sdr/shaping_filter.h"
-#include	<cmath>
-#include	<vector>
-#include	<fstream>
+#include        "agc.h"
+#include        "costas.h"
 
 
 class	rdsDecoder_2: public QObject {

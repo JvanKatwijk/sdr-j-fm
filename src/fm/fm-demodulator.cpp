@@ -3,9 +3,9 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J-FM program.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J-FM is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
@@ -132,26 +132,27 @@ float fmDcAlpha    = 0.0001f;
 	                       am_carr_ampl + carrierAlpha * zAbs;
 
 	if (selectedDecoder == AM_DECODER) { // AM
-//	get carrier offset to have AFC for AM, too
-	   myfm_pll	-> do_pll (DSPCOMPLEX (I, Q));
-	   res		= myfm_pll -> getPhaseIncr ();
-	   fm_afc	= (1 - fmDcAlpha) * fm_afc + fmDcAlpha * res;
-
-//	remove DC component from signal and norm level to carrier power
-	   float gainLimit = 0.01f;
-	   res = (zAbs - am_carr_ampl) /
-	             (am_carr_ampl < gainLimit ? gainLimit : am_carr_ampl);
-
-//	this avoids short spikes which would cause the auto level
-//	limitter to reduce audio level too much
-	   constexpr float audioLimit = 1.0f;
-	   if (res >  audioLimit)
-	      res =  audioLimit;
-	   else
-	   if (res < -audioLimit)
-	      res = -audioLimit;
-
-	    return res;
+	   return decodeAM (z);
+////	get carrier offset to have AFC for AM, too
+//	   myfm_pll	-> do_pll (DSPCOMPLEX (I, Q));
+//	   res		= myfm_pll -> getPhaseIncr ();
+//	   fm_afc	= (1 - fmDcAlpha) * fm_afc + fmDcAlpha * res;
+//
+////	remove DC component from signal and norm level to carrier power
+//	   float gainLimit = 0.01f;
+//	   res = (zAbs - am_carr_ampl) /
+//	             (am_carr_ampl < gainLimit ? gainLimit : am_carr_ampl);
+//
+////	this avoids short spikes which would cause the auto level
+////	limitter to reduce audio level too much
+//	   constexpr float audioLimit = 1.0f;
+//	   if (res >  audioLimit)
+//	      res =  audioLimit;
+//	   else
+//	   if (res < -audioLimit)
+//	      res = -audioLimit;
+//
+//	    return res;
 	}
 //
 //	Now for FM
@@ -208,3 +209,34 @@ DSPFLOAT fm_Demodulator::get_DcComponent() {
 	return fm_afc;
 }
 
+float	fm_Demodulator::get_carrier_ampl 	() {
+	return am_carr_ampl;
+}
+
+float	fm_Demodulator::decodeAM (std::complex<float> z) {
+float fmDcAlpha    = 0.0001f;
+float	res;
+//
+//	am_carr_ampl was already computed
+
+//	get carrier offset to have AFC for AM, too
+	myfm_pll	-> do_pll (z);
+	res		= myfm_pll -> getPhaseIncr ();
+	fm_afc	= (1 - fmDcAlpha) * fm_afc + fmDcAlpha * res;
+
+//	remove DC component from signal and norm level to carrier power
+	float gainLimit = 0.01f;
+	res = (abs (z) - am_carr_ampl) /
+	             (am_carr_ampl < gainLimit ? gainLimit : am_carr_ampl);
+
+//	this avoids short spikes which would cause the auto level
+//	limitter to reduce audio level too much
+	constexpr float audioLimit = 1.0f;
+	if (res >  audioLimit)
+	   res =  audioLimit;
+	else
+	if (res < -audioLimit)
+	   res = -audioLimit;
+
+	return res;
+}

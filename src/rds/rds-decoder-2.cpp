@@ -26,12 +26,13 @@
 #include	<cassert>
 #include	"radio.h"
 #include	"rds-decoder-2.h"
-#include	"sdr/shaping_filter.h"
+#include	"shaping_filter.h"
 #include	<cmath>
 #include	<vector>
 #include	<fstream>
 
-constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
+constexpr uint32_t TAPS_MF_RRC = 31; // should be odd
+//constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
 constexpr float RDS_BITCLK_HZ = 1187.5;
 
 /*
@@ -147,9 +148,9 @@ bool	rdsDecoder_2::doDecode (std::complex<float> v,
 std::complex<float> r;
 	v = doMatchFiltering (v);
 	v = my_AGC. process_sample (v);
-#ifndef DO_STEREO_SEPARATION_TEST
+//#ifndef DO_STEREO_SEPARATION_TEST
 	 v = my_Costas. process_sample (v);
-#endif
+//#endif
 	if (process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
 	   bool bit	= (real (r) >= 0);
@@ -161,7 +162,7 @@ std::complex<float> r;
 	return false;
 }
 
-bool	rdsDecoder_2::process_sample (const DSPCOMPLEX iZ, DSPCOMPLEX & oZ) {
+bool	rdsDecoder_2::process_sample (const DSPCOMPLEX iZ, DSPCOMPLEX &oZ) {
 
 	sampleBuffer [0] = sampleBuffer [1];
 	sampleBuffer [1] = sampleBuffer [2];
@@ -199,3 +200,4 @@ bool	rdsDecoder_2::process_sample (const DSPCOMPLEX iZ, DSPCOMPLEX & oZ) {
 	}
 	return false;
 }
+

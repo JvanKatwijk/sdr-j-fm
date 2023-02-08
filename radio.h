@@ -48,7 +48,7 @@
 #include	"popup-keypad.h"
 #include	"fm-demodulator.h"
 #include	"ui_configwidget.h"
-//class	keyPad;
+
 class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
@@ -57,11 +57,6 @@ class	audioSink;
 class	deviceHandler;
 class	programList;
 class	ThemeChoser;
-
-#define THEME1NAME  "Adaptic"
-#define THEME1FILE  "./stylesheets/Adaptic.qss"
-#define THEME2NAME  "Combinear"
-#define THEME2FILE  "./stylesheets/Combinear.qss"
 
 #define	IQ_SCOPE_SIZE	64
 
@@ -125,10 +120,8 @@ private:
 	int8_t		channelSelector;
 	deviceHandler	*theDevice;
 	std::vector<int16_t>	outTable;
-//	int16_t		numberofDevices;
 
 	uint8_t		HFviewMode;
-//	uint8_t		LFviewMode;
 	uint8_t		inputMode;
 	int16_t		currAttSliderValue;
 	float		attValueL;
@@ -139,7 +132,6 @@ private:
 	int32_t		currentFreq;
 
 	void		restoreGUIsettings	(QSettings *);
-//	void		setDetectorScreen	(int16_t);
 
 	int32_t		mapIncrement		(int32_t);
 	int32_t		IncrementInterval	(int16_t);
@@ -157,9 +149,9 @@ private:
 	void		stop_lcdTimer		();
 	void		stopDumping		();
 	int32_t		Panel;
-  /*
-   *	dumping
-   */
+/*
+ *	dumping
+ */
 	bool		sourceDumping;
 	SNDFILE		*dumpfilePointer;
 
@@ -167,7 +159,6 @@ private:
 	SNDFILE		*audiofilePointer;
 
 	fmProcessor	*myFMprocessor;
-	rdsDecoder	*myRdsDecoder;
 
 	QString		RadioText;
 	QString		StationLabel;
@@ -183,7 +174,7 @@ private:
 	void		setup_LFScope		();
 	bool		squelchMode;
 	void		resetSelector		();
-	int32_t		mapRates		(int32_t);
+//	int32_t		mapRates		(int32_t);
 	void		abortSystem		(int);
 	void		TerminateProcess	();
 	void		make_newProcessor	();

@@ -39,14 +39,15 @@ public:
 		fm_Demodulator (int32_t Rate_in);
 		~fm_Demodulator ();
 
-	void		setDecoder	(const QString &);
+	void		setDecoder		(const QString &);
 	QStringList	listNameofDecoder	() const;
-	DSPFLOAT	demodulate	(DSPCOMPLEX);
-	DSPFLOAT	get_DcComponent	();
-	DSPFLOAT	get_carrier_ampl () { return am_carr_ampl; }
+	float		demodulate		(std::complex<float>);
+	float		get_DcComponent		();
+	float		get_carrier_ampl 	();
 
 private:
 	SinCos		mySinCos;
+	float		decodeAM	(std::complex<float>);
 	int16_t		selectedDecoder;
 	DSPFLOAT	max_freq_deviation;
 	int32_t 	rateIn;

@@ -47,15 +47,15 @@ private:
 // value between 0 (audio suppressed) and 1 (audio open)
 	float	noiseSquelchThreshold;
 // value between 0 (audio open) and 1 (audio suppressed)
-	float	levelSquelchThreshold;
+	float		levelSquelchThreshold;
 	int32_t		keyFrequency;
 	int32_t		holdPeriod;
 	int32_t		sampleRate;
 	bool		squelchSuppress;
 	bool		squelchSuppressLast;
 	int32_t		squelchCount;
-	float	average_High;
-	float	average_Low;
+	float		average_High;
+	float		average_Low;
 	HighPassIIR	squelchHighpass;
 	LowPassIIR	squelchLowpass;
 

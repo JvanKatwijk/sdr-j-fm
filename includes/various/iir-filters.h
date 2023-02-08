@@ -2,30 +2,27 @@
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the fmreceiver
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    fmreceiver is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    fmreceiver is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef 	__IIR_FILTER
-#define		__IIR_FILTER
+#ifndef 	__IIR_FILTER_H
+#define		__IIR_FILTER_H
 #include	"fm-constants.h"
 #include	"fft.h"
 
@@ -51,9 +48,9 @@ class	Basic_IIR {
 public:
 	int16_t		numofQuads;
 	element		*Quads;
-	DSPFLOAT		gain;
-	DSPCOMPLEX		*m1;
-	DSPCOMPLEX		*m2;
+	DSPFLOAT	gain;
+	DSPCOMPLEX	*m1;
+	DSPCOMPLEX	*m2;
 			Basic_IIR	(int16_t n) {
 	int16_t i;
 		numofQuads	= n;
@@ -66,7 +63,7 @@ public:
 	           m2 [i]	= 0;
 	        }
 	}
-			~Basic_IIR	(void) {
+			~Basic_IIR	() {
 		delete[]	Quads;
 		delete[]	m1;
 		delete[]	m2;

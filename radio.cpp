@@ -1056,8 +1056,8 @@ int16_t bl, br;
 #else
 	bl		= 100 - n;
 	br		= 100 + n;
-	attValueL = currAttSliderValue * (float)bl / 100;
-	attValueR = currAttSliderValue * (float)br / 100;
+	attValueL	= currAttSliderValue * (float)bl / 100;
+	attValueR	= currAttSliderValue * (float)br / 100;
 	if (myFMprocessor != nullptr)
 	   myFMprocessor	-> setAttenuation (attValueL, attValueR);
 #endif
@@ -1364,13 +1364,13 @@ static QString audioTempFile;
 	   audioDumping		= false;
 	   configWidget. audioDumpButton	-> setText ("audioDump");
 	   QString file		= QFileDialog::getSaveFileName (this,
-                                                tr ("open file .."),
-                                                QDir::homePath (),
-                                                tr ("Sound (*.wav)"));
+	                                        tr ("open file .."),
+	                                        QDir::homePath (),
+	                                        tr ("Sound (*.wav)"));
 
-           file            = QDir::toNativeSeparators (file);
-           if (!file. endsWith (".wav", Qt::CaseInsensitive))
-              file.append (".wav");
+	   file            = QDir::toNativeSeparators (file);
+	   if (!file. endsWith (".wav", Qt::CaseInsensitive))
+	      file.append (".wav");
 	   QString cmdline = QString ("mv ") + audioTempFile + " "  + file;
 	   system (cmdline. toLatin1 (). data ());
 	   return;
@@ -1411,9 +1411,9 @@ SF_INFO sf_info;
 	}
 
 	QString audioFile	= QFileDialog::getSaveFileName (this,
-                                                tr ("open file .."),
-                                                QDir::homePath (),
-                                                tr ("Sound (*.wav)"));
+	                                        tr ("open file .."),
+	                                        QDir::homePath (),
+	                                        tr ("Sound (*.wav)"));
 
 	audioFile		= QDir::toNativeSeparators (audioFile);
 	if (!audioFile. endsWith (".wav", Qt::CaseInsensitive))
@@ -1435,10 +1435,10 @@ SF_INFO sf_info;
 #endif
 /*
  *      there is a tremendous amount of signal/slot connections
- *      The local connects, knobs, sliders and displays,
+ *      The local connects, buttons, sliders and displays,
  *      are connected here.
  */
-void    RadioInterface::localConnects (void) {
+void    RadioInterface::localConnects () {
 	connect (pauseButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_pauseButton ()));
 	connect (configWidget. streamOutSelector, SIGNAL (activated (int)),
@@ -2214,22 +2214,22 @@ int     k;
 //	is always integer. Decimating from fmRate to audioRate maybe
 //	fractional which costs a lot of power.
 //	NOT USED IN THIS VERSION
-int32_t	RadioInterface::mapRates (int32_t inputRate) {
-int32_t res;
-
-	res	= inputRate % 256000 == 0 ? 256000 :
-	          inputRate % 192000 == 0 ? 192000 :
-	          inputRate < Khz(400) ? inputRate :
-	          inputRate < Khz(850) ? inputRate / 4 :
-	          inputRate < Khz(1300) ? inputRate / 6 :
-	          inputRate < Khz(1900) ? inputRate / 8 :
-	          inputRate < Khz(3000) ? inputRate / 10 :
-	          inputRate < Khz(4000) ? inputRate / 15 :
-	          inputRate < Khz(5000) ? inputRate / 20 :
-	          inputRate < Khz(6000) ? inputRate / 25 :
-	          inputRate / 30;
-	return res;
-}
+//int32_t	RadioInterface::mapRates (int32_t inputRate) {
+//int32_t res;
+//
+//	res	= inputRate % 256000 == 0 ? 256000 :
+//	          inputRate % 192000 == 0 ? 192000 :
+//	          inputRate < Khz(400) ? inputRate :
+//	          inputRate < Khz(850) ? inputRate / 4 :
+//	          inputRate < Khz(1300) ? inputRate / 6 :
+//	          inputRate < Khz(1900) ? inputRate / 8 :
+//	          inputRate < Khz(3000) ? inputRate / 10 :
+//	          inputRate < Khz(4000) ? inputRate / 15 :
+//	          inputRate < Khz(5000) ? inputRate / 20 :
+//	          inputRate < Khz(6000) ? inputRate / 25 :
+//	          inputRate / 30;
+//	return res;
+//}
 
 void	RadioInterface::handle_freqButton () {
 	if (mykeyPad. isVisible ())
@@ -2316,8 +2316,8 @@ void	RadioInterface::handle_configButton	() {
 }
 
 void	RadioInterface::handle_cbTestTone (int v) {
-(void)v;
 bool b	= configWidget. cbTestTone -> isChecked ();
 	myFMprocessor->setTestTone (b);
+	(void)v;
 }
 

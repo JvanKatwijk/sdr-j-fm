@@ -9,7 +9,7 @@
 #define	SIZE		8192
 #define	EZIS		(-SIZE)
 
-	compAtan::compAtan (void) {
+	compAtan::compAtan () {
 
 	Stretch		= M_PI;
 //	private static final int           SIZE                 = 1024;

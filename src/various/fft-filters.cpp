@@ -152,6 +152,8 @@ int		j;
 	setHilbert ();
 }
 
+	fftFilterHilbert::~fftFilterHilbert	() {}
+
 DSPCOMPLEX	fftFilterHilbert::Pass (DSPFLOAT x) {
 	return fftFilter::Pass (DSPCOMPLEX (x, 0));
 }
