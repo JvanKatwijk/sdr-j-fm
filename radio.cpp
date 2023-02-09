@@ -1119,7 +1119,7 @@ int32_t	vfo;
 //	}
 //
 //	check whether new frequency fits in current window
-	if (abs (n - vfo) > inputRate / 2 - fmRate / 2) {
+	if (abs (n - vfo) > inputRate / 2 - fmRate) {
 	   theDevice -> setVFOFrequency (n);
 	   vfo = theDevice -> getVFOFrequency ();
 //

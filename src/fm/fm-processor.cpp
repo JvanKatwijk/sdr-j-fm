@@ -31,7 +31,7 @@
 #define AUDIO_FREQ_DEV_PROPORTION    0.85f
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
-#define RDS_RATE		19000 
+#define RDS_RATE		24000
 #define OMEGA_PILOT	((float(PILOT_FREQUENCY)) / fmRate) * (2 * M_PI)
 
 #define	IRate	(inputRate / 6)
@@ -189,6 +189,8 @@
 	rdsBandPassFilter. setBand  (RDS_FREQUENCY - RDS_WIDTH / 2,
 	                             RDS_FREQUENCY + RDS_WIDTH / 2,
 	                             fmRate);
+	memset (rdsPhaseBuffer, 0, RDS_SAMPLE_DELAY * sizeof (float));
+	rdsPhaseIndex			= 0;
 
 // for the deemphasis we use an in-line filter with
 	lastAudioSample			= 0;
@@ -197,9 +199,8 @@
 	dumping				= false;
 	dumpFile			= nullptr;
 
-
-	displayBuffer_lf = new double [displaySize];
-
+	displayBuffer_lf		= new double [displaySize];
+	
 	connect (&mySquelch, SIGNAL (setSquelchIsActive (bool)),
 	         myRadioInterface, SLOT (setSquelchIsActive (bool)));
 	connect (this, SIGNAL (hfBufferLoaded ()),
@@ -753,7 +754,9 @@ int		iqCounter	= 0;
 	      }
 
 	      if (++myCount > (fmRate >> 1)) { // each 500ms ...
+#ifdef USE_EXTRACT_LEVELS
 	         metaData. GuiPilotStrength = get_pilotStrength	();
+#endif
 	         metaData. PilotPllLocked =
 	                    isPilotLocked (metaData. PilotPllLockStrength);
 	         metaData. DcValRf =
@@ -822,24 +825,30 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 
 //	process RDS
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
-//	currentPilotPhase shifts also about 19kHz without
-//	existing pilot signal
-//	A bandfilter is applied, and the delay taken into account
-//	Actually, the delay has 2 components, the band filter
-//	and the Hilbert filter, both with size FFT_SIZE - PILOTFILTER_SIZE
-//	so, the overall delay is 
-	   int theDelay		=  2 * (FFT_SIZE - PILOTFILTER_SIZE) +
-	                                               PILOTTESTDELAY;
-	   float thePhase	= 3 * currentPilotPhase + theDelay;
+//	   The currentPhase and the processed demod are NOT derived
+//	   from the same inputsample. The processed demod is delayed by
+//	   both the bandpass and the Hilbert filter, 
+//	   while the reference phase is from the "current sample"
+//	   We therefore store the last RDS_SAMPLE_DELAY "currentPilotPhase"
+//	   values  and extract the one  that is RDS_SAMPLE_DELAY samples back
+
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
+	   float thePhase	= 3 * rdsPhaseBuffer [rdsPhaseIndex];
+	   rdsPhaseBuffer [rdsPhaseIndex]	= currentPilotPhase;
+	   rdsPhaseIndex	= (rdsPhaseIndex + 1) % RDS_SAMPLE_DELAY;
 //
-//	The "range" of the Phase is now at least  -6 * 2 * M_PI .. 6 * 2 * M_PI
-//	and often gives "out of index" problems with sincos
+//	The "range" of "thePhase" is now  between
+//	-6 * 2 * M_PI .. 6 * 2 * M_PI or more and gives lot of issues
+//	with "out of index" occurrences with sincos, that is why
+//	it is less dangerous to use the old sin and cos
 	   std::complex<float> oscValue = std::complex<float> (cos (thePhase),
 	                                                      -sin (thePhase));
 	   *rdsValueCmpl = oscValue * rdsBaseHilb;
+//
+//	Note that offsets in the "curentPilotPhase" have
+//	a significant effect.
 	}
 }
 //

@@ -43,14 +43,14 @@
 #include	"squelchClass.h"
 #include	"agc.h"
 
-
 class deviceHandler;
 class RadioInterface;
 class audioSink;
 class newConverter;
 
-#define USE_EXTRACT_LEVELS
+//#define USE_EXTRACT_LEVELS
 
+#define	RDS_SAMPLE_DELAY	(2 * (FFT_SIZE - PILOTFILTER_SIZE))
 template<typename T> class DelayLine {
 public:
 		DelayLine (const T & iDefault) : mDefault (iDefault) {
@@ -204,7 +204,8 @@ private:
 	fftFilterHilbert rdsHilbertFilter;
 	squelch		mySquelch;
 	newConverter	theConverter;
-
+	float		rdsPhaseBuffer [RDS_SAMPLE_DELAY];
+	int		rdsPhaseIndex;
 	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;

@@ -36,7 +36,9 @@
 	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
 	                        int32_t		rate):
 	                            my_rdsBlockSync (myRadio),
-	                            my_rdsGroupDecoder (myRadio) {
+	                            my_rdsGroupDecoder (myRadio),
+	                            my_costas (rate, 1.0f / 16.0f,
+	                                            0.02f/16.0f, 10.0f) {
 	decoder_1	= new rdsDecoder_1 (myRadio, rate,
 	                                    &my_rdsBlockSync,
 	                                    &my_rdsGroup,
@@ -67,6 +69,7 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
 bool	b;
+	v	= my_costas. process_sample (v);
 	switch (mode) {
 	   case rdsDecoder::ERdsMode::RDS_1:
 	      *m =  v * 4.0f;
