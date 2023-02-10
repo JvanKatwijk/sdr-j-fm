@@ -44,19 +44,15 @@ Q_OBJECT
 public:
 
 		rdsDecoder_2	(RadioInterface	*myRadio,
-	                         int32_t		rate,
-	                         rdsBlockSynchronizer	*my_rdsBlockSync,
-	                         RDSGroup		*my_rdsGroup,
-	                         rdsGroupDecoder	*my_rdsGroupDecoder);
+	                         int32_t		rate);
 		~rdsDecoder_2	();
 	bool	doDecode	(std::complex<float>,
-	                         std::complex<float> *,  int);
+	                         std::complex<float> *, uint8_t *);
 
 private:
 
 	AGC			my_AGC;
 	Costas			my_Costas;
-	void			processBit		(bool, int);
 	std::complex<float>	doMatchFiltering	(std::complex<float>);
 	bool			process_sample		(const DSPCOMPLEX iZ,
 	                                                      DSPCOMPLEX & oZ); 
@@ -78,10 +74,5 @@ private:
 	float			alpha;
 	int32_t			skipNrSamples;  // 2 to fill out buffer
 	int32_t			sampleCount;
-	
-signals:
-        void			setCRCErrors	(int);
-        void			setSyncErrors	(int);
-        void			setbitErrorRate	(int);
 };
 #endif

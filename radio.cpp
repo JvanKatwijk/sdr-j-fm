@@ -208,7 +208,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 //	I build the appImage
 //
 //	with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
-//	so, feel free to uncomment
+//	so, feel free to uncomment, but leave it commented out for me
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
 //	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
 
@@ -219,6 +219,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	thermoPeakLevelLeft	-> setAlarmEnabled (true);
 	thermoPeakLevelRight	-> setAlarmEnabled(true);
 
+	
 	reset_afc ();
 //
 //	added inits for various class variables
@@ -260,14 +261,14 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 //	fill the decodeer selector
 	QStringList names = theDemodulator.  listNameofDecoder ();
 	for (QString decoderName: names)
-	   fmDecoderSelector -> addItem (decoderName);
+	   configWidget. fmDecoderSelector -> addItem (decoderName);
 
 	h	= fmSettings -> value ("fmDecoder", "PLL Decoder"). toString ();
-	k	= fmDecoderSelector -> findText (h);
+	k	= configWidget. fmDecoderSelector -> findText (h);
 
 	if (k != -1) {
-	   fmDecoderSelector -> setCurrentIndex (k);
-	   handle_fmDecoderSelector (fmDecoderSelector -> currentText ());
+	   configWidget. fmDecoderSelector -> setCurrentIndex (k);
+	   handle_fmDecoderSelector (configWidget. fmDecoderSelector -> currentText ());
 	}
 
 	h	= fmSettings -> value ("rdsSelector", "RDS 1"). toString ();
@@ -371,10 +372,8 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 //
 //	Display the version
 	QString v = "sdrJ-FM -V" + QString (CURRENT_VERSION);
-#ifdef GITHASH
-	v += "  (" GITHASH ")";
-#endif
 	systemindicator -> setText (v);
+	copyrightLabel	-> setToolTip (footText ());
 
 	ExtioLock		= false;
 	logFile			= nullptr;
@@ -450,6 +449,17 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	configWidget. cbThemes -> setCurrentIndex (themeChooser -> get_curr_style_sheet_idx());
 }
 
+
+QString RadioInterface::footText () {
+QString versionText = "sdr-j-FM version: " + QString(CURRENT_VERSION) + "\n";
+	versionText += "Built on " + QString(__TIMESTAMP__) + QString (", Commit ") + QString (GITHASH) + "\n";
+	versionText += "Copyright Jan van Katwijk, mailto:J.vanKatwijk@gmail.com\n";
+	versionText += "with significant input from Tomneda\n";
+	versionText += "Rights of Qt, fftw, portaudio, libfaad, libsamplerate and libsndfile gratefully acknowledged\n";
+	versionText += "Rights of developers of RTLSDR library, SDRplay libraries, AIRspy library and others gratefully acknowledged\n";
+	versionText += "Rights of other contributors gratefully acknowledged";
+	return versionText;
+}
 void	RadioInterface::quickStart () {
 	disconnect (starter, SIGNAL (timeout ()),
 	            this, SLOT (quickStart ()));
@@ -511,7 +521,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("fmMode",
 				     fmModeSelector	-> currentText ());
 	s	-> setValue ("fmDecoder",
-				     fmDecoderSelector	-> currentText ());
+				     configWidget. fmDecoderSelector	-> currentText ());
 	s	-> setValue ("volumeHalfDb",
 				     volumeSlider	-> value ());
 	s	-> setValue ("fmRdsSelector",
@@ -1479,7 +1489,8 @@ void    RadioInterface::localConnects () {
 	         this, SLOT (handle_fmChannelSelector (const QString &)));
 	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_fmRdsSelector (const QString &)));
-	connect (fmDecoderSelector, SIGNAL (activated (const QString &)),
+	connect (configWidget. fmDecoderSelector,
+	                         SIGNAL (activated (const QString &)),
 	         this, SLOT (handle_fmDecoderSelector (const QString &)));
 	connect (fmStereoPanoramaSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fmStereoPanoramaSlider (int)));

@@ -42,10 +42,7 @@
  */
 
 	rdsDecoder_1::rdsDecoder_1 (RadioInterface	*myRadio,
-	                            int32_t		rate,
-	                            rdsBlockSynchronizer *my_rdsBlockSync,
-	                            RDSGroup		*my_rdsGroup,
-	                            rdsGroupDecoder	*my_rdsGroupDecoder):
+	                            int32_t		rate):
 	                            sharpFilter (7, RDS_BITCLK_HZ - 6,
 	                                            RDS_BITCLK_HZ + 6,
 	                                            rate,
@@ -55,9 +52,6 @@
 float	synchronizerSamples;
 
 	this	-> myRadioInterface	= myRadio;
-	this	-> my_rdsBlockSync	= my_rdsBlockSync;
-	this	-> my_rdsGroup		= my_rdsGroup;
-	this	-> my_rdsGroupDecoder	= my_rdsGroupDecoder;
         synchronizerSamples		= rate / (float)RDS_BITCLK_HZ;
         int symbolCeiling		= ceil (synchronizerSamples); 
 //
@@ -82,7 +76,7 @@ float	synchronizerSamples;
 //	the samplerate as changed by Tomneda (19000) gave 4 "inf"
 //	values (that is probably why tomneda was not content with
 //	the results of the match).
-//	To catch the inf values, I added an "isinf" test, 
+//	To catch the inf values, I at first dded an "isinf" test, 
 //	this "isinf" check  was with the "fast math" option
 //	in the "pro" file disregarded.
 //	Anyway, a minor mod in the formula, changing 64 to 64.01, solved
@@ -104,14 +98,6 @@ float	synchronizerSamples;
 	rdsLastSync		= 0;
 	rdsLastData		= 0;
 	previousBit		= 0;
-
-	my_rdsGroup	->  clear ();
-	my_rdsBlockSync ->  setFecEnabled (true);
-
-	connect (this, SIGNAL (setCRCErrors (int)),
-	         myRadioInterface, SLOT (setCRCErrors (int)));
-	connect (this, SIGNAL (setSyncErrors (int)),
-	         myRadioInterface, SLOT (setSyncErrors(int)));
 }
 
 	rdsDecoder_1::~rdsDecoder_1 () {
@@ -133,38 +119,11 @@ float	tmp = 0;
 	return tmp;
 }
 
-void	rdsDecoder_1::processBit (bool bit, int ptyLocale) {
-	switch (my_rdsBlockSync ->  pushBit (bit, my_rdsGroup)) {
-	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
-	      break;   // still waiting in block A
-
-	   case rdsBlockSynchronizer::RDS_BUFFERING:
-	      break;   // just buffer
-
-	   case rdsBlockSynchronizer::RDS_NO_SYNC:
-//	      resync if the last sync failed
-	      setSyncErrors (my_rdsBlockSync -> getNumSyncErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_NO_CRC:
-	      setCRCErrors (my_rdsBlockSync -> getNumCRCErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup, ptyLocale)) {
-	         ;   // error decoding the rds group
-	      }
-//	      my_rdsGroup. clear ();
-	      break;
-	}
-}
-//
 //	Decode 1 is the "original" rds decoder, based on the
 //	info from cuteSDR. 
-bool	rdsDecoder_1::doDecode	(float v, int ptyLocale) {
+bool	rdsDecoder_1::doDecode	(float v, uint8_t *d) {
 float	rdsSlope;
+bool	res	= false;
 	v			= rdsFilter. Pass (v);
 	v			= Match (v);
 	float rdsMag		= sharpFilter. Pass (v * v);
@@ -173,12 +132,12 @@ float	rdsSlope;
 	if ((rdsSlope < 0.0) && (rdsLastSyncSlope >= 0.0)) {
 //	top of the sine wave: get the data
 	   uint8_t theBit	= rdsLastData >= 0 ? 1 : 0;
-	   processBit (theBit ^ previousBit, ptyLocale);
+	   *d	= theBit ^ previousBit;
 	   previousBit = theBit;
+	   res	= true;
 	}
 	rdsLastData		= v;
 	rdsLastSyncSlope	= rdsSlope;
-	my_rdsBlockSync -> resetResyncErrorCounter ();
-	return true;
+	return res;
 }
 

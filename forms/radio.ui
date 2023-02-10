@@ -24,7 +24,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>sdr_j_fm - modified by tomneda</string>
+   <string>sdr_j_fm - with input from tomneda</string>
   </property>
   <property name="windowIconText">
    <string>QUIT</string>
@@ -1822,19 +1822,6 @@
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <widget class="QComboBox" name="theSelector"/>
-           </item>
-           <item>
-            <widget class="QComboBox" name="fmDecoderSelector">
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a demodulator, one of 5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="editable">
-              <bool>false</bool>
-             </property>
-             <property name="currentText">
-              <string/>
-             </property>
-            </widget>
            </item>
           </layout>
          </item>

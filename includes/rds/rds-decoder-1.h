@@ -40,18 +40,13 @@ class	rdsDecoder_1 : public QObject {
 Q_OBJECT
 public:
 		rdsDecoder_1 (RadioInterface	*myRadio,
-	                      int32_t		rate,
-	                      rdsBlockSynchronizer	*my_rdsBlockSync,
-	                      RDSGroup		*my_rdsGroup,
-	                      rdsGroupDecoder	*my_rdsGroupDecoder);
+	                      int32_t		rate);
 		~rdsDecoder_1	();
-	bool	doDecode	(float, int);
+	bool	doDecode	(float, uint8_t *);
 private:
 	BandPassIIR		sharpFilter;
 	LowPassFIR		rdsFilter;
-	RDSGroup		*my_rdsGroup;
-	rdsBlockSynchronizer	*my_rdsBlockSync;
-        rdsGroupDecoder		*my_rdsGroupDecoder;
+        RadioInterface          *myRadioInterface;
 
 	bool			previousBit;
 	std::vector<float>	rdsBuffer;
@@ -62,12 +57,6 @@ private:
 	float			rdsLastSyncSlope;
 	float			rdsLastSync;
 	float			rdsLastData;
-	void			processBit      (bool, int);
-        RadioInterface          *myRadioInterface;
-signals:
-        void			setCRCErrors	(int);
-        void			setSyncErrors	(int);
-        void			setbitErrorRate	(int);
 };
 #endif
 

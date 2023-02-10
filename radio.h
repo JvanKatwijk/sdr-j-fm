@@ -103,22 +103,22 @@ private:
 	Scope			*hfScope;
 	Scope			*lfScope;
 //
-	keyPad		mykeyPad;
-	QTimer		autoIncrementTimer;
-	QTimer		displayTimer;
-	QSettings	*fmSettings;
-	int32_t		inputRate;
-	int32_t		fmRate;
-	int32_t		workingRate;
-	int32_t		audioRate;
-	int16_t		displaySize;
-	int16_t		rasterSize;
-	int16_t		spectrumSize;
-	int32_t		averageCount;
-	int16_t		repeatRate;
-	audioSink	*our_audioSink;
-	int8_t		channelSelector;
-	deviceHandler	*theDevice;
+	keyPad			mykeyPad;
+	QTimer			autoIncrementTimer;
+	QTimer			displayTimer;
+	QSettings		*fmSettings;
+	int32_t			inputRate;
+	int32_t			fmRate;
+	int32_t			workingRate;
+	int32_t			audioRate;
+	int16_t			displaySize;
+	int16_t			rasterSize;
+	int16_t			spectrumSize;
+	int32_t			averageCount;
+	int16_t			repeatRate;
+	audioSink		*our_audioSink;
+	int8_t			channelSelector;
+	deviceHandler		*theDevice;
 	std::vector<int16_t>	outTable;
 
 	uint8_t		HFviewMode;
@@ -131,6 +131,7 @@ private:
 	int32_t		LOFrequency;
 	int32_t		currentFreq;
 
+	QString		footText		();
 	void		restoreGUIsettings	(QSettings *);
 
 	int32_t		mapIncrement		(int32_t);

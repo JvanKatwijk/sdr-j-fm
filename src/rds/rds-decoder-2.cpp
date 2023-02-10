@@ -31,8 +31,7 @@
 #include	<vector>
 #include	<fstream>
 
-constexpr uint32_t TAPS_MF_RRC = 31; // should be odd
-//constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
+constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
 constexpr float RDS_BITCLK_HZ = 1187.5;
 
 /*
@@ -44,19 +43,13 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
  *	samples per bit.
  */
 	rdsDecoder_2::rdsDecoder_2 (RadioInterface	*myRadio,
-	                            int32_t		rate,
-	                            rdsBlockSynchronizer *my_rdsBlockSync,
-	                            RDSGroup		*my_rdsGroup,
-	                            rdsGroupDecoder	*my_rdsGroupDecoder):
+	                            int32_t		rate):
 	                               my_AGC (2e-3f, 0.38f, 9.0f),
 	                               my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
 	{
 
 	this	-> myRadioInterface	= myRadio;
 	this	-> sampleRate		= rate;
-	this	-> my_rdsBlockSync	= my_rdsBlockSync;
-	this	-> my_rdsGroup		= my_rdsGroup;
-	this	-> my_rdsGroupDecoder	= my_rdsGroupDecoder;
 
 	this	-> samplesPerSymbol 	= ceil (rate / (float)RDS_BITCLK_HZ);
 	for (int i = 0; i < 3; i ++) {
@@ -85,14 +78,6 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
 	memset ((void*)my_matchedFltBuf. data (), 0,
 	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
 	my_matchedFltBufIdx	= 0;
-
-	my_rdsGroup	->  clear ();
-	my_rdsBlockSync -> setFecEnabled (true);
-
-	connect (this, SIGNAL (setCRCErrors (int)),
-	         myRadioInterface, SLOT (setCRCErrors (int)));
-	connect (this, SIGNAL (setSyncErrors (int)),
-	         myRadioInterface, SLOT (setSyncErrors(int)));
 }
 
 	rdsDecoder_2::~rdsDecoder_2 () {
@@ -115,47 +100,21 @@ DSPCOMPLEX tmp = 0;
 	return tmp;
 }
 
-void	rdsDecoder_2::processBit (bool bit, int ptyLocale) {
-	switch (my_rdsBlockSync -> pushBit (bit, my_rdsGroup)) {
-	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
-	      break;   // still waiting in block A
-
-	   case rdsBlockSynchronizer::RDS_BUFFERING:
-	      break;   // just buffer
-
-	   case rdsBlockSynchronizer::RDS_NO_SYNC:
-//	      resync if the last sync failed
-	      setSyncErrors (my_rdsBlockSync -> getNumSyncErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_NO_CRC:
-	      setCRCErrors (my_rdsBlockSync -> getNumCRCErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup, ptyLocale)) {
-	         ;   // error decoding the rds group
-	      }
-//	      my_rdsGroup. clear ();
-	      break;
-	}
-}
 //
 bool	rdsDecoder_2::doDecode (std::complex<float> v,
-	                            std::complex<float> *m, int ptyLocale) {
+	                        std::complex<float> *m, uint8_t *d) {
 std::complex<float> r;
+
 	v = doMatchFiltering (v);
 	v = my_AGC. process_sample (v);
-//#ifndef DO_STEREO_SEPARATION_TEST
+#ifndef DO_STEREO_SEPARATION_TEST
 	 v = my_Costas. process_sample (v);
-//#endif
+#endif
 	if (process_sample (v, r)) {
 //	this runs 19000/16 = 1187.5 1/s times
-	   bool bit	= (real (r) >= 0);
-	   processBit	(bit ^ previousBit, ptyLocale);
-	   previousBit	= bit;
+	   bool theBit	= (real (r) >= 0);
+	   *d	= theBit ^ previousBit;
+	   previousBit	= theBit;
 	   *m		= r;
 	   return true; // tell caller a changed m value
 	}

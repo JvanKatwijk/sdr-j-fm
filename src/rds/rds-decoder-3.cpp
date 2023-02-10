@@ -77,48 +77,16 @@ float	synchronizerSamples;
         bitClkPhase             = 0;
         prev_clkState           = 0;
         Resync                  = true;
-
-	connect (this, SIGNAL (setCRCErrors (int)),
-	         myRadioInterface, SLOT (setCRCErrors (int)));
-	connect (this, SIGNAL (setSyncErrors (int)),
-	         myRadioInterface, SLOT (setSyncErrors(int)));
 }
 
 	rdsDecoder_3::~rdsDecoder_3 () {
 }
 
-void	rdsDecoder_3::processBit (bool bit, int ptyLocale) {
-	switch (my_rdsBlockSync -> pushBit (bit, my_rdsGroup)) {
-	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
-	      break;   // still waiting in block A
-
-	   case rdsBlockSynchronizer::RDS_BUFFERING:
-	      break;   // just buffer
-
-	   case rdsBlockSynchronizer::RDS_NO_SYNC:
-//	      resync if the last sync failed
-	      setSyncErrors (my_rdsBlockSync ->  getNumSyncErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_NO_CRC:
-	      setCRCErrors (my_rdsBlockSync -> getNumCRCErrors ());
-	      my_rdsBlockSync -> resync ();
-	      break;
-
-	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
-	      if (!my_rdsGroupDecoder -> decode (my_rdsGroup, ptyLocale)) {
-	         ;   // error decoding the rds group
-	      }
-//	      my_rdsGroup. clear ();
-	      break;
-	}
-}
 //
-//
-bool	rdsDecoder_3::doDecode	(float v, int ptyLocale) {
+bool	rdsDecoder_3::doDecode	(float v, uint8_t *d) {
 float clkState;
 std::complex<float> tt;
+bool	res	= false;
 
 	syncBuffer [p]	= rdsFilter. Pass (v);
 	p		= (p + 1) % symbolCeiling;
@@ -135,15 +103,16 @@ std::complex<float> tt;
 //
 //	rising edge -> look at integrator
 	if (prev_clkState <= 0 && clkState > 0) {
-	   bool currentBit	= bitIntegrator >= 0;
-	   processBit (currentBit ^ previousBit, ptyLocale);
+	   bool theBit	= bitIntegrator >= 0;
+	   *d	= theBit ^ previousBit;
 	   bitIntegrator	= 0;		// we start all over
-	   previousBit		= currentBit;
+	   previousBit		= theBit;
+	   res		= true;
 	}
 
 	prev_clkState	= clkState;
 	bitClkPhase	= fmod (bitClkPhase + omegaRDS, 2 * M_PI);
-	return true;
+	return res;
 }
 
 

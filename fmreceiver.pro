@@ -199,8 +199,6 @@ exists ("./.git") {
 isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
-include ( $$(QWT_ROOT)/features/qwt.prf )
-//DEFINES	+= __PILOT_FIR__
 CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3
 CONFIG		+= airspy
@@ -216,7 +214,7 @@ CONFIG		+= qwt
 #for fedora 21
 LIBS += -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
 LIBS += -lsamplerate
-QMAKE_CXXFLAGS += -Wno-hicpp-signed-bitwise
+#QMAKE_CXXFLAGS += -Wno-hicpp-signed-bitwise
 }
 
 #	the devices

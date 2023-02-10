@@ -12,7 +12,7 @@ Be advised NOT to use these sources now
 Some significant modifications were made by Thomas Neder, apart from the
 "skin", most mods were "under the hood". 
 
-The version number is now 3.1
+The version number is now 3.15
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 

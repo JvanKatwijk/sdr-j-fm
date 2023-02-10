@@ -33,24 +33,26 @@
 //	Since there are different decoders for rds,
 //	this interface one is merely a dispatcher
 //
-	rdsDecoder::rdsDecoder (RadioInterface	*myRadio,
+	rdsDecoder::rdsDecoder (RadioInterface	*myRadioInterface,
 	                        int32_t		rate):
-	                            my_rdsBlockSync (myRadio),
-	                            my_rdsGroupDecoder (myRadio),
+	                            my_rdsBlockSync (myRadioInterface),
+	                            my_rdsGroupDecoder (myRadioInterface),
 	                            my_costas (rate, 1.0f / 16.0f,
 	                                            0.02f/16.0f, 10.0f) {
-	decoder_1	= new rdsDecoder_1 (myRadio, rate,
+	decoder_1	= new rdsDecoder_1 (myRadioInterface, rate);
+	decoder_2 	= new rdsDecoder_2 (myRadioInterface, rate);
+	decoder_3 	= new rdsDecoder_3 (myRadioInterface, rate,
 	                                    &my_rdsBlockSync,
 	                                    &my_rdsGroup,
 	                                    &my_rdsGroupDecoder);
-	decoder_2 	= new rdsDecoder_2 (myRadio, rate,
-	                                    &my_rdsBlockSync,
-	                                    &my_rdsGroup,
-	                                    &my_rdsGroupDecoder);
-	decoder_3 	= new rdsDecoder_3 (myRadio, rate,
-	                                    &my_rdsBlockSync,
-	                                    &my_rdsGroup,
-	                                    &my_rdsGroupDecoder);
+	my_rdsGroup. clear ();
+        my_rdsBlockSync. setFecEnabled (true);
+ 
+        connect (this, SIGNAL (setCRCErrors (int)),
+                 myRadioInterface, SLOT (setCRCErrors (int)));
+        connect (this, SIGNAL (setSyncErrors (int)),
+                 myRadioInterface, SLOT (setSyncErrors(int)));
+
 }
 
 	rdsDecoder::~rdsDecoder () {
@@ -69,20 +71,28 @@ bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 // this is called typ. 19000 1/s
 DSPCOMPLEX r;
 bool	b;
+uint8_t	theBit;
+
 	v	= my_costas. process_sample (v);
 	switch (mode) {
 	   case rdsDecoder::ERdsMode::RDS_1:
 	      *m =  v * 4.0f;
-	      b = decoder_1 -> doDecode (real (v), ptyLocale);
+	      b = decoder_1 -> doDecode (real (v), &theBit);
+	      if (b)
+	         processBit (theBit, ptyLocale);
 	      return b;
 
 	   case rdsDecoder::ERdsMode::RDS_2:
-	      b = decoder_2 -> doDecode (v, m,  ptyLocale);
+	      b = decoder_2 -> doDecode (v, m, &theBit);
+	      if (b)
+	         processBit (theBit, ptyLocale);
 	      return b;
 
 	   case rdsDecoder::ERdsMode::RDS_3:
 	      *m = v * 4.0f;
-	      b = decoder_3 -> doDecode (real (v), ptyLocale);
+	      b = decoder_3 -> doDecode (real (v), &theBit);
+	      if (b)
+	         processBit (theBit, ptyLocale);
 	      return b;
 
 	   default:
@@ -90,3 +100,30 @@ bool	b;
 	}
 }
 
+void	rdsDecoder::processBit (bool bit, int ptyLocale) {
+	switch (my_rdsBlockSync. pushBit (bit, &my_rdsGroup)) {
+	   case rdsBlockSynchronizer::RDS_WAITING_FOR_BLOCK_A:
+	      break;   // still waiting in block A
+
+	   case rdsBlockSynchronizer::RDS_BUFFERING:
+	      break;   // just buffer
+
+	   case rdsBlockSynchronizer::RDS_NO_SYNC:
+//	      resync if the last sync failed
+	      setSyncErrors (my_rdsBlockSync. getNumSyncErrors ());
+	      my_rdsBlockSync. resync ();
+	      break;
+
+	   case rdsBlockSynchronizer::RDS_NO_CRC:
+	      setCRCErrors (my_rdsBlockSync. getNumCRCErrors ());
+	      my_rdsBlockSync. resync ();
+	      break;
+
+	   case rdsBlockSynchronizer::RDS_COMPLETE_GROUP:
+	      if (!my_rdsGroupDecoder. decode (&my_rdsGroup, ptyLocale)) {
+	         ;   // error decoding the rds group
+	      }
+	      my_rdsGroup. clear ();
+	      break;
+	}
+}

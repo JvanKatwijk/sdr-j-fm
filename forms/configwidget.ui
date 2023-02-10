@@ -300,6 +300,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
+      <widget class="QComboBox" name="fmDecoderSelector"/>
+     </item>
+     <item>
       <widget class="QCheckBox" name="cbTestTone">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable/disable calibration test tone (consisting of short tone pings) to optimize the set up of the peak level delay setting&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>

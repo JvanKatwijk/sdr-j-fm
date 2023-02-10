@@ -76,6 +76,12 @@ private:
 	rdsDecoder_1		*decoder_1;
 	rdsDecoder_2		*decoder_2;
 	rdsDecoder_3		*decoder_3;
+	void                    processBit      (bool, int);
+
+signals:
+        void			setCRCErrors	(int);
+        void			setSyncErrors	(int);
+        void			setbitErrorRate	(int);
 
 };
 

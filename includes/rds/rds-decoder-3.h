@@ -42,11 +42,11 @@ Q_OBJECT
 public:
 		rdsDecoder_3	(RadioInterface	*myRadio,
 	                         int32_t	rate,
-	                         rdsBlockSynchronizer	*my_rdsBlockSync,
-	                         RDSGroup	*my_rdsGroup,
-	                         rdsGroupDecoder *my_rdsGroupDecoder);
+	                         rdsBlockSynchronizer  *my_rdsBlockSync,
+                                 RDSGroup            *my_rdsGroup,
+                                 rdsGroupDecoder     *my_rdsGroupDecoder);
 		~rdsDecoder_3	();
-	bool	doDecode	(float, int);
+	bool	doDecode	(float, uint8_t *);
 private:
 	LowPassFIR		rdsFilter;
 	SinCos			mySinCos;
@@ -58,7 +58,6 @@ private:
         void                    synchronizeOnBitClk (std::vector<float> &,
 	                                                          int16_t);
 //
-	void			processBit      (bool, int);
         RadioInterface          *myRadioInterface;
         int                     sampleRate;
 
@@ -71,10 +70,6 @@ private:
 	float			prev_clkState;
 	bool			Resync;
 	int16_t			p;
-signals:
-	void			setCRCErrors		(int);
-	void			setSyncErrors		(int);
-	void			setbitErrorRate		(int);
 };
 #endif
 
