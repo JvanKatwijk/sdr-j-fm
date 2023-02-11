@@ -33,6 +33,7 @@
 
 #define	QT_STATIC_CONST
 
+#define	INPUT_RATE	2304000
 /*
  * Stereo sideband test (after activating compile switch DO_STEREO_SEPARATION_TEST)
  * 1) Select "T|T" to hear the ortogonal demodulated sideband signal

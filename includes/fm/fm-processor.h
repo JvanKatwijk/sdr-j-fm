@@ -109,8 +109,7 @@ public:
 	              int32_t,                  // decimation
 	              int32_t,                  // workingRate
 	              int32_t,                  // audioRate,
-	              int32_t,                  // displaySize
-	              int32_t,                  // spectrumSize
+	              int,			// displaySize
 	              int32_t,                  // averageCount
 	              int32_t,                  // repeatRate
 	              int,			// locale, Europe or US
@@ -147,7 +146,6 @@ public:
 	void		setAutoMonoMode		(const bool iAutoMonoMode);
 	void		setPSSMode		(const bool iPSSMode);
 	void		setDCRemove		(const bool iDCREnabled);
-	void		new_hfSpectrum 		();
 	void		new_lfSpectrum 		();
 	void		setTestTone		(const bool iTTEnabled);
 	void		setDispDelay		(const int iDelay);
@@ -190,7 +188,6 @@ private:
 //	the privates
 private:
 	rdsDecoder	myRdsDecoder;
-	fm_Demodulator	*theDemodulator;
 	Oscillator	localOscillator;
 	SinCos		mySinCos;
 	AGC		pssAGC;
@@ -204,12 +201,15 @@ private:
 	fftFilterHilbert rdsHilbertFilter;
 	squelch		mySquelch;
 	newConverter	theConverter;
+	fm_Demodulator	*theDemodulator;
 	float		rdsPhaseBuffer [RDS_SAMPLE_DELAY];
 	int		rdsPhaseIndex;
 	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
 	int		audioFrequency;
 
+	int		displaySize;
+	int		spectrumSize;
 	deviceHandler	*myRig;
 	RadioInterface	*myRadioInterface;
 	audioSink	*theSink;
@@ -217,11 +217,9 @@ private:
 	int32_t		fmRate;       // typ.  192 kSpS = InputRate / 12
 	int32_t		workingRate;  // typ.   48 kSpS
 	int32_t		audioRate;    // typ.   48 kSpS
-	int32_t		displaySize;
 	int32_t		averageCount;
 	int32_t		repeatRate;
 	int		ptyLocale;
-	bool		hfBuffer_newFlag;
 	bool		lfBuffer_newFlag;
 	RingBuffer<double> *hfBuffer;
 	RingBuffer<double> *lfBuffer;
@@ -230,7 +228,6 @@ private:
 	int16_t		thresHold;
 
 	ESqMode		squelchMode;
-	int32_t		spectrumSize;
 	common_fft	*spectrum_fft_hf;
 	common_fft	*spectrum_fft_lf;
 	DSPCOMPLEX	*spectrumBuffer_hf;

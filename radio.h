@@ -41,7 +41,7 @@
 #include	"iqdisplay.h"
 #include	"ringbuffer.h"
 #include	"iqdisplay.h"
-#include	"scope.h"
+#include	"fft-scope.h"
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
 #include	<atomic>
@@ -100,7 +100,7 @@ private:
 	QFrame			configDisplay;
 	RingBuffer<double>	*hfBuffer;
 	RingBuffer<double>	*lfBuffer;
-	Scope			*hfScope;
+	fft_scope		*hfScope;
 	Scope			*lfScope;
 //
 	keyPad			mykeyPad;

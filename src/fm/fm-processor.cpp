@@ -55,7 +55,6 @@
 	                          int32_t workingRate,
 	                          int32_t audioRate,
 	                          int32_t displaySize,
-	                          int32_t spectrumSize,
 	                          int32_t averageCount,
 	                          int32_t repeatRate,
 	                          int	ptyLocale,
@@ -103,6 +102,7 @@
 	this	-> workingRate		= workingRate;
 	this	-> audioRate		= audioRate;
 	this	-> displaySize		= displaySize;
+	this	-> spectrumSize		= 4 * displaySize;
 	this	-> averageCount		= averageCount;
 	this	-> repeatRate		= repeatRate;
 	this	-> ptyLocale		= ptyLocale;
@@ -120,7 +120,6 @@
 	this	-> iqBuffer		= iqBuffer;
 //
 //	inits that cannot be done by older GCC versions
-	this	-> hfBuffer_newFlag	= true;
 	this	-> lfBuffer_newFlag	= true;
 	this	-> displayBuffer_lf	= nullptr;
 	this	-> autoMono		= true;
@@ -150,10 +149,6 @@
 // workingRate is typ. 48000S/s
 	peakLevelSampleMax		= workingRate / 50;
 
-	this	-> spectrumSize		= 4 * displaySize;
-
-	this	-> spectrum_fft_hf	= new common_fft (this -> spectrumSize);
-	this	-> spectrumBuffer_hf	= spectrum_fft_hf -> getVector ();
 
 	this	-> spectrum_fft_lf	= new common_fft (spectrumSize);
 
@@ -480,6 +475,9 @@ int		iqCounter	= 0;
 	              myRig -> getSamples (dataBuffer, bufferSize, IandQ);
 	   const int32_t aa = (amount >= spectrumSize ? spectrumSize : amount);
 
+	   hfBuffer -> putDataIntoBuffer (dataBuffer, bufferSize);
+	   emit hfBufferLoaded();
+
 	   if (DCREnabled) {
 	      for (int32_t i = 0; i < amount; i++) {
 	         RfDC = (dataBuffer[i] - RfDC) * rfDcAlpha + RfDC;
@@ -505,36 +503,6 @@ int		iqCounter	= 0;
 	      }
 	   }
 
-//	for the HFscope
-	   if (++hfCount > (inputRate / bufferSize) / repeatRate) {
-	      double Y_Values [displaySize];
-
-	      for (int32_t i = 0; i < aa; i++) 
-	         spectrumBuffer_hf [i] = dataBuffer[i];
-
-	      for (int32_t i = aa; i < spectrumSize; i++) 
-	         spectrumBuffer_hf [i] = std::complex<float> (0, 0);
-
-	      spectrum_fft_hf -> do_FFT ();
-
-//	      int32_t zoomFactor = 1;
-	      mapSpectrum (spectrumBuffer_hf, Y_Values, zoomFactor);
-
-	      if (!hfBuffer_newFlag) 
-	         add_to_average (Y_Values, displayBuffer_hf);
-	      else {
-	         set_average_buffer (Y_Values, displayBuffer_hf);
-//	it is only for the first line, so now
-	         hfBuffer_newFlag = false;
-	      }
-
-	      hfBuffer -> putDataIntoBuffer (displayBuffer_hf, displaySize);
-	      hfCount = 0;
-
-// and signal the GUI thread that we have data
-	      emit hfBufferLoaded();
-	   }
-
 	   if (dumping) {
 	      float dumpBuffer [2 * amount];
 	      for (int32_t i = 0; i < amount; i++) {
@@ -555,7 +523,7 @@ int		iqCounter	= 0;
 
 	      v = v * localOscillator. nextValue (loFrequency);
 
-//	   first step: decimating and  - optional - filtering
+//	   first step: optional filtering and decimating
 	      if (fmFilterOn. load ())
 	         v = fmFilter. Pass (v);
 	      if (decimatingScale > 1) {
@@ -1186,10 +1154,6 @@ void	fmProcessor::setPSSMode		(const bool iPSSMode) {
 void	fmProcessor::setDCRemove	(const bool iDCREnabled) {
 	DCREnabled = iDCREnabled;
 	RfDC = 0.0f;
-}
-
-void	fmProcessor::new_hfSpectrum	() {
-	hfBuffer_newFlag = true;
 }
 
 void	fmProcessor::new_lfSpectrum	() {

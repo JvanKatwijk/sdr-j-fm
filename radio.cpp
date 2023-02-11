@@ -231,7 +231,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	peakRightDamped		= -100;
 //	end added
 //
-	this		-> inputRate = 192000;
+	this		-> inputRate = INPUT_RATE;
 	this		-> fmRate    = FM_RATE;
 	this		-> workingRate = 48000;
 
@@ -246,7 +246,6 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 
 	if (displaySize < 128) 
 	   displaySize = 128;
-	spectrumSize	= 4 * displaySize;
 
 	this		-> rasterSize	=
 	                     fmSettings -> value ("rasterSize", 50). toInt ();
@@ -997,7 +996,6 @@ void	RadioInterface::make_newProcessor () {
 	                                 workingRate,
 	                                 this -> audioRate,
 	                                 displaySize,
-	                                 spectrumSize,
 	                                 averageCount,
 	                                 repeatRate,
 	                                 ptyLocale,
@@ -1135,7 +1133,7 @@ int32_t	vfo;
 //
 //	we create a new spectrum on a different frequency
 	   if (runMode. load () == ERunStates::RUNNING) 
-	      myFMprocessor -> new_hfSpectrum ();
+	      hfScope -> clearAverage ();
 	}
 	LOFrequency = n - vfo;
 
@@ -2002,24 +2000,19 @@ double  X_axis	[displaySize];
 double  Y_values [displaySize];
 double  temp		= (double)inputRate / 2 / displaySize;
 int32_t vfoFrequency;
-
+std::complex<float> tempBuffer [displaySize];
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
 
 	vfoFrequency	= theDevice -> getVFOFrequency ();
-
-//	first X axis labels
-	for (int i = 0; i < displaySize; i++) {
-	   X_axis [i] =
-	      ((double)vfoFrequency - (double)(inputRate / 2) +
-	        (double)((i) * (double) 2 * temp)) / ((double)Khz (1));
+	hfScope		-> setZero (vfoFrequency);
+	hfScope		-> setNeedle (LOFrequency);
+	hfScope		-> setAmplification (
+	                   spectrumAmplitudeSlider_hf -> value ());
+	while (hfBuffer -> GetRingBufferReadAvailable () > displaySize) {
+	   hfBuffer -> getDataFromBuffer (tempBuffer, displaySize);
+	   hfScope -> addElements (tempBuffer, displaySize);
 	}
-//
-//	get the buffer data
-	hfBuffer -> getDataFromBuffer (Y_values, displaySize);
-	hfScope -> Display (X_axis, Y_values,
-	                   spectrumAmplitudeSlider_hf -> value (),
-	                   (vfoFrequency + LOFrequency) / Khz (1));
 }
 
 //	For the LF scope, we only do the displaying (and X axis)
@@ -2069,10 +2062,13 @@ void	RadioInterface::setHFplotterView (int offset) {
 }
 
 void	RadioInterface::setup_HFScope () {
-	hfBuffer	= new RingBuffer<double> (2 * displaySize);
-	hfScope		= new Scope (hfscope,
-	                             this -> displaySize,
-	                             this -> rasterSize);
+	hfBuffer	= new RingBuffer<double> (16 * 32768);
+	hfScope		= new fft_scope (hfscope,
+	                                 this -> displaySize,
+	                                 1,
+	                                 this -> rasterSize,
+	                                 2304000,
+	                                 20);
 	HFviewMode	= SPECTRUM_MODE;
 	hfScope		-> SelectView (SPECTRUM_MODE);
 	connect (hfScope,

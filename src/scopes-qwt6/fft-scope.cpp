@@ -38,15 +38,11 @@ int32_t res = 1;
 
 //
 //	In this version of the scope, we introduce two additional parameters
-//	the spectrumSize and the repetition frequency.
-//	If spectrumSize == -1, we create a scope
-//	where all samples are made part of the spectrum: pretty heavy
-//	otherwise, we take freq times per second spectrumSize / 2 samples
+//	and the repetition frequency.
 	fft_scope::fft_scope (QwtPlot	*plotfield,
 	                      int16_t	displaySize,
 	                      int32_t	scale,
 	                      int16_t	rasterSize,
-	                      int32_t	spectrumSize,
 	                      int32_t	SampleRate,
 	                      int16_t	freq):Scope (plotfield,
 	                                             displaySize,
@@ -54,39 +50,20 @@ int32_t res = 1;
 double  temp;
 
 	if ((displaySize & (displaySize - 1)) != 0)
-	   displaySize = 512;
+	   displaySize = 1024;
 	this	-> displaySize		= displaySize;
 	this	-> segmentSize		= SampleRate / freq;
+	fprintf (stderr, "segmentSize = %d\n", segmentSize);
 	this	-> scale		= scale;
 	this	-> rasterSize		= rasterSize;
 	this	-> averageCount		= 0;
-	this	-> zoomingLevel		= 0;
-
-	if (spectrumSize < 0) {   // we compute
-	   spectrumFillpoint	= segmentSize;
-	   spectrumSize		= nearestTwoPower (2 * segmentSize);
-	}
-	else {
-	   if ((spectrumSize & (spectrumSize - 1)) != 0)
-	      spectrumSize = 1024;
-	   if (displaySize > spectrumSize)
-	      spectrumSize = displaySize;
-
-	   if (segmentSize < spectrumSize / 2)
-	      spectrumFillpoint = segmentSize;
-	   else
-	      spectrumFillpoint = spectrumSize / 2;
-	}
-
-	this	-> spectrumSize		= spectrumSize;
+	this	-> spectrumSize		= 8 * displaySize;
+	this	-> spectrumFillpoint	= this -> spectrumSize;
 	this	-> sampleRate		= SampleRate;
-	this	-> MaxFrequency		= SampleRate / 2;
 	this	-> freq			= freq;
 
 	this	-> fillPointer		= 0;
 	this	-> vfo			= 0;
-	this	-> zoomingPoint		= 0;
-	this	-> zoomingLevel		= 1;
 	this	-> amplification	= 100;
 	this	-> needle		= 0;
 	this	-> dummyBuffer		= new double [displaySize];
@@ -101,19 +78,19 @@ double  temp;
 	this	-> Window		= new DSPFLOAT [spectrumFillpoint];
 	this	-> inputBuffer		= new DSPCOMPLEX [spectrumFillpoint];
 	this	-> sampleCounter	= 0;
-	this	-> spectrum_fft		= new common_fft (spectrumSize);
+	this	-> spectrum_fft		= new common_fft (this -> spectrumSize);
 	this	-> spectrumBuffer	= spectrum_fft	-> getVector ();
-	this	-> binWidth		= sampleRate / spectrumSize;
+	this	-> binWidth		= sampleRate / this -> spectrumSize;
 
 	for (int16_t i = 0; i < spectrumFillpoint; i++)
 	   Window [i] = 0.42 - 0.50 * cos((2.0 * M_PI * i) / (spectrumFillpoint - 1))
 	                     + 0.08 * cos((4.0 * M_PI * i) / (spectrumFillpoint - 1));
 
-	temp	= (double)MaxFrequency / displaySize;
+	temp	= (double)sampleRate / 2 / displaySize;
 	for (int16_t i = 0; i < displaySize; i++)
 	   X_axis [i] =
-	      ((double)vfo - (double)MaxFrequency 
-                  +  (double)((i) * (double)2 * temp)) / ((double)scale);
+	      ((double)vfo - (double)sampleRate / 2 
+                  +  (double)((i) * (double)2 * temp)) / ((double)KHz (1));
 }
 
 	fft_scope::~fft_scope () {
@@ -132,12 +109,12 @@ void	fft_scope::setSamplerate	(int32_t s) {
 float   temp;
 
 	sampleRate	= s;
-	MaxFrequency	= s / 2;
-	temp	= (double)MaxFrequency / displaySize;
-	for (int i = 0; i < displaySize; i++)
-	   X_axis[i] =
-	      ((double)vfo - (double)MaxFrequency 
-                   +  (double)((i) * (double) 2 * temp)) / ((double)scale);
+
+	temp	= (double)sampleRate / 2 / displaySize;
+	for (int16_t i = 0; i < displaySize; i++)
+	   X_axis [i] =
+	      ((double)vfo - (double)sampleRate / 2 
+                  +  (double)((i) * (double)2 * temp)) / ((double)KHz (1));
 }
 
 void	fft_scope::setAmplification (int16_t sliderValue) {
@@ -146,72 +123,12 @@ void	fft_scope::setAmplification (int16_t sliderValue) {
 
 void	fft_scope::setZero (int64_t vfo) {
 	this	-> vfo = vfo;
-	this	-> zoomingPoint = vfo;
-	this	-> zoomingLevel = 1;
-}
-
-void	fft_scope::setZoompoint (int32_t freq) {
-	this	-> zoomingPoint = freq;
-	if ((zoomingLevel + 1) * displaySize <= spectrumSize)
-	   zoomingLevel++;
-}
-
-void	fft_scope::resetZoompoint () {
-	this	-> zoomingLevel--;
-	if (zoomingLevel < 1)
-	   zoomingLevel = 1;
 }
 
 void	fft_scope::setNeedle (int32_t needle) {
-	this ->needle = needle;
+	this	-> needle = needle;
 }
 //
-//	This is a kind of hack to allow the spectrumviewer to
-//	send in vectors of size n and have them displayed
-//	immediately
-void	fft_scope::addElementsandShow (DSPCOMPLEX *v, int16_t n) {
-int32_t Incr;
-double  temp;
-
-	if (2 * n > spectrumSize) {
-	   fprintf (stderr, "Increase n = %d, size = %d\n", n, spectrumSize);
-	   return;
-	}
-
-	for (int i = 0; i < n; i++)
-	   spectrumBuffer [i] = v [i];
-
-	for (int i = n; i < spectrumSize; i++)
-	   spectrumBuffer [i] = 0;
-	spectrum_fft	-> do_FFT ();
-
-	Incr = spectrumSize / displaySize;
-	for (int i = 0; i < displaySize / 2; i++) {
-	   displayBuffer [displaySize / 2 + i] = 0;
-	   for (int j = 0; j < Incr; j++)
-	      displayBuffer [displaySize / 2 + i] +=
-	                    abs(spectrumBuffer [i * Incr + j]) / binWidth;
-	   displayBuffer[displaySize / 2 + i] /= Incr;
-	}
-
-	for (int i = 0; i < displaySize / 2; i++) {
-	   displayBuffer [i] = 0;
-	   for (int j = 0; j < Incr; j++)
-	      displayBuffer [i] +=
-	                    abs(spectrumBuffer [spectrumSize / 2 + i * Incr + j]) / binWidth;
-	   displayBuffer [i] /= Incr;
-	}
-
-	temp	= (double)MaxFrequency / displaySize;
-	for (int i = 0; i < displaySize; i++)
-	   X_axis[i] =
-	      ((double)vfo - (double)MaxFrequency 
-                   +  (double)((i) * (double) 2 * temp)) / ((double)scale);
-
-	doAverage ();
-
-	showSpectrum ();
-}
 
 void	fft_scope::addElements (DSPCOMPLEX *v, int16_t n) {
 
@@ -220,63 +137,56 @@ void	fft_scope::addElements (DSPCOMPLEX *v, int16_t n) {
 }
 
 void	fft_scope::addElement (DSPCOMPLEX x) {
-DSPFLOAT	multiplier	= (DSPFLOAT)segmentSize / displaySize;
-//
-	inputBuffer [fillPointer] = x;
-	fillPointer	= (fillPointer + 1) % spectrumFillpoint;
 
-	if (++ sampleCounter < segmentSize)
+	if (fillPointer < spectrumFillpoint)
+	   inputBuffer [fillPointer ++] = x;
+
+	sampleCounter ++;
+	if (sampleCounter < segmentSize)
 	   return;
 
-	sampleCounter = 0;
+	fillPointer	= 0;
+	sampleCounter	= 0;
+	
 	for (int i = 0; i < spectrumFillpoint; i++) {
-	   DSPCOMPLEX tmp = inputBuffer [(fillPointer + i) % spectrumFillpoint];
-	   spectrumBuffer[i] = cmul (tmp, multiplier * Window[i]);
+	   DSPCOMPLEX tmp = inputBuffer [i];
+	   spectrumBuffer[i] = tmp;
+//	   spectrumBuffer[i] = cmul (tmp, Window [i]);
 	}
 
 	for (int i = spectrumFillpoint; i < spectrumSize; i++)
-	   spectrumBuffer [i] = 0;
+	   spectrumBuffer [i] = std::complex<float> (0, 0);
 
 	spectrum_fft -> do_FFT ();
 
-	mapSpectrumtoDisplay (zoomingLevel, zoomingPoint);
+	int	ratio	= spectrumSize / displaySize;
+	for (int i = 0; i < displaySize / 2; i++) {
+	   DSPFLOAT sum = 0;
+	   for (int j = 0; j < ratio; j++) 
+	      sum += abs (spectrumBuffer [i * ratio + j]);
+	   displayBuffer [displaySize / 2 + i] = sum / ratio;
+	   sum = 0;
+	   for (int j = 0; j < ratio; j++) 
+	      sum += abs (spectrumBuffer [spectrumSize / 2 + i * ratio + j]);
+	   displayBuffer [i] = sum / ratio;
+	}
+
 	doAverage ();
 
-	showSpectrum ();
-}
-//
-//	fill a vector and show the elements when full
-void	fft_scope::addElement (DSPCOMPLEX v, int16_t t) {
-static int cnt = 0;
-	if (++cnt < t)
-	   return;
-
-	cnt	= 0;
-	dummyBuffer [dummyCount] = real (v);
-	if (++dummyCount >= displaySize) {
-	   Scope::Display (X_axis,
-	                   dummyBuffer,
-	                   amplification,
-	                   ((int32_t)vfo + needle) / (int32_t)scale);
-	   dummyCount = 0;
-	}
-}
-
-void	fft_scope::addValue (double v, int i) {
-	displayBuffer [i] = v;
-}
-
-void	fft_scope::showSpectrum () {
+	double temp	= (double)sampleRate / 2 / displaySize;
+	for (int16_t i = 0; i < displaySize; i++)
+	   X_axis [i] =
+	      ((double)vfo - (double)sampleRate / 2 
+                  +  (double)((i) * (double)2 * temp)) / ((double)KHz (1));
 	Scope::Display (X_axis,
 	                displayBuffer,
-	                amplification,
-	                ((int32_t)vfo + needle) / (int32_t)scale);
+	                this -> amplification,
+	                ((int32_t)vfo + needle) / (int32_t)KHz (1));
 }
+//
 
 void	fft_scope::SelectView (int8_t Mode) {
 	Scope::SelectView (Mode);
-	this	-> zoomingLevel = 1;
-	this	-> zoomingPoint = vfo;
 }
 
 void	fft_scope::setAverager (bool b) {
@@ -292,76 +202,6 @@ void	fft_scope::clearAverage () {
 	}
 }
 //
-//	We map the spectrum onto the display vector. We
-//	take into account zooming.
-//
-#define realIndex(a)  ((a) < spectrumSize / 2 ? (a) + spectrumSize / 2 : (a) - spectrumSize / 2)
-
-void	fft_scope::mapSpectrumtoDisplay (int16_t level, int32_t freq) {
-double  temp;
-int16_t index_1;	//
-int16_t top_index, bottom_index;
-int32_t min_freq, max_freq;
-//
-	index_1		= indexOf (freq);
-//
-//	then compute the top and bottom of the segment in the
-//	spectrumBuffer that is to be projected
-	top_index	= index_1 + (DSPFLOAT)(spectrumSize - index_1) / level;
-	bottom_index	= index_1 - (DSPFLOAT)index_1 / level;
-	min_freq	= frequencyFor (bottom_index);
-	max_freq	= frequencyFor (top_index);
-	temp		= ((DSPFLOAT)max_freq - min_freq) / displaySize;
-//
-//	Note that top_index and bottom_index are abstract indices,
-//	we defined realIndex for the actual mapping
-//	Now we have to map the segment bottom-index .. top-index
-//	to 0 .. displaySize
-//	for the time being, we assume that
-//	top_index - bottom_index + 1 >= displaySize
-	DSPFLOAT ratio = ((DSPFLOAT)top_index - bottom_index + 1) / displaySize;
-
-//	we extract for the i-th element of the displayvector
-//	those parts of the spectrumvector that would contribute
-//	to the value of the displayvector. Assumption is that
-//	an accuracy of 10% is sufficient
-	for (int i = 0; i < displaySize; i++) {
-	   DSPFLOAT sum = 0;
-	   for (int j = 0; j < (int16_t)(5 * ratio); j++) {
-	      int32_t a_index =
-	             (int32_t)floor ((5 * (bottom_index + i * ratio) + j) / 5);
-	      sum += abs (spectrumBuffer [realIndex(a_index)]) / 5;
-	   }
-	   displayBuffer [i] = sum / temp;
-	}
-	for (int i = 0; i < displaySize; i++)
-	   X_axis [i] = (min_freq + (double)(i * temp)) / ((double)scale);
-}
-
-int32_t	fft_scope::indexOf (int64_t freq) {
-int64_t lowFreq  = vfo - MaxFrequency;
-int64_t highFreq = vfo + MaxFrequency;
-double  ratio    = 0;
-
-	if (freq < lowFreq)
-	   freq = lowFreq;
-	if (freq > highFreq)
-	   freq = highFreq;
-
-	ratio = ((double)(freq - lowFreq)) / (highFreq - lowFreq);
-	return ratio * spectrumSize;
-}
-
-int64_t	fft_scope::frequencyFor (int64_t index) {
-int64_t lowFreq		= vfo - MaxFrequency;
-
-	if (index < 0)
-	   return frequencyFor (0);
-	if (index >= spectrumSize)
-	   return frequencyFor (spectrumSize - 1);
-
-	return lowFreq + index * (2 * MaxFrequency) / spectrumSize;
-}
 
 static inline
 float	get_ldb (float x) {
