@@ -18,14 +18,11 @@ The version number is now 3.15
 
 New is a so-called PSS (perfect stereo sound) control on the main widget,
 contributed by TomNeda.
-As known, the stereo sound is encoded as an L+R signal, ccompatible with 
-non stereo transmissions, and an L-R signal, modulated as AM signal on
-on offset of 38 KHz. The pilot, transmitted on an offset of 19 KHz
-is used to precisely synchronize the L-R signal with the L+R signal.
 
-In computing the 38 Khz signal from the 19 KHz pilot signal, an error
-may occur, an offset of a few Hz. The PSS algorithm applies some
-more advanced techniques to figute out what the correction on the recomputed
+In computing the 38 Khz signal to decode the L-R signal, from the 19
+KHz pilot signal, an error may occur, an offset of a few Hz.
+The PSS algorithm applies some techniques to figure out what
+correction on the recomputed
 39 KHz carrier that has to be applied for a perfect match.
 
 While in previous versions the list of configure devices was
@@ -43,13 +40,13 @@ during this program invocation)
 Since the number of controls in the main widget was growing,
 some controls were  transferred to a separate "control" widget.
 The main widget has a button, labeled *Config* with which one can select
-and deselect the controls widget.
+and deselect this control widget.
 
 
 ![fm receiver](/fm-configwidget.png?raw=true)
 
 Buttons on the control widget are typically those that are not
-often touches when just listening to the radio.
+often touched when just listening to the radio.
 Buttons for setting the deemphasis and the pty labels are therefore now
 on the configuration widget, since their setting depends on the country
 you are in.
@@ -80,6 +77,7 @@ does not provide support for the RSP I.
  * Airspy devices;
  * Lime devices;
  * Hackrf devices;
+ * Adalm Pluto devices;
  * Dabsticks, i.e. rtlsdr devices.
 
 There is also support for file input, however, right now only for

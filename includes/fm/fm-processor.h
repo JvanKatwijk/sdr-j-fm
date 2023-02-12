@@ -169,7 +169,7 @@ private:
 	                                         double * const, int32_t &);
 	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
 	                                         double * const, int32_t &);
-	void		processLfSpectrum	(std::vector<std::complex<float>> &);
+	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool);
 	void		set_average_buffer	(const double * const,
 	                                             double * const);
 	void		add_to_average		(const double * const,

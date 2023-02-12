@@ -205,9 +205,9 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/rds/rds-blocksynchronizer.h 
 	     ./includes/rds/rds-group.h 
 	     ./includes/rds/rds-groupdecoder.h  
-	     ./includes/sdr/agc.h  
-	     ./includes/sdr/costas.h  
-	     ./includes/sdr/shaping_filter.h  
+	     ./includes/various/agc.h  
+	     ./includes/various/costas.h  
+	     ./includes/various/shaping_filter.h  
 	     ./devices/device-handler.h 
 	     ./devices/deviceselect.h
 	     ./devices/filereader/filereader.h 
@@ -246,7 +246,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/rds/rds-blocksynchronizer.cpp 
 	      ./src/rds/rds-group.cpp 
 	      ./src/rds/rds-groupdecoder.cpp 
-	      ./src/sdr/shaping_filter.cpp
+	      ./src/various/shaping_filter.cpp
 	      ./devices/device-handler.cpp
 	      ./devices/deviceselect.cpp
 	      ./devices/filereader/filereader.cpp 

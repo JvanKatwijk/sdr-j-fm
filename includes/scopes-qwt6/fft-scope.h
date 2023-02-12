@@ -42,20 +42,18 @@ public:
 	                           int16_t);  // repeat frequency
 			~fft_scope	();
 
-	void		addElement		(DSPCOMPLEX);
-	void		addElements		(DSPCOMPLEX *, int16_t);
+	void		addElements		(std::complex<float> *,
+	                                                       int16_t);
 	void		setAmplification	(int16_t);
 	void		setZero			(int64_t);
 	void		setNeedle		(int32_t);
 	void		clearAverage		();
 	void		SelectView		(int8_t);
-	void		setAverager		(bool);
-	void		setSamplerate		(int32_t);
+//	void		setAverager		(bool);
 
 private:
+	void		addElement		(std::complex<float>);
 	void		doAverage		();
-	double		*dummyBuffer;
-	int32_t		dummyCount;
 
 	int32_t		sampleRate;
 	int16_t		displaySize;
@@ -63,10 +61,9 @@ private:
 	int16_t		rasterSize;
 	int32_t		spectrumFillpoint;
 	int32_t		fillPointer;
-	DSPFLOAT	*Window;
-	DSPFLOAT	binWidth;
-	DSPCOMPLEX	*inputBuffer;
-	DSPCOMPLEX	*spectrumBuffer;
+	float		*Window;
+	std::complex<float>	*inputBuffer;
+	std::complex<float>	*spectrumBuffer;
 	common_fft	*spectrum_fft;
 	int32_t		sampleCounter;
 	int32_t		SampleRate;

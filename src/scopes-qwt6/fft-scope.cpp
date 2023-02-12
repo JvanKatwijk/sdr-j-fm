@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C)  2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -22,23 +23,7 @@
 
 #include "fft-scope.h"
 
-static inline
-int32_t nearestTwoPower (int16_t n) {
-int32_t res = 1;
 
-	if (n < 100)
-	   return 128;
-	while (n != 0) {
-	   n >>= 1;
-	   res <<= 1;
-	}
-
-	return res;
-}
-
-//
-//	In this version of the scope, we introduce two additional parameters
-//	and the repetition frequency.
 	fft_scope::fft_scope (QwtPlot	*plotfield,
 	                      int16_t	displaySize,
 	                      int32_t	scale,
@@ -53,7 +38,6 @@ double  temp;
 	   displaySize = 1024;
 	this	-> displaySize		= displaySize;
 	this	-> segmentSize		= SampleRate / freq;
-	fprintf (stderr, "segmentSize = %d\n", segmentSize);
 	this	-> scale		= scale;
 	this	-> rasterSize		= rasterSize;
 	this	-> averageCount		= 0;
@@ -66,8 +50,6 @@ double  temp;
 	this	-> vfo			= 0;
 	this	-> amplification	= 100;
 	this	-> needle		= 0;
-	this	-> dummyBuffer		= new double [displaySize];
-	this	-> dummyCount		= 0;
 	this	-> displayBuffer	= new double [displaySize];
 	this	-> averageBuffer	= new double [displaySize];
 
@@ -75,15 +57,12 @@ double  temp;
 	   averageBuffer[i] = 0;
 	this	-> X_axis		= new double [displaySize];
 
-	this	-> Window		= new DSPFLOAT [spectrumFillpoint];
-	this	-> inputBuffer		= new DSPCOMPLEX [spectrumFillpoint];
+	this	-> Window		= new float [spectrumFillpoint];
+	this	-> inputBuffer		= new std::complex<float> [spectrumFillpoint];
 	this	-> sampleCounter	= 0;
 	this	-> spectrum_fft		= new common_fft (this -> spectrumSize);
 	this	-> spectrumBuffer	= spectrum_fft	-> getVector ();
-	this	-> binWidth		= sampleRate / this -> spectrumSize;
-
 	for (int16_t i = 0; i < spectrumFillpoint; i++)
-	   Window [i] = 0.42 - 0.50 * cos((2.0 * M_PI * i) / (spectrumFillpoint - 1))
 	                     + 0.08 * cos((4.0 * M_PI * i) / (spectrumFillpoint - 1));
 
 	temp	= (double)sampleRate / 2 / displaySize;
@@ -97,24 +76,9 @@ double  temp;
 	delete[]	this	-> displayBuffer;
 	delete[]	this	-> averageBuffer;
 	delete[]	this	-> X_axis;
-	delete[]	this	-> dummyBuffer;
 	delete[]	this	-> Window;
 	delete		this	-> spectrum_fft;
 	delete[]	this	-> inputBuffer;
-}
-
-//
-//	setting the samplerate influences the X-axis
-void	fft_scope::setSamplerate	(int32_t s) {
-float   temp;
-
-	sampleRate	= s;
-
-	temp	= (double)sampleRate / 2 / displaySize;
-	for (int16_t i = 0; i < displaySize; i++)
-	   X_axis [i] =
-	      ((double)vfo - (double)sampleRate / 2 
-                  +  (double)((i) * (double)2 * temp)) / ((double)KHz (1));
 }
 
 void	fft_scope::setAmplification (int16_t sliderValue) {
@@ -129,14 +93,13 @@ void	fft_scope::setNeedle (int32_t needle) {
 	this	-> needle = needle;
 }
 //
-
-void	fft_scope::addElements (DSPCOMPLEX *v, int16_t n) {
+void	fft_scope::addElements (std::complex<float> *v, int16_t n) {
 
 	for (int i = 0; i < n; i++)
 	   addElement (v [i]);
 }
 
-void	fft_scope::addElement (DSPCOMPLEX x) {
+void	fft_scope::addElement (std::complex<float> x) {
 
 	if (fillPointer < spectrumFillpoint)
 	   inputBuffer [fillPointer ++] = x;
@@ -149,9 +112,8 @@ void	fft_scope::addElement (DSPCOMPLEX x) {
 	sampleCounter	= 0;
 	
 	for (int i = 0; i < spectrumFillpoint; i++) {
-	   DSPCOMPLEX tmp = inputBuffer [i];
-	   spectrumBuffer[i] = tmp;
-//	   spectrumBuffer[i] = cmul (tmp, Window [i]);
+	   std::complex<float> tmp = inputBuffer [i];
+	   spectrumBuffer[i] = cmul (tmp, Window [i]);
 	}
 
 	for (int i = spectrumFillpoint; i < spectrumSize; i++)
@@ -161,7 +123,7 @@ void	fft_scope::addElement (DSPCOMPLEX x) {
 
 	int	ratio	= spectrumSize / displaySize;
 	for (int i = 0; i < displaySize / 2; i++) {
-	   DSPFLOAT sum = 0;
+	   float sum = 0;
 	   for (int j = 0; j < ratio; j++) 
 	      sum += abs (spectrumBuffer [i * ratio + j]);
 	   displayBuffer [displaySize / 2 + i] = sum / ratio;
@@ -189,9 +151,9 @@ void	fft_scope::SelectView (int8_t Mode) {
 	Scope::SelectView (Mode);
 }
 
-void	fft_scope::setAverager (bool b) {
-	averageCount = (b ? 1 : 0);
-}
+//void	fft_scope::setAverager (bool b) {
+//	averageCount = (b ? 1 : 0);
+//}
 
 void	fft_scope::clearAverage () {
 
@@ -217,7 +179,7 @@ void	fft_scope::doAverage () {
 	      if (get_ldb (abs (displayBuffer [i])) > 50)
 	         displayBuffer [i] = 0;
 	      averageBuffer [i] =
-	                   ((double)(averageCount - 1)) / averageCount *
+	                ((double)(averageCount - 1)) / averageCount *
 	                                                     averageBuffer [i] +
                         1.0f / averageCount * displayBuffer [i];
 	      displayBuffer [i] = averageBuffer [i];

@@ -715,7 +715,8 @@ int		iqCounter	= 0;
 
 	      if (++lfCount > (fmRate / repeatRate)) {
 	         if (spectrumBuffer_lf. size () >= (unsigned)spectrumSize) {
-	            processLfSpectrum (spectrumBuffer_lf);
+	            processLfSpectrum (spectrumBuffer_lf,
+	                               zoomFactor, lfBuffer_newFlag);
 	            spectrumBuffer_lf. resize (0);
 	         }
 	         lfCount = 0;
@@ -1024,7 +1025,9 @@ int16_t factor = spectrumSize / displaySize / 2;  // typ factor = 2 (whole divid
 	}
 }
 
-void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v) {
+void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v,
+	                          int zoomFactor,
+	                          bool lfBuffer_newFlag) {
 double Y_Values [displaySize];
 int32_t l_zoomFactor = zoomFactor; // copy value because it may be changed
 std::complex<float> *spectrumBuffer	= spectrum_fft_lf -> getVector ();
