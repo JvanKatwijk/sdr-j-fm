@@ -58,7 +58,7 @@
 	                          int32_t averageCount,
 	                          int32_t repeatRate,
 	                          int	ptyLocale,
-	                          RingBuffer<double> *hfBuffer,
+	                          RingBuffer<std::complex<float>> *hfBuffer,
 	                          RingBuffer<double> *lfBuffer,
 	                          RingBuffer<DSPCOMPLEX> *iqBuffer,
 	                          int16_t thresHold):
@@ -473,9 +473,9 @@ int		iqCounter	= 0;
 //	next phase
 	   const int32_t amount =
 	              myRig -> getSamples (dataBuffer, bufferSize, IandQ);
-	   const int32_t aa = (amount >= spectrumSize ? spectrumSize : amount);
+//	   const int32_t aa = (amount >= spectrumSize ? spectrumSize : amount);
 
-	   hfBuffer -> putDataIntoBuffer (dataBuffer, bufferSize);
+	   hfBuffer -> putDataIntoBuffer (dataBuffer, amount);
 	   emit hfBufferLoaded();
 
 	   if (DCREnabled) {
@@ -1027,7 +1027,7 @@ int16_t factor = spectrumSize / displaySize / 2;  // typ factor = 2 (whole divid
 
 void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v,
 	                          int zoomFactor,
-	                          bool lfBuffer_newFlag) {
+	                          bool  &lfBuffer_newFlag) {
 double Y_Values [displaySize];
 int32_t l_zoomFactor = zoomFactor; // copy value because it may be changed
 std::complex<float> *spectrumBuffer	= spectrum_fft_lf -> getVector ();

@@ -113,7 +113,7 @@ public:
 	              int32_t,                  // averageCount
 	              int32_t,                  // repeatRate
 	              int,			// locale, Europe or US
-	              RingBuffer<double> *,     // HFScope
+	              RingBuffer<std::complex<float>> *,     // HFScope
 	              RingBuffer<double> *,     // LFScope
 	              RingBuffer<DSPCOMPLEX> *, // IQScope
 	              int16_t);                 // threshold scanning
@@ -169,7 +169,7 @@ private:
 	                                         double * const, int32_t &);
 	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
 	                                         double * const, int32_t &);
-	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool);
+	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool &);
 	void		set_average_buffer	(const double * const,
 	                                             double * const);
 	void		add_to_average		(const double * const,
@@ -221,7 +221,7 @@ private:
 	int32_t		repeatRate;
 	int		ptyLocale;
 	bool		lfBuffer_newFlag;
-	RingBuffer<double> *hfBuffer;
+	RingBuffer<std::complex<float>> *hfBuffer;
 	RingBuffer<double> *lfBuffer;
 	RingBuffer<DSPCOMPLEX> *iqBuffer;
 	bool		scanning;

@@ -81,6 +81,7 @@ private:
 	RingBuffer<std::complex<float>>	iqBuffer;
 	fm_Demodulator		theDemodulator;
 	IQDisplay	*iqScope;
+	RingBuffer<std::complex<float>>	hfBuffer;
 
 //	Processing modes
 	enum class ERunStates {
@@ -98,7 +99,6 @@ private:
 
 	Ui_configWidget		configWidget;
 	QFrame			configDisplay;
-	RingBuffer<double>	*hfBuffer;
 	RingBuffer<double>	*lfBuffer;
 	fft_scope		*hfScope;
 	Scope			*lfScope;

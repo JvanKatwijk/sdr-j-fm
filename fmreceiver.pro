@@ -10,9 +10,12 @@ QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++14
-QMAKE_CFLAGS	+= -flto -ffast-math
-QMAKE_CXXFLAGS	+= -flto -ffast-math
-QMAKE_LFLAGS	+= -flto -ffast-math
+#
+# Note that the fastmath option eliminates the isinf and isnan
+# functions that are used to validate the data
+QMAKE_CFLAGS	+= -flto 
+QMAKE_CXXFLAGS	+= -flto 
+QMAKE_LFLAGS	+= -flto
 QMAKE_CXXFLAGS	+= -g
 QMAKE_CFLAGS	+= -g
 QMAKE_LFLAGS	+= -g

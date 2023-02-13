@@ -187,6 +187,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 							QDialog (parent),
 							iqBuffer (
 	                                                         IQ_SCOPE_SIZE),
+	                                                hfBuffer (8 * 32768),
 	                                                theDemodulator (
 	                                                         FM_RATE),
 							configDisplay (nullptr),
@@ -477,7 +478,6 @@ void	RadioInterface::quickStart () {
 //	delete		hfScope;
 //	delete		lfScope;
 	
-	delete		hfBuffer;
 	delete		lfBuffer;
 //	delete		our_audioSink;
 //	delete		myProgramList;
@@ -494,8 +494,6 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	//	s	-> setValue ("device", deviceSelector -> currentText ());
 	s	-> setValue ("rasterSize", rasterSize);
-	s	-> setValue ("averageCount", averageCount);
-
 	s	-> setValue ("repeatRate", repeatRate);
 
 	s	-> setValue ("fm_increment",
@@ -999,7 +997,7 @@ void	RadioInterface::make_newProcessor () {
 	                                 averageCount,
 	                                 repeatRate,
 	                                 ptyLocale,
-	                                 hfBuffer,
+	                                 &hfBuffer,
 	                                 lfBuffer,
 	                                 &iqBuffer,
 	                                 thresHold);
@@ -1996,8 +1994,6 @@ void	RadioInterface::handle_squelchSlider (int n) {
 //	and put these views into a shared buffer. If the buffer is
 //	full, a signal is sent.
 void	RadioInterface::hfBufferLoaded () {
-double  X_axis	[displaySize];
-double  Y_values [displaySize];
 double  temp		= (double)inputRate / 2 / displaySize;
 int32_t vfoFrequency;
 std::complex<float> tempBuffer [displaySize];
@@ -2009,8 +2005,8 @@ std::complex<float> tempBuffer [displaySize];
 	hfScope		-> setNeedle (LOFrequency);
 	hfScope		-> setAmplification (
 	                   spectrumAmplitudeSlider_hf -> value ());
-	while (hfBuffer -> GetRingBufferReadAvailable () > displaySize) {
-	   hfBuffer -> getDataFromBuffer (tempBuffer, displaySize);
+	while (hfBuffer. GetRingBufferReadAvailable () > displaySize) {
+	   hfBuffer. getDataFromBuffer (tempBuffer, displaySize);
 	   hfScope -> addElements (tempBuffer, displaySize);
 	}
 }
@@ -2062,13 +2058,12 @@ void	RadioInterface::setHFplotterView (int offset) {
 }
 
 void	RadioInterface::setup_HFScope () {
-	hfBuffer	= new RingBuffer<double> (16 * 32768);
 	hfScope		= new fft_scope (hfscope,
 	                                 this -> displaySize,
 	                                 1,
 	                                 this -> rasterSize,
 	                                 2304000,
-	                                 20);
+	                                 8);
 	HFviewMode	= SPECTRUM_MODE;
 	hfScope		-> SelectView (SPECTRUM_MODE);
 	connect (hfScope,

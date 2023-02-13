@@ -63,6 +63,7 @@ double  temp;
 	this	-> spectrum_fft		= new common_fft (this -> spectrumSize);
 	this	-> spectrumBuffer	= spectrum_fft	-> getVector ();
 	for (int16_t i = 0; i < spectrumFillpoint; i++)
+	   Window [i] = 0.43 - 0.5 * cos ((2.0 * M_PI * i) / spectrumFillpoint)
 	                     + 0.08 * cos((4.0 * M_PI * i) / (spectrumFillpoint - 1));
 
 	temp	= (double)sampleRate / 2 / displaySize;
@@ -113,7 +114,10 @@ void	fft_scope::addElement (std::complex<float> x) {
 	
 	for (int i = 0; i < spectrumFillpoint; i++) {
 	   std::complex<float> tmp = inputBuffer [i];
-	   spectrumBuffer[i] = cmul (tmp, Window [i]);
+	   if (isinf (abs (tmp)) || std::isnan (abs (tmp)))
+	      spectrumBuffer [i] = std::complex<float> (0, 0);
+	   else
+	      spectrumBuffer[i] = cmul (tmp, Window [i]);
 	}
 
 	for (int i = spectrumFillpoint; i < spectrumSize; i++)
