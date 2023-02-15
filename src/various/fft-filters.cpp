@@ -22,6 +22,8 @@
 
 #include "fft-filters.h"
 #include "fir-filters.h"
+#include	"fft-complex.h"
+
 #include <cstring>
 
 	fftFilter::fftFilter (int32_t size, int degree) {
@@ -31,15 +33,10 @@
 	OverlapSize	= filterDegree;
 	NumofSamples	= fftSize - OverlapSize;
 
-	MyFFT		= new common_fft	(fftSize);
-	FFT_A		= MyFFT		->	getVector ();
-	MyIFFT		= new common_ifft	(fftSize);
-	FFT_C		= MyIFFT	->	getVector ();
-
-	FilterFFT	= new common_fft	(fftSize);
-	filterVector	= FilterFFT	->	getVector ();
+	FFT_A		= new std::complex<float> [fftSize];
+	FFT_C		= new std::complex<float> [fftSize];
+	filterVector	= new std::complex<float> [fftSize];
 	RfilterVector	= new DSPFLOAT [fftSize];
-
 	Overloop	= new DSPCOMPLEX [OverlapSize];
 	inp		= 0;
 	for (int i = 0; i < fftSize; i ++) {
@@ -51,9 +48,9 @@
 }
 
 	fftFilter::~fftFilter () {
-	delete		MyFFT;
-	delete		MyIFFT;
-	delete		FilterFFT;
+	delete[]	FFT_A;
+	delete[]	FFT_C;
+	delete[]	filterVector;
 	delete[]	RfilterVector;
 	delete[]	Overloop;
 }
@@ -66,18 +63,18 @@ BasicBandPass BandPass (filterDegree, low, high, rate);
 
         memset (&filterVector [filterDegree], 0,
                         (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
-        FilterFFT       -> do_FFT ();
+	Fft_transform (filterVector, fftSize, false);
         inp             = 0;
 }
 
 void	fftFilter::setBand (int32_t low, int32_t high, int32_t rate) {
 BandPassFIR BandPass ((int)filterDegree, low, high, rate);
 
-      for (int i = 0; i < filterDegree; i ++)
+	for (int i = 0; i < filterDegree; i ++)
            filterVector [i] = (BandPass. getKernel ()) [i];
         memset (&filterVector [filterDegree], 0,
                         (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
-        FilterFFT       -> do_FFT ();
+	Fft_transform (filterVector, fftSize, false);
         inp             = 0;
 }
 
@@ -88,7 +85,7 @@ LowPassFIR LowPass (filterDegree, low, rate);
 	   filterVector [i] = (LowPass. getKernel ()) [i];
 	memset (&filterVector [filterDegree], 0,
 	                (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
-	FilterFFT	-> do_FFT ();
+	Fft_transform (filterVector, fftSize, false);
 	inp	= 0;
 }
 
@@ -102,15 +99,21 @@ DSPFLOAT	sample;
 	   inp = 0;
 	   memset (&FFT_A [NumofSamples], 0,
 	               (fftSize - NumofSamples) * sizeof (DSPCOMPLEX));
-	   MyFFT	-> do_FFT ();
+	   Fft_transform (FFT_A, fftSize, false);
 
 	   for (int j = 0; j < fftSize; j ++) {
 	      FFT_C [j] = FFT_A [j] * filterVector [j];
               FFT_C [j] = DSPCOMPLEX (real (FFT_C [j]) * 3,
                                       imag (FFT_C [j]) * 3);
 	   }
-
-	   MyIFFT	-> do_IFFT ();
+//
+//	cheating to get the inverse
+	   for (int j = 0; j < fftSize; j ++)
+	      FFT_C [j] = conj (FFT_C [j]);
+	   Fft_transform (FFT_C, fftSize, false);
+//	   MyIFFT	-> do_IFFT ();
+	   for (int j = 0; j < fftSize; j ++)
+	      FFT_C [j] = conj (FFT_C [j]) * (float) (1.0f / fftSize);
 	   for (int j = 0; j < OverlapSize; j ++) {
 	      FFT_C [j] += Overloop [j];
 	      Overloop [j] = FFT_C [NumofSamples + j];
@@ -131,12 +134,19 @@ int		j;
 	   inp = 0;
 	   memset (&FFT_A [NumofSamples], 0,
 	               (fftSize - NumofSamples) * sizeof (DSPCOMPLEX));
-	   MyFFT	-> do_FFT ();
+	   Fft_transform (FFT_A, fftSize, false);
 
 	   for (j = 0; j < fftSize; j ++) 
 	      FFT_C [j] = FFT_A [j] * filterVector [j];
-
-	   MyIFFT	-> do_IFFT ();
+//
+//	cheating to get the inverse
+//	IFFT (X) = conj (FFT (conj (X)) / N
+	  for (int j = 0; j < fftSize; j ++)
+	      FFT_C [j] = conj (FFT_C [j]);
+	   Fft_transform (FFT_C, fftSize, false);
+	   float factor = 1.0 / fftSize;
+	   for (int j = 0; j < fftSize; j ++)
+	      FFT_C [j] =  conj (FFT_C [j]) * factor;
 	   for (j = 0; j < OverlapSize; j ++) {
 	      FFT_C [j] += Overloop [j];
 	      Overloop [j] = FFT_C [NumofSamples + j];

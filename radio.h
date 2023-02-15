@@ -35,13 +35,11 @@
 #include	<QWheelEvent>
 #include	<qwt.h>
 #include	<sndfile.h>
-#include	"fft.h"
 #include	"fm-constants.h"
 #include	"fm-processor.h"
 #include	"iqdisplay.h"
 #include	"ringbuffer.h"
 #include	"iqdisplay.h"
-#include	"fft-scope.h"
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
 #include	<atomic>
@@ -52,7 +50,8 @@
 class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
-class	fft_scope;
+class	hs_scope;
+class	Scope;
 class	audioSink;
 class	deviceHandler;
 class	programList;
@@ -100,7 +99,7 @@ private:
 	Ui_configWidget		configWidget;
 	QFrame			configDisplay;
 	RingBuffer<double>	*lfBuffer;
-	fft_scope		*hfScope;
+	hs_scope		*hfScope;
 	Scope			*lfScope;
 //
 	keyPad			mykeyPad;

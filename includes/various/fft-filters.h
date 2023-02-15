@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -18,13 +19,11 @@
  *    You should have received a copy of the GNU General Public License
  *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
 #ifndef __FFT_FILTER_H
 #define __FFT_FILTER_H
 
 #include	"fm-constants.h"
-#include	"fft.h"
 
 class fftFilter {
 public:
@@ -42,18 +41,15 @@ protected:
 	int		filterDegree;
 	int		OverlapSize;
 	int		NumofSamples;
-	common_fft	*MyFFT;
 	DSPCOMPLEX	*FFT_A;
-	common_ifft	*MyIFFT;
 	DSPCOMPLEX	*FFT_C;
-	common_fft	*FilterFFT;
 	DSPCOMPLEX	*filterVector;
 	DSPFLOAT	* RfilterVector;
 	DSPCOMPLEX	*Overloop;
 	int32_t		inp;
 };
 
-// hilbert has real input but complex output
+//	hilbert has real input but complex output
 class fftFilterHilbert : public fftFilter {
 public:
 			fftFilterHilbert	(int32_t, int);

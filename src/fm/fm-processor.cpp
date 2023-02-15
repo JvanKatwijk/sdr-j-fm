@@ -26,7 +26,7 @@
 #include "device-handler.h"
 #include "fm-constants.h"
 #include "radio.h"
-
+#include	"fft-complex.h"
 
 #define AUDIO_FREQ_DEV_PROPORTION    0.85f
 #define PILOT_FREQUENCY		19000
@@ -149,9 +149,6 @@
 // workingRate is typ. 48000S/s
 	peakLevelSampleMax		= workingRate / 50;
 
-
-	this	-> spectrum_fft_lf	= new common_fft (spectrumSize);
-
 	this	-> loFrequency		= 0;
 	this	-> fmBandwidth		= 0.95 * fmRate;
 //
@@ -219,8 +216,6 @@
 
 		fmProcessor::~fmProcessor () {
 	stop();
-	delete	spectrum_fft_hf;
-	delete	spectrum_fft_lf;
 	delete[] displayBuffer_lf;
 }
 
@@ -432,8 +427,7 @@ double		displayBuffer_hf [displaySize];
 int32_t		hfCount		= 0;
 int32_t		lfCount		= 0;
 int32_t		scanPointer	= 0;
-common_fft	scan_fft (1024);
-DSPCOMPLEX	*scanBuffer	= scan_fft. getVector ();
+DSPCOMPLEX	scanBuffer	[1024];
 const float rfDcAlpha = 1.0f / inputRate;
 newConverter	audioDecimator (fmRate,  workingRate,  fmRate / 1000);
 DSPCOMPLEX	audioOut [audioDecimator. getOutputsize ()];
@@ -540,7 +534,7 @@ int		iqCounter	= 0;
 
 	         if (scanPointer >= 1024) {
 	            scanPointer = 0;
-	            scan_fft. do_FFT ();
+	            Fft_transform (scanBuffer, 1024, false);
 	            float signal	= getSignal (scanBuffer, 1024);
 	            float Noise		= getNoise (scanBuffer, 1024);
 	            if (get_db (signal, 256) - get_db (Noise, 256) > thresHold) {
@@ -716,7 +710,9 @@ int		iqCounter	= 0;
 	      if (++lfCount > (fmRate / repeatRate)) {
 	         if (spectrumBuffer_lf. size () >= (unsigned)spectrumSize) {
 	            processLfSpectrum (spectrumBuffer_lf,
-	                               zoomFactor, lfBuffer_newFlag);
+	                               zoomFactor, showFullSpectrum,
+	                               lfBuffer_newFlag);
+	            lfBuffer_newFlag = false;
 	            spectrumBuffer_lf. resize (0);
 	         }
 	         lfCount = 0;
@@ -971,6 +967,7 @@ float sum = 0;
 }
 
 void	fmProcessor::mapSpectrum (const DSPCOMPLEX * const in,
+	                          bool	showFull,
 	                          double * const out,
 	                          int32_t &ioZoomFactor) {
 int16_t factor = spectrumSize / displaySize;  // typ factor = 4 (whole divider)
@@ -983,74 +980,50 @@ int16_t factor = spectrumSize / displaySize;  // typ factor = 4 (whole divider)
 	   factor = 1;
 	}
 
-//	work from inside (0Hz) to outside for filling display data
-	for (int32_t i = 0; i < displaySize / 2; i++) {
-	   double f = 0;
+	if (showFull) {	// full
+	   for (int32_t i = 0; i < displaySize / 2; i++) {
+	      double f = 0;
 //	read 0Hz to rate/2 -> map to mid to end of display
-	   for (int32_t j = 0; j < factor; j++) {
-	      f += abs (in [i * factor + j]);
-	   }
-	   out [displaySize / 2 + i] = f / factor;
+	      for (int32_t j = 0; j < factor; j++) {
+	         f += abs (in [i * factor + j]);
+	      }
+	      out [displaySize / 2 + i] = f / factor;
 
-	   f = 0;
+	      f = 0;
 //	read rate / 2 down to 0Hz -> map to begin to mid of display
-	   for (int32_t j = 0; j < factor; j++) {
-	      f += abs (in [spectrumSize - 1 - (i * factor + j)]);
+	      for (int32_t j = 0; j < factor; j++) {
+	         f += abs (in [spectrumSize - 1 - (i * factor + j)]);
+	      }
+	      out [displaySize / 2 - 1 - i] = f / factor;
 	   }
-	   out [displaySize / 2 - 1 - i] = f / factor;
 	}
-}
-
-void	fmProcessor::mapHalfSpectrum (const DSPCOMPLEX * const in,
-	                              double * const out,
-	                              int32_t &ioZoomFactor) {
-int16_t factor = spectrumSize / displaySize / 2;  // typ factor = 2 (whole divider)
-
-	if (factor / ioZoomFactor >= 1) {
-	   factor /= ioZoomFactor;
-	}
-	else {
-	   ioZoomFactor = factor;
-	   factor = 1;
-	}
-
-	for (int32_t i = 0; i < displaySize; i++) {
-	   double f = 0;
-//	read 0Hz to rate/2 -> map to mid to end of display
-	   for (int32_t j = 0; j < factor; j++) {
-	      f += abs (in [i * factor + j]);
+	else {		// half
+	   factor /= 2;
+	   for (int32_t i = 0; i < displaySize; i++) {
+	      double f = 0;
+//	read 0Hz to rate / 2 -> map to mid to end of display
+	      for (int32_t j = 0; j < factor; j++) {
+	         f += abs (in [i * factor + j]);
+	      }
+	      out [i] = f / factor;
 	   }
-
-	   out [i] = f / factor;
 	}
 }
 
 void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v,
-	                          int zoomFactor,
-	                          bool  &lfBuffer_newFlag) {
-double Y_Values [displaySize];
+	                               int zoomFactor,
+	                               bool showFull,
+	                               bool  lfBuffer_newFlag) {
+double Y_values [displaySize];
 int32_t l_zoomFactor = zoomFactor; // copy value because it may be changed
-std::complex<float> *spectrumBuffer	= spectrum_fft_lf -> getVector ();
 
-	for (int i = 0; i < spectrumSize; i ++)
-	   spectrumBuffer [i] = v [i];
+	Fft_transform (v. data (), spectrumSize, false);
+	mapSpectrum (v. data (), showFull, Y_values, l_zoomFactor);
 
-	spectrum_fft_lf -> do_FFT ();
-
-	if (showFullSpectrum) 
-	   mapSpectrum (spectrumBuffer, Y_Values, l_zoomFactor);
-	else 
-	   mapHalfSpectrum (spectrumBuffer, Y_Values, l_zoomFactor);
-
-	if (lfBuffer_newFlag) {
-	   set_average_buffer (Y_Values, displayBuffer_lf);
-	   lfBuffer_newFlag = false;
-	}
-	else 
-	  add_to_average (Y_Values, displayBuffer_lf);
+	add_to_average (Y_values, lfBuffer_newFlag, displayBuffer_lf);
 
 #ifdef USE_EXTRACT_LEVELS
-	if (showFullSpectrum) {
+	if (showFull) {
 	   extractLevels (displayBuffer_lf, fmRate);
 	}
 	else {
@@ -1060,25 +1033,23 @@ std::complex<float> *spectrumBuffer	= spectrum_fft_lf -> getVector ();
 
 	lfBuffer -> putDataIntoBuffer (displayBuffer_lf, displaySize);
 //	and signal the GUI thread that we have data
-	emit lfBufferLoaded (showFullSpectrum,
-	                             spectrumSampleRate / l_zoomFactor);
+	emit lfBufferLoaded (showFull, spectrumSampleRate / l_zoomFactor);
 }
 
-void	fmProcessor::set_average_buffer (const double *const in,
-	                                  double * const buffer) {
-	for (int32_t i = 0; i < displaySize; i++) {
-	   buffer [i] = in [i];
-	}
-}
-
-void	fmProcessor::add_to_average (const double * const in,
-	                             double *const buffer) {
+void	fmProcessor::add_to_average (const double* const in,
+	                             bool refresh,
+	                                  double *const buffer) {
 const double alpha = 1.0 / averageCount;
 const double beta = (averageCount - 1.0) / averageCount;
 
-	for (int32_t i = 0; i < displaySize; i++) {
-	   buffer [i] = alpha * in [i] + beta * buffer [i];
+	if (refresh) {
+	   for (int32_t i = 0; i < displaySize; i++) 
+	      buffer [i] = in [i];
+	   return;
 	}
+
+	for (int32_t i = 0; i < displaySize; i++) 
+	   buffer [i] = alpha * in [i] + beta * buffer [i];
 }
 
 #ifdef USE_EXTRACT_LEVELS

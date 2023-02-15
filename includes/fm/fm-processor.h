@@ -166,18 +166,17 @@ public:
 private:
 	void		run			();
 	void		mapSpectrum		(const DSPCOMPLEX * const,
+	                                         bool,
 	                                         double * const, int32_t &);
-	void		mapHalfSpectrum		(const DSPCOMPLEX * const,
-	                                         double * const, int32_t &);
-	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool &);
-	void		set_average_buffer	(const double * const,
-	                                             double * const);
+	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool, bool);
 	void		add_to_average		(const double * const,
-	                                             double * const);
+	                                         bool, double * const);
+#ifdef USE_EXTRACT_LEVELS
 	void		extractLevels		(const double * const,
 	                                             const int32_t);
 	void		extractLevelsHalfSpectrum(const double * const,
 	                                             const int32_t);
+#endif
 	void		sendSampletoOutput	(DSPCOMPLEX);
 	void		insertTestTone		(DSPCOMPLEX & ioS);
 	void		evaluatePeakLevel	(const DSPCOMPLEX s);
@@ -228,9 +227,6 @@ private:
 	int16_t		thresHold;
 
 	ESqMode		squelchMode;
-	common_fft	*spectrum_fft_hf;
-	common_fft	*spectrum_fft_lf;
-	DSPCOMPLEX	*spectrumBuffer_hf;
 	std::vector<std::complex<float>> spectrumBuffer_lf;
 	double		*displayBuffer_lf;
 	int32_t		loFrequency;

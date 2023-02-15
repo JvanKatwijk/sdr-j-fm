@@ -20,10 +20,9 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __FFT_SCOPE_H
-#define __FFT_SCOPE_H
+#ifndef __HS_SCOPE_H
+#define __HS_SCOPE_H
 
-#include "fft.h"
 #include "fm-constants.h"
 #include "scope.h"
 #include <QObject>
@@ -31,16 +30,16 @@
 #include <stdexcept>
 #
 
-class fft_scope : public Scope {
+class hs_scope : public Scope {
 Q_OBJECT
 public:
-			fft_scope (QwtPlot *, // the canvas
-		                   int16_t,   // displayWidth
-	                           int32_t,   // scale
-	                           int16_t,   // raster size
-	                           int32_t,   // samplerate
-	                           int16_t);  // repeat frequency
-			~fft_scope	();
+			hs_scope (QwtPlot *, // the canvas
+		                  int16_t,   // displayWidth
+	                          int32_t,   // scale
+	                          int16_t,   // raster size
+	                          int32_t,   // samplerate
+	                          int16_t);  // repeat frequency
+			~hs_scope	();
 
 	void		addElements		(std::complex<float> *,
 	                                                       int16_t);
@@ -63,8 +62,7 @@ private:
 	int32_t		fillPointer;
 	float		*Window;
 	std::complex<float>	*inputBuffer;
-	std::complex<float>	*spectrumBuffer;
-	common_fft	*spectrum_fft;
+	std::complex<float>	*ftBuffer;
 	int32_t		sampleCounter;
 	int32_t		SampleRate;
 	int32_t		segmentSize;

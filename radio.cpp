@@ -32,6 +32,7 @@
 #include	<iostream>
 #include	<array>
 #include	"radio.h"
+#include	"hs-scope.h"
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
@@ -2058,12 +2059,12 @@ void	RadioInterface::setHFplotterView (int offset) {
 }
 
 void	RadioInterface::setup_HFScope () {
-	hfScope		= new fft_scope (hfscope,
-	                                 this -> displaySize,
-	                                 1,
-	                                 this -> rasterSize,
-	                                 2304000,
-	                                 8);
+	hfScope		= new hs_scope (hfscope,
+	                                this -> displaySize,
+	                                1,
+	                                this -> rasterSize,
+	                                2304000,
+	                                8);
 	HFviewMode	= SPECTRUM_MODE;
 	hfScope		-> SelectView (SPECTRUM_MODE);
 	connect (hfScope,

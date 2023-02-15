@@ -21,15 +21,15 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "fft-scope.h"
+#include	"hs-scope.h"
+#include	"fft-complex.h"
 
-
-	fft_scope::fft_scope (QwtPlot	*plotfield,
-	                      int16_t	displaySize,
-	                      int32_t	scale,
-	                      int16_t	rasterSize,
-	                      int32_t	SampleRate,
-	                      int16_t	freq):Scope (plotfield,
+	hs_scope::hs_scope (QwtPlot	*plotfield,
+	                    int16_t	displaySize,
+	                    int32_t	scale,
+	                    int16_t	rasterSize,
+	                    int32_t	SampleRate,
+	                    int16_t	freq):Scope (plotfield,
 	                                             displaySize,
 	                                             rasterSize) {
 double  temp;
@@ -41,7 +41,7 @@ double  temp;
 	this	-> scale		= scale;
 	this	-> rasterSize		= rasterSize;
 	this	-> averageCount		= 0;
-	this	-> spectrumSize		= 8 * displaySize;
+	this	-> spectrumSize		= 4 * displaySize;
 	this	-> spectrumFillpoint	= this -> spectrumSize;
 	this	-> sampleRate		= SampleRate;
 	this	-> freq			= freq;
@@ -59,9 +59,8 @@ double  temp;
 
 	this	-> Window		= new float [spectrumFillpoint];
 	this	-> inputBuffer		= new std::complex<float> [spectrumFillpoint];
+	this	-> ftBuffer		= new std::complex<float> [spectrumSize];
 	this	-> sampleCounter	= 0;
-	this	-> spectrum_fft		= new common_fft (this -> spectrumSize);
-	this	-> spectrumBuffer	= spectrum_fft	-> getVector ();
 	for (int16_t i = 0; i < spectrumFillpoint; i++)
 	   Window [i] = 0.43 - 0.5 * cos ((2.0 * M_PI * i) / spectrumFillpoint)
 	                     + 0.08 * cos((4.0 * M_PI * i) / (spectrumFillpoint - 1));
@@ -73,34 +72,34 @@ double  temp;
                   +  (double)((i) * (double)2 * temp)) / ((double)KHz (1));
 }
 
-	fft_scope::~fft_scope () {
+	hs_scope::~hs_scope () {
 	delete[]	this	-> displayBuffer;
 	delete[]	this	-> averageBuffer;
 	delete[]	this	-> X_axis;
 	delete[]	this	-> Window;
-	delete		this	-> spectrum_fft;
+	delete[]	this	-> ftBuffer;
 	delete[]	this	-> inputBuffer;
 }
 
-void	fft_scope::setAmplification (int16_t sliderValue) {
+void	hs_scope::setAmplification (int16_t sliderValue) {
 	amplification = (double) sliderValue;
 }
 
-void	fft_scope::setZero (int64_t vfo) {
+void	hs_scope::setZero (int64_t vfo) {
 	this	-> vfo = vfo;
 }
 
-void	fft_scope::setNeedle (int32_t needle) {
+void	hs_scope::setNeedle (int32_t needle) {
 	this	-> needle = needle;
 }
 //
-void	fft_scope::addElements (std::complex<float> *v, int16_t n) {
+void	hs_scope::addElements (std::complex<float> *v, int16_t n) {
 
 	for (int i = 0; i < n; i++)
 	   addElement (v [i]);
 }
 
-void	fft_scope::addElement (std::complex<float> x) {
+void	hs_scope::addElement (std::complex<float> x) {
 
 	if (fillPointer < spectrumFillpoint)
 	   inputBuffer [fillPointer ++] = x;
@@ -115,25 +114,25 @@ void	fft_scope::addElement (std::complex<float> x) {
 	for (int i = 0; i < spectrumFillpoint; i++) {
 	   std::complex<float> tmp = inputBuffer [i];
 	   if (isinf (abs (tmp)) || std::isnan (abs (tmp)))
-	      spectrumBuffer [i] = std::complex<float> (0, 0);
+	      ftBuffer [i] = std::complex<float> (0, 0);
 	   else
-	      spectrumBuffer[i] = cmul (tmp, Window [i]);
+	      ftBuffer [i] = cmul (tmp, Window [i]);
 	}
 
 	for (int i = spectrumFillpoint; i < spectrumSize; i++)
-	   spectrumBuffer [i] = std::complex<float> (0, 0);
+	   ftBuffer [i] = std::complex<float> (0, 0);
 
-	spectrum_fft -> do_FFT ();
+	Fft_transform (ftBuffer, spectrumSize, false);
 
 	int	ratio	= spectrumSize / displaySize;
 	for (int i = 0; i < displaySize / 2; i++) {
 	   float sum = 0;
 	   for (int j = 0; j < ratio; j++) 
-	      sum += abs (spectrumBuffer [i * ratio + j]);
+	      sum += abs (ftBuffer [i * ratio + j]);
 	   displayBuffer [displaySize / 2 + i] = sum / ratio;
 	   sum = 0;
 	   for (int j = 0; j < ratio; j++) 
-	      sum += abs (spectrumBuffer [spectrumSize / 2 + i * ratio + j]);
+	      sum += abs (ftBuffer [spectrumSize / 2 + i * ratio + j]);
 	   displayBuffer [i] = sum / ratio;
 	}
 
@@ -151,15 +150,15 @@ void	fft_scope::addElement (std::complex<float> x) {
 }
 //
 
-void	fft_scope::SelectView (int8_t Mode) {
+void	hs_scope::SelectView (int8_t Mode) {
 	Scope::SelectView (Mode);
 }
 
-//void	fft_scope::setAverager (bool b) {
+//void	hs_scope::setAverager (bool b) {
 //	averageCount = (b ? 1 : 0);
 //}
 
-void	fft_scope::clearAverage () {
+void	hs_scope::clearAverage () {
 
 	if (averageCount > 0) {
 	   averageCount = 1;
@@ -174,7 +173,7 @@ float	get_ldb (float x) {
 	return 20 * log10 ((x + 1) / (float)(512));
 }
 
-void	fft_scope::doAverage () {
+void	hs_scope::doAverage () {
 
 	if (averageCount > 0) {
 	   for (int i = 0; i < displaySize; i++) {

@@ -13,15 +13,15 @@ QMAKE_CXXFLAGS  += -std=c++14
 #
 # Note that the fastmath option eliminates the isinf and isnan
 # functions that are used to validate the data
-QMAKE_CFLAGS	+= -flto 
-QMAKE_CXXFLAGS	+= -flto 
-QMAKE_LFLAGS	+= -flto
+#QMAKE_CFLAGS	+= -flto 
+#QMAKE_CXXFLAGS	+= -flto 
+#QMAKE_LFLAGS	+= -flto
 QMAKE_CXXFLAGS	+= -g
 QMAKE_CFLAGS	+= -g
 QMAKE_LFLAGS	+= -g
-#QMAKE_CXXFLAGS	+= -fsanitize=address
-#QMAKE_CFLAGS	+= -fsanitize=address
-#QMAKE_LFLAGS	+= -fsanitize=address
+QMAKE_CXXFLAGS	+= -fsanitize=address
+QMAKE_CFLAGS	+= -fsanitize=address
+QMAKE_LFLAGS	+= -fsanitize=address
 QMAKE_CXXFLAGS	+= -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -74,7 +74,6 @@ HEADERS += ./radio.h \
 	   ./includes/various/keyboardfilter.h \
 	   ./includes/various/program-list.h \
 	   ./includes/various/squelchClass.h \
-           ./includes/various/fft.h \
 	   ./includes/various/oscillator.h \
            ./includes/various/ringbuffer.h \
 	   ./includes/various/pllC.h \
@@ -88,11 +87,12 @@ HEADERS += ./radio.h \
 	   ./includes/various/agc.h  \
            ./includes/various/costas.h  \
            ./includes/various/shaping_filter.h  \
+	   ./includes/various/fft-complex.h \
 	   ./includes/output/audiosink.h \
 	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
            ./includes/scopes-qwt6/spectrogramdata.h \
-	   ./includes/scopes-qwt6/fft-scope.h \
+	   ./includes/scopes-qwt6/hs-scope.h \
 	   ./includes/fm/fm-demodulator.h \
 	   ./includes/fm/pilot-recover.h \
 	   ./includes/fm/stereo-separation.h \
@@ -119,7 +119,6 @@ SOURCES += ./main.cpp \
 	   ./src/various/keyboardfilter.cpp \
 	   ./src/various/squelchClass.cpp \
 	   ./src/various/program-list.cpp \
-           ./src/various/fft.cpp \
 	   ./src/various/oscillator.cpp \
 	   ./src/various/pllC.cpp \
 	   ./src/various/sincos.cpp \
@@ -130,10 +129,11 @@ SOURCES += ./main.cpp \
 	   ./src/various/Xtan2.cpp \
 	   ./src/various/themechoser.cpp \
 	   ./src/various/shaping_filter.cpp \
+	   ./src/various/fft-complex.cpp \
 	   ./src/output/audiosink.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
-	   ./src/scopes-qwt6/fft-scope.cpp \
+	   ./src/scopes-qwt6/hs-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
 	   ./src/fm/pilot-recover.cpp \
 	   ./src/fm/stereo-separation.cpp \

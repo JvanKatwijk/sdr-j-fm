@@ -24,7 +24,6 @@
 #ifndef 	__IIR_FILTER_H
 #define		__IIR_FILTER_H
 #include	"fm-constants.h"
-#include	"fft.h"
 
 #define	S_CHEBYSHEV	0100
 #define	S_BUTTERWORTH	0101
