@@ -21,11 +21,11 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include "fm-processor.h"
-#include "audiosink.h"
-#include "device-handler.h"
-#include "fm-constants.h"
-#include "radio.h"
+#include	"fm-constants.h"
+#include	"radio.h"
+#include	"fm-processor.h"
+#include	"audiosink.h"
+#include	"device-handler.h"
 #include	"fft-complex.h"
 
 #define AUDIO_FREQ_DEV_PROPORTION    0.85f
@@ -55,12 +55,12 @@
 	                          int32_t workingRate,
 	                          int32_t audioRate,
 	                          int32_t displaySize,
-	                          int32_t averageCount,
+	                          int	  spectrumSize,
 	                          int32_t repeatRate,
 	                          int	ptyLocale,
 	                          RingBuffer<std::complex<float>> *hfBuffer,
-	                          RingBuffer<double> *lfBuffer,
-	                          RingBuffer<DSPCOMPLEX> *iqBuffer,
+	                          RingBuffer<std::complex<float>> *lfBuffer,
+	                          RingBuffer<std::complex<float>> *iqBuffer,
 	                          int16_t thresHold):
 	                             myRdsDecoder (RI, RDS_RATE),
 	                             localOscillator (inputRate),
@@ -102,8 +102,7 @@
 	this	-> workingRate		= workingRate;
 	this	-> audioRate		= audioRate;
 	this	-> displaySize		= displaySize;
-	this	-> spectrumSize		= 4 * displaySize;
-	this	-> averageCount		= averageCount;
+	this	-> spectrumSize		= spectrumSize;
 	this	-> repeatRate		= repeatRate;
 	this	-> ptyLocale		= ptyLocale;
 	this	-> hfBuffer		= hfBuffer;
@@ -166,12 +165,6 @@
 	this	-> leftChannel		= 1.0;
 	this	-> rightChannel		= 1.0;
 	
-#ifdef USE_EXTRACT_LEVELS
-	this	-> noiseLevel 		= 0;
-	this	-> pilotLevel 		= 0;
-	this	-> rdsLevel		= 0;
-#endif
-
 	pilotDelayPSS = 0;
 #ifdef DO_STEREO_SEPARATION_TEST
 	pilotDelay2 = 0;
@@ -197,8 +190,8 @@
 	         myRadioInterface, SLOT (setSquelchIsActive (bool)));
 	connect (this, SIGNAL (hfBufferLoaded ()),
 	         myRadioInterface, SLOT (hfBufferLoaded ()));
-	connect (this, SIGNAL (lfBufferLoaded (bool, int)),
-	         myRadioInterface, SLOT (lfBufferLoaded (bool, int)));
+	connect (this, SIGNAL (lfBufferLoaded (bool, bool, int)),
+	         myRadioInterface, SLOT (lfBufferLoaded (bool, bool, int)));
 	connect (this, SIGNAL (iqBufferLoaded ()),
 	         myRadioInterface, SLOT (iqBufferLoaded ()));
 	connect (this, SIGNAL (showPeakLevel (float, float)),
@@ -227,29 +220,6 @@ void	fmProcessor::stop () {
 	   }
 	}
 }
-
-#ifdef USE_EXTRACT_LEVELS
-
-float fmProcessor::get_pilotStrength () {
-	if (running. load ()) 
-	   return get_db (pilotLevel, 128) - get_db (0, 128);
-	return 0.0;
-}
-
-float fmProcessor::get_rdsStrength () {
-	if (running. load ()) {
-	   return get_db (rdsLevel, 128) - get_db (0, 128);
-	}
-	return 0.0;
-}
-
-float fmProcessor::get_noiseStrength () {
-	if (running. load ()) {
-	   return get_db (noiseLevel, 128) - get_db (0, 128);
-	}
-	return 0.0;
-}
-#endif
 
 void	fmProcessor::set_squelchValue (int16_t n) {
 	squelchValue	= n;
@@ -804,7 +774,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   rdsPhaseBuffer [rdsPhaseIndex]	= currentPilotPhase;
 	   rdsPhaseIndex	= (rdsPhaseIndex + 1) % RDS_SAMPLE_DELAY;
 //
-//	The "range" of "thePhase" is now  between
+//	The "range" of "thePhase" is now theoretically  between
 //	-6 * 2 * M_PI .. 6 * 2 * M_PI or more and gives lot of issues
 //	with "out of index" occurrences with sincos, that is why
 //	it is less dangerous to use the old sin and cos
@@ -908,7 +878,6 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 
 void	fmProcessor::triggerFrequencyChange() {
 // this function is called at a frequency change
-
 // suppress audio to avoid transient noise
 	suppressAudioSampleCnt = suppressAudioSampleCntMax;
 
@@ -966,156 +935,13 @@ float sum = 0;
 	return sum / 40;
 }
 
-void	fmProcessor::mapSpectrum (const DSPCOMPLEX * const in,
-	                          bool	showFull,
-	                          double * const out,
-	                          int32_t &ioZoomFactor) {
-int16_t factor = spectrumSize / displaySize;  // typ factor = 4 (whole divider)
-
-	if (factor / ioZoomFactor >= 1) {
-	   factor /= ioZoomFactor;
-	}
-	else {
-	   ioZoomFactor = factor;
-	   factor = 1;
-	}
-
-	if (showFull) {	// full
-	   for (int32_t i = 0; i < displaySize / 2; i++) {
-	      double f = 0;
-//	read 0Hz to rate/2 -> map to mid to end of display
-	      for (int32_t j = 0; j < factor; j++) {
-	         f += abs (in [i * factor + j]);
-	      }
-	      out [displaySize / 2 + i] = f / factor;
-
-	      f = 0;
-//	read rate / 2 down to 0Hz -> map to begin to mid of display
-	      for (int32_t j = 0; j < factor; j++) {
-	         f += abs (in [spectrumSize - 1 - (i * factor + j)]);
-	      }
-	      out [displaySize / 2 - 1 - i] = f / factor;
-	   }
-	}
-	else {		// half
-	   factor /= 2;
-	   for (int32_t i = 0; i < displaySize; i++) {
-	      double f = 0;
-//	read 0Hz to rate / 2 -> map to mid to end of display
-	      for (int32_t j = 0; j < factor; j++) {
-	         f += abs (in [i * factor + j]);
-	      }
-	      out [i] = f / factor;
-	   }
-	}
-}
-
 void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v,
 	                               int zoomFactor,
 	                               bool showFull,
-	                               bool  lfBuffer_newFlag) {
-double Y_values [displaySize];
-int32_t l_zoomFactor = zoomFactor; // copy value because it may be changed
-
-	Fft_transform (v. data (), spectrumSize, false);
-	mapSpectrum (v. data (), showFull, Y_values, l_zoomFactor);
-
-	add_to_average (Y_values, lfBuffer_newFlag, displayBuffer_lf);
-
-#ifdef USE_EXTRACT_LEVELS
-	if (showFull) {
-	   extractLevels (displayBuffer_lf, fmRate);
-	}
-	else {
-	   extractLevelsHalfSpectrum (displayBuffer_lf, fmRate);
-	}
-#endif
-
-	lfBuffer -> putDataIntoBuffer (displayBuffer_lf, displaySize);
-//	and signal the GUI thread that we have data
-	emit lfBufferLoaded (showFull, spectrumSampleRate / l_zoomFactor);
+	                               bool lfBuffer_newFlag) {
+	lfBuffer -> putDataIntoBuffer (v. data (), spectrumSize);
+	emit lfBufferLoaded (showFull, lfBuffer_newFlag, zoomFactor);
 }
-
-void	fmProcessor::add_to_average (const double* const in,
-	                             bool refresh,
-	                                  double *const buffer) {
-const double alpha = 1.0 / averageCount;
-const double beta = (averageCount - 1.0) / averageCount;
-
-	if (refresh) {
-	   for (int32_t i = 0; i < displaySize; i++) 
-	      buffer [i] = in [i];
-	   return;
-	}
-
-	for (int32_t i = 0; i < displaySize; i++) 
-	   buffer [i] = alpha * in [i] + beta * buffer [i];
-}
-
-#ifdef USE_EXTRACT_LEVELS
-void	fmProcessor::extractLevels (const double * const in,
-	                            const int32_t range) {
-const float binWidth = (float)range / zoomFactor / displaySize;
-const int32_t pilotOffset = displaySize / 2 - 19000 / binWidth;
-const int32_t rdsOffset   = displaySize / 2 - 57000 / binWidth;
-const int32_t noiseOffset = displaySize / 2 - 70000 / binWidth;
-
-//  int   a = myRig->bitDepth() - 1;
-//  int   b = 1;
-
-//  while (--a > 0)
-//  {
-//    b <<= 1;
-//  }
-
-float noiseAvg = 0, pilotAvg = 0, rdsAvg = 0;
-
-	for (int32_t i = 0; i < 7; i++) {
-	   noiseAvg += in [noiseOffset - 3 + i];
-	   rdsAvg += in [rdsOffset - 3 + i];
-	}
-
-	for (int32_t i = 0; i < 3; i++) {
-	   pilotAvg += in [pilotOffset - 1 + i];
-	}
-
-	noiseLevel = 0.95 * noiseLevel + 0.05 * noiseAvg / 7;
-	pilotLevel = 0.95 * pilotLevel + 0.05 * pilotAvg / 3;
-	rdsLevel   = 0.95 * rdsLevel   + 0.05 * rdsAvg / 7;
-}
-
-void	fmProcessor::extractLevelsHalfSpectrum (const double * const in,
-	                                        const int32_t range) {
-const float binWidth	= (float)range / zoomFactor / displaySize / 2;
-const int32_t pilotOffset = 19000 / binWidth;
-const int32_t rdsOffset   = 57000 / binWidth;
-const int32_t noiseOffset = 70000 / binWidth;
-
-constexpr int32_t avgNoiseRdsSize = 1 + 2 * 6; // mid plus two times sidebands
-constexpr int32_t avgPilotSize    = 1 + 2 * 2;
-
-float	noiseAvg = 0;
-float	pilotAvg = 0;
-float	rdsAvg	= 0;
-
-	for (int32_t i = 0; i < avgNoiseRdsSize; i++) {
-	   noiseAvg += in [noiseOffset - 3 + i];
-	   rdsAvg += in [rdsOffset - 3 + i];
-	}
-
-	for (int32_t i = 0; i < avgPilotSize; i++) {
-	   pilotAvg += in [pilotOffset - 1 + i];
-	}
-
-	constexpr float ALPHA = 0.2f;
-	noiseLevel	= (1.0f - ALPHA) * noiseLevel +
-	                          ALPHA * noiseAvg / avgNoiseRdsSize;
-	pilotLevel	= (1.0f - ALPHA) * pilotLevel +
-	                          ALPHA * pilotAvg / avgPilotSize;
-	rdsLevel	= (1.0f - ALPHA) * rdsLevel +
-	                          ALPHA * rdsAvg / avgNoiseRdsSize;
-}
-#endif
 
 void	fmProcessor::setAutoMonoMode	(const bool iAutoMonoMode) {
 	autoMono = iAutoMonoMode;

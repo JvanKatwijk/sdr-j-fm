@@ -13,15 +13,15 @@ QMAKE_CXXFLAGS  += -std=c++14
 #
 # Note that the fastmath option eliminates the isinf and isnan
 # functions that are used to validate the data
-#QMAKE_CFLAGS	+= -flto 
-#QMAKE_CXXFLAGS	+= -flto 
-#QMAKE_LFLAGS	+= -flto
+QMAKE_CFLAGS	+= -flto 
+QMAKE_CXXFLAGS	+= -flto 
+QMAKE_LFLAGS	+= -flto
 QMAKE_CXXFLAGS	+= -g
 QMAKE_CFLAGS	+= -g
 QMAKE_LFLAGS	+= -g
-QMAKE_CXXFLAGS	+= -fsanitize=address
-QMAKE_CFLAGS	+= -fsanitize=address
-QMAKE_LFLAGS	+= -fsanitize=address
+#QMAKE_CXXFLAGS	+= -fsanitize=address
+#QMAKE_CFLAGS	+= -fsanitize=address
+#QMAKE_LFLAGS	+= -fsanitize=address
 QMAKE_CXXFLAGS	+= -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
@@ -93,6 +93,7 @@ HEADERS += ./radio.h \
 	   ./includes/scopes-qwt6/scope.h \
            ./includes/scopes-qwt6/spectrogramdata.h \
 	   ./includes/scopes-qwt6/hs-scope.h \
+	   ./includes/scopes-qwt6/ls-scope.h \
 	   ./includes/fm/fm-demodulator.h \
 	   ./includes/fm/pilot-recover.h \
 	   ./includes/fm/stereo-separation.h \
@@ -134,6 +135,7 @@ SOURCES += ./main.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
 	   ./src/scopes-qwt6/hs-scope.cpp \
+	   ./src/scopes-qwt6/ls-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
 	   ./src/fm/pilot-recover.cpp \
 	   ./src/fm/stereo-separation.cpp \

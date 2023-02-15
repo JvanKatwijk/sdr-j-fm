@@ -33,6 +33,7 @@
 #include	<array>
 #include	"radio.h"
 #include	"hs-scope.h"
+#include	"ls-scope.h"
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
@@ -189,6 +190,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 							iqBuffer (
 	                                                         IQ_SCOPE_SIZE),
 	                                                hfBuffer (8 * 32768),
+	                                                lfBuffer (32768),
 	                                                theDemodulator (
 	                                                         FM_RATE),
 							configDisplay (nullptr),
@@ -245,9 +247,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	             fmSettings -> value ("displaySize", 512).toInt();
 	if ((displaySize & (displaySize - 1)) != 0) 
 	   displaySize = 1024;
-
-	if (displaySize < 128) 
-	   displaySize = 128;
+	this	-> spectrumSize	= 4 * displaySize;
 
 	this		-> rasterSize	=
 	                     fmSettings -> value ("rasterSize", 50). toInt ();
@@ -479,7 +479,6 @@ void	RadioInterface::quickStart () {
 //	delete		hfScope;
 //	delete		lfScope;
 	
-	delete		lfBuffer;
 //	delete		our_audioSink;
 //	delete		myProgramList;
 }
@@ -995,11 +994,11 @@ void	RadioInterface::make_newProcessor () {
 	                                 workingRate,
 	                                 this -> audioRate,
 	                                 displaySize,
-	                                 averageCount,
+	                                 spectrumSize,
 	                                 repeatRate,
 	                                 ptyLocale,
 	                                 &hfBuffer,
-	                                 lfBuffer,
+	                                 &lfBuffer,
 	                                 &iqBuffer,
 	                                 thresHold);
 	lcd_fmRate		-> display ((int)this -> fmRate);
@@ -1693,7 +1692,6 @@ const int idxCur = themeChooser -> get_curr_style_sheet_idx ();
 void	RadioInterface::handle_PlotZoomFactor (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
-
 	myFMprocessor -> setlfPlotZoomFactor (std::stol (s.toStdString()));
 }
 
@@ -2016,32 +2014,20 @@ std::complex<float> tempBuffer [displaySize];
 //	in the GUI environment. The FM processor prepares "views"
 //	and punt these views into a shared buffer. If the buffer is
 //	full, a signal is sent.
-void	RadioInterface::lfBufferLoaded (bool fullSpectrum,
-	                                             int sampleRate) {
-double  X_axis [displaySize];
-double  Y_values [displaySize];
-double  temp	= (double)sampleRate / 2 / displaySize;
+void	RadioInterface::lfBufferLoaded (bool showFull,
+	                                bool refresh,
+	                                int	zoomFactor) {
+std::vector<std::complex<float>> v (spectrumSize);
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
-
-//	first X axis labels
-	if (fullSpectrum) {
-	   for (int i = 0; i < displaySize; i++) {
-	      X_axis [i] =
-	            (-(sampleRate / 2.0) + (2 * i * temp)) /
-	                           ((double)Khz(1)); // two side spectrum
-	   }
+	while (lfBuffer. GetRingBufferReadAvailable () > spectrumSize) {
+	   lfBuffer.  getDataFromBuffer (v. data (), spectrumSize);
+	   lfScope -> processLFSpectrum (v, 
+	                                 zoomFactor,
+	                                 showFull,
+	                                 refresh,
+	                                 spectrumAmplitudeSlider_lf -> value ());
 	}
-	else {
-	   for (int i = 0; i < displaySize; i++) {
-	      X_axis [i] = (i * temp) / ((double)Khz (1)); // one-side spectrum
-	   }
-	}
-
-//	get the buffer data
-	lfBuffer -> getDataFromBuffer (Y_values, displaySize);
-	lfScope	-> Display (X_axis, Y_values,
-	                    spectrumAmplitudeSlider_lf -> value ());
 }
 
 void	RadioInterface::iqBufferLoaded () {
@@ -2078,11 +2064,12 @@ void	RadioInterface::setup_HFScope () {
 }
 
 void	RadioInterface::setup_LFScope () {
-	lfBuffer	= new RingBuffer<double> (2 * displaySize);
-	lfScope		= new Scope (lfscope,
-	                             this -> displaySize,
-	                             this -> rasterSize);
-//	LFviewMode	= SPECTRUM_MODE;
+	lfScope		= new ls_scope (lfscope,
+	                                8,
+//	                                this	-> averageCount,
+	                                this	-> displaySize,
+	                                this	-> spectrumSize,
+	                                this	-> fmRate);
 	lfScope		-> SelectView (SPECTRUM_MODE);
 }
 

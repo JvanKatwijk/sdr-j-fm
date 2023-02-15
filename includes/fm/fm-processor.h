@@ -110,11 +110,11 @@ public:
 	              int32_t,                  // workingRate
 	              int32_t,                  // audioRate,
 	              int,			// displaySize
-	              int32_t,                  // averageCount
+	              int,			// spectrumSize
 	              int32_t,                  // repeatRate
 	              int,			// locale, Europe or US
 	              RingBuffer<std::complex<float>> *,     // HFScope
-	              RingBuffer<double> *,     // LFScope
+	              RingBuffer<std::complex<float>> *,     // LFScope
 	              RingBuffer<DSPCOMPLEX> *, // IQScope
 	              int16_t);                 // threshold scanning
 		~fmProcessor ();
@@ -150,12 +150,6 @@ public:
 	void		setTestTone		(const bool iTTEnabled);
 	void		setDispDelay		(const int iDelay);
 
-#ifdef USE_EXTRACT_LEVELS
-	DSPFLOAT	get_pilotStrength	();
-	DSPFLOAT	get_rdsStrength		();
-	DSPFLOAT	get_noiseStrength	();
-#endif
-
 	DSPFLOAT	get_demodDcComponent	();
 	void		startScanning		();
 	void		stopScanning		();
@@ -165,18 +159,7 @@ public:
 //	some private functions:
 private:
 	void		run			();
-	void		mapSpectrum		(const DSPCOMPLEX * const,
-	                                         bool,
-	                                         double * const, int32_t &);
 	void		processLfSpectrum	(std::vector<std::complex<float>> &, int, bool, bool);
-	void		add_to_average		(const double * const,
-	                                         bool, double * const);
-#ifdef USE_EXTRACT_LEVELS
-	void		extractLevels		(const double * const,
-	                                             const int32_t);
-	void		extractLevelsHalfSpectrum(const double * const,
-	                                             const int32_t);
-#endif
 	void		sendSampletoOutput	(DSPCOMPLEX);
 	void		insertTestTone		(DSPCOMPLEX & ioS);
 	void		evaluatePeakLevel	(const DSPCOMPLEX s);
@@ -216,13 +199,12 @@ private:
 	int32_t		fmRate;       // typ.  192 kSpS = InputRate / 12
 	int32_t		workingRate;  // typ.   48 kSpS
 	int32_t		audioRate;    // typ.   48 kSpS
-	int32_t		averageCount;
 	int32_t		repeatRate;
 	int		ptyLocale;
 	bool		lfBuffer_newFlag;
 	RingBuffer<std::complex<float>> *hfBuffer;
-	RingBuffer<double> *lfBuffer;
-	RingBuffer<DSPCOMPLEX> *iqBuffer;
+	RingBuffer<std::complex<float>> *lfBuffer;
+	RingBuffer<std::complex<float>> *iqBuffer;
 	bool		scanning;
 	int16_t		thresHold;
 
@@ -294,12 +276,6 @@ private:
 
 	rdsDecoder::ERdsMode rdsModus;
 
-#ifdef USE_EXTRACT_LEVELS
-	float		noiseLevel;
-	float		pilotLevel;
-	float		rdsLevel;
-#endif
-
 	bool		DCREnabled;
 	DSPCOMPLEX	RfDC;
 
@@ -313,7 +289,7 @@ private:
 signals:
 	void		setPLLisLocked		(bool);
 	void		hfBufferLoaded		();
-	void		lfBufferLoaded		(bool, int);
+	void		lfBufferLoaded		(bool, bool, int);
 	void		iqBufferLoaded		();
 	void		showMetaData(const SMetaData *);
 	void		scanresult		();

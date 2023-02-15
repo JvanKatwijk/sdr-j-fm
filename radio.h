@@ -51,7 +51,7 @@ class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
 class	hs_scope;
-class	Scope;
+class	ls_scope;
 class	audioSink;
 class	deviceHandler;
 class	programList;
@@ -77,10 +77,11 @@ public:
 		~RadioInterface ();
 
 private:
-	RingBuffer<std::complex<float>>	iqBuffer;
 	fm_Demodulator		theDemodulator;
 	IQDisplay	*iqScope;
+	RingBuffer<std::complex<float>>	iqBuffer;
 	RingBuffer<std::complex<float>>	hfBuffer;
+	RingBuffer<std::complex<float>>	lfBuffer;
 
 //	Processing modes
 	enum class ERunStates {
@@ -98,9 +99,8 @@ private:
 
 	Ui_configWidget		configWidget;
 	QFrame			configDisplay;
-	RingBuffer<double>	*lfBuffer;
 	hs_scope		*hfScope;
-	Scope			*lfScope;
+	ls_scope		*lfScope;
 //
 	keyPad			mykeyPad;
 	QTimer			autoIncrementTimer;
@@ -273,7 +273,7 @@ public slots:
 	void		scanresult		();
 //
 //	changed or added
-	void		lfBufferLoaded		(bool, int);
+	void		lfBufferLoaded		(bool, bool, int);
 	void		iqBufferLoaded		();
 	void		setPTYCode		(int, const QString &);
 //	void		clearStationLabel	();
