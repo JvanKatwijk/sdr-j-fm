@@ -28,7 +28,6 @@
 #include	"device-handler.h"
 #include	"fft-complex.h"
 
-#define AUDIO_FREQ_DEV_PROPORTION    0.85f
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
 #define RDS_RATE		24000
@@ -120,7 +119,6 @@
 //
 //	inits that cannot be done by older GCC versions
 	this	-> lfBuffer_newFlag	= true;
-	this	-> displayBuffer_lf	= nullptr;
 	this	-> autoMono		= true;
 	this	-> pssActive		= true;
 	this	-> peakLevelCurSampleCnt	= 0;
@@ -184,8 +182,6 @@
 	dumping				= false;
 	dumpFile			= nullptr;
 
-	displayBuffer_lf		= new double [displaySize];
-	
 	connect (&mySquelch, SIGNAL (setSquelchIsActive (bool)),
 	         myRadioInterface, SLOT (setSquelchIsActive (bool)));
 	connect (this, SIGNAL (hfBufferLoaded ()),
@@ -209,7 +205,6 @@
 
 		fmProcessor::~fmProcessor () {
 	stop();
-	delete[] displayBuffer_lf;
 }
 
 void	fmProcessor::stop () {
@@ -393,15 +388,13 @@ void	fmProcessor::stopScanning () {
 void	fmProcessor::run () {
 const int32_t bufferSize	= 2 * 8192;
 DSPCOMPLEX	dataBuffer [bufferSize];
-double		displayBuffer_hf [displaySize];
-int32_t		hfCount		= 0;
 int32_t		lfCount		= 0;
 int32_t		scanPointer	= 0;
 DSPCOMPLEX	scanBuffer	[1024];
-const float rfDcAlpha = 1.0f / inputRate;
+float		rfDcAlpha = 1.0f / inputRate;
 newConverter	audioDecimator (fmRate,  workingRate,  fmRate / 1000);
 DSPCOMPLEX	audioOut [audioDecimator. getOutputsize ()];
-newConverter	rdsDecimator (fmRate, RDS_RATE, fmRate / 1000);
+DecimatingFIR	rdsDecimator	(11, RDS_RATE / 2, fmRate, fmRate / RDS_RATE);
 int		iqCounter	= 0;
 
 	running. store (true); // will be set to false from the outside
@@ -572,37 +565,30 @@ int		iqCounter	= 0;
 
 	      if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 	         int32_t rdsAmount;
-	         std::complex<float> rdsOut [rdsDecimator. getOutputsize ()];
-	         if (rdsDecimator. convert (rdsDataCplx, rdsOut, &rdsAmount)) {
-//	   here the sample rate is rdsRate (typ. 19000S/s)
-	            for (int32_t k = 0; k < rdsAmount; k++) {
-	               std::complex<float> rdsSample = rdsOut [k];
-	           
-	               static std::complex<float> magCplx;
-//	   input SR 19000S/s, output SR 19000/16S/s
-	               if (myRdsDecoder. doDecode (rdsSample,
-	                                           &magCplx,
-	                                           rdsModus, ptyLocale)) {
-	                  iqBuffer -> putDataIntoBuffer (&magCplx, 1);
-	                  iqCounter ++;
-	                  if (iqCounter > 100) {
-	                     emit iqBufferLoaded ();
-	                     iqCounter = 0;
-	                  }
+	         std::complex<float> rdsSample;
+	         if (rdsDecimator. Pass (rdsDataCplx, &rdsSample)) {
+	            static std::complex<float> magCplx;
+	            if (myRdsDecoder. doDecode (rdsSample,
+	                                        &magCplx,
+	                                        rdsModus, ptyLocale)) {
+	               iqBuffer -> putDataIntoBuffer (&magCplx, 1);
+	               iqCounter ++;
+	               if (iqCounter > 100) {
+	                  emit iqBufferLoaded ();
+	                  iqCounter = 0;
 	               }
+	            }
 
-	               switch (lfPlotType) {
-	                  case ELfPlot::RDS_INPUT:
-	                     spectrumBuffer_lf. push_back (20.0f * rdsSample);
-	                     break;
+	            switch (lfPlotType) {
+	               case ELfPlot::RDS_INPUT:
+	                  spectrumBuffer_lf. push_back (20.0f * rdsSample);
+	                  break;
 
-	                  case ELfPlot::RDS_DEMOD:
-	                     spectrumBuffer_lf. push_back (magCplx);
+	               case ELfPlot::RDS_DEMOD:
+	                  spectrumBuffer_lf. push_back (magCplx);
+	                  break;
 
-	                     break;
-
-	                  default:;
-	               }
+	               default:;
 	            }
 	         }
 	      }
@@ -795,7 +781,6 @@ void	fmProcessor::setlfcutoff (int32_t Hz) {
 	}
 	else {
 	   fmAudioFilterActive . store (false);
-//	   fprintf (stderr, "audiofilter switched off\n");
 	};
 }
 
@@ -877,8 +862,6 @@ void	fmProcessor::setfmRdsSelector (rdsDecoder::ERdsMode m) {
 }
 
 void	fmProcessor::triggerFrequencyChange() {
-// this function is called at a frequency change
-// suppress audio to avoid transient noise
 	suppressAudioSampleCnt = suppressAudioSampleCntMax;
 
 	resetRds ();
@@ -905,7 +888,7 @@ bool	fmProcessor::isPilotLocked (float &oLockStrength) const {
 	   return pilotRecover. isLocked ();
 	}
 	else {
-	   oLockStrength = 0;
+	   oLockStrength =  0;
 	   return false;
 	}
 	return false;		// cannot happen
@@ -936,9 +919,9 @@ float sum = 0;
 }
 
 void	fmProcessor::processLfSpectrum (std::vector<std::complex<float>> &v,
-	                               int zoomFactor,
-	                               bool showFull,
-	                               bool lfBuffer_newFlag) {
+	                                int zoomFactor,
+	                                bool showFull,
+	                                bool lfBuffer_newFlag) {
 	lfBuffer -> putDataIntoBuffer (v. data (), spectrumSize);
 	emit lfBufferLoaded (showFull, lfBuffer_newFlag, zoomFactor);
 }

@@ -100,7 +100,6 @@ ThemeChoser	themeChooser;
 //#endif
 	} while (exitCode == PROGRAM_RESTART_EXIT_CODE );
 
-	fprintf (stderr, "Terug van de exec\n");
 /*
  *	done:
  */

@@ -92,6 +92,8 @@ double Y_values [displaySize];
 	mapSpectrum (ftBuffer, showFull, Y_values, zoomFactor);
 	add_to_average (Y_values, refresh, displayBuffer);
 
+	if (refresh)
+	   return;
 #ifdef USE_EXTRACT_LEVELS
 	if (showFull) {
 	   extractLevels (displayBuffer, sampleRate, zoomFactor);

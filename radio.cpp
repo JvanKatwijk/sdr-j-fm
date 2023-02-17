@@ -474,13 +474,6 @@ void	RadioInterface::quickStart () {
 //
 //	The end of all
 	RadioInterface::~RadioInterface () {
-	fprintf (stderr, "dit is het laatste\n");
-//	delete		iqScope;
-//	delete		hfScope;
-//	delete		lfScope;
-	
-//	delete		our_audioSink;
-//	delete		myProgramList;
 }
 
 //
@@ -493,9 +486,6 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	   return;
 
 	//	s	-> setValue ("device", deviceSelector -> currentText ());
-	s	-> setValue ("rasterSize", rasterSize);
-	s	-> setValue ("repeatRate", repeatRate);
-
 	s	-> setValue ("fm_increment",
 				     configWidget. fm_increment -> value ());
 	s	-> setValue ("spectrumAmplitudeSlider_hf",
@@ -512,6 +502,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 				     cbAutoMono -> checkState ());
 	s	-> setValue ("pss",
 				     cbPSS -> checkState ());
+
 	//	now setting the parameters for the fm decoder
 	s	-> setValue ("fmFilterSelect",
 				     configWidget. fmFilterSelect -> currentText ());
@@ -551,9 +542,7 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s -> setValue ("styleSheet", configWidget. cbThemes -> currentText ());
 
 	s	-> sync ();
-	//	Note that settings for the device used will be restored
-	//	on termination of the device handling class
-	}
+}
 
 	//	On start, we ensure that the streams are stopped so
 	//	that they can be restarted again.
