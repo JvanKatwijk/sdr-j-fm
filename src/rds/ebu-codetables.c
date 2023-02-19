@@ -36,9 +36,6 @@ const char * const pty_table[][2] = {
   {"Alarm",                 "Emergency"}
 };
 
-uint16_t pty_locale = 0;
-// set to 0 for Europe (1 for USA) which will use first column instead
-
 
 //	mapping from EBU code tables to 16 bit codes for QChar
 
@@ -62,8 +59,10 @@ const uint16_t EBU_E1[16][14] = {
 };
 
 uint16_t mapEBUtoUnicode(uint8_t alfabet, uint8_t character) {
-uint8_t columnnibble = (character & 0xF0) >> 4;
-uint8_t rownibble = character & 0x0F;
+int8_t columnnibble = ((character & 0xF0) >> 4) - 2;
+int8_t rownibble = character & 0x0F;
 	(void)alfabet;
-	return EBU_E1 [rownibble][columnnibble - 2];
+   if (columnnibble < 0)
+      return ' '; // e.g. when END_OF_RADIO_TEXT is received
+	return EBU_E1 [rownibble][columnnibble];
 }

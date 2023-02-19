@@ -44,6 +44,7 @@
 #include	"rds-blocksynchronizer.h"
 #include	"rds-groupdecoder.h"
 #include	"costas.h"
+#include	"agc.h"
 
 class RadioInterface;
 class	rdsDecoder_1;
@@ -60,7 +61,7 @@ public:
 	   RDS_OFF,
 		RDS_1,
 		RDS_2,
-	        RDS_3
+		RDS_3
 	};
 
 	bool	doDecode	(const DSPCOMPLEX,
@@ -72,6 +73,7 @@ private:
 	RDSGroup		my_rdsGroup;
 	rdsGroupDecoder		my_rdsGroupDecoder;
 	rdsBlockSynchronizer	my_rdsBlockSync;
+	AGC				my_AGC;
 	Costas			my_costas;
 	rdsDecoder_1		*decoder_1;
 	rdsDecoder_2		*decoder_2;

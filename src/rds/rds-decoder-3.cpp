@@ -37,9 +37,6 @@
  *	RDS is a bpsk-like signal, with a baudrate 1187.5
  *	on a carrier of  3 * 19 k.
  *	48 cycles per bit, 1187.5 bits per second.
- *	With a reduced sample rate of 19k this would mean
- *	19000 / 1187.5 samples per bit, i.e. 16
- *	samples per bit.
  */
 	rdsDecoder_3::rdsDecoder_3 (RadioInterface	*myRadio,
 	                            int32_t             rate,

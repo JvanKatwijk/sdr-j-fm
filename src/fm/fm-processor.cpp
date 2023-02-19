@@ -756,7 +756,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
-	   float thePhase	= 3 * rdsPhaseBuffer [rdsPhaseIndex];
+	   float thePhase	= 3 * (rdsPhaseBuffer [rdsPhaseIndex] + PILOTTESTDELAY);
 	   rdsPhaseBuffer [rdsPhaseIndex]	= currentPilotPhase;
 	   rdsPhaseIndex	= (rdsPhaseIndex + 1) % RDS_SAMPLE_DELAY;
 //

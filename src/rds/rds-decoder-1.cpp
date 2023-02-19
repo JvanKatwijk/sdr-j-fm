@@ -36,9 +36,6 @@
  *	RDS is a bpsk-like signal, with a baudrate 1187.5
  *	on a carrier of  3 * 19 k.
  *	48 cycles per bit, 1187.5 bits per second.
- *	With a reduced sample rate of 19k this would mean
- *	19000 / 1187.5 samples per bit, i.e. 16
- *	samples per bit.
  */
 
 	rdsDecoder_1::rdsDecoder_1 (RadioInterface	*myRadio,
@@ -71,12 +68,7 @@ float	synchronizerSamples;
 	rdsKernel. resize (rdsBufferSize);
 	rdsKernel [length]	= 0;
 //
-//	
-//	While the original samplerate (24000) gave a perfect match,
-//	the samplerate as changed by Tomneda (19000) gave 4 "inf"
-//	values (that is probably why tomneda was not content with
-//	the results of the match).
-//	To catch the inf values, I at first dded an "isinf" test, 
+//	To catch the inf values, I at first addded an "isinf" test, 
 //	this "isinf" check  was with the "fast math" option
 //	in the "pro" file disregarded.
 //	Anyway, a minor mod in the formula, changing 64 to 64.01, solved

@@ -38,20 +38,15 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
  *	RDS is a bpsk-like signal, with a baudrate 1187.5
  *	on a carrier of  3 * 19 k.
  *	48 cycles per bit, 1187.5 bits per second.
- *	With a reduced sample rate of 19k this would mean
- *	19000 / 1187.5 samples per bit, i.e. 16
- *	samples per bit.
  */
-	rdsDecoder_2::rdsDecoder_2 (RadioInterface	*myRadio,
+rdsDecoder_2::rdsDecoder_2 (RadioInterface	*myRadio,
 	                            int32_t		rate):
 	                               my_AGC (2e-3f, 0.38f, 9.0f),
-	                               my_Costas (rate, 1.0f / 16.0f, 0.02f / 16.0f, 10.0f)
-	{
+	                               my_Costas (rate, 1.0f, 0.02f, 10.0f)	{
 
 	this	-> myRadioInterface	= myRadio;
 	this	-> sampleRate		= rate;
-
-	this	-> samplesPerSymbol 	= ceil (rate / (float)RDS_BITCLK_HZ);
+	this	-> samplesPerSymbol 	= ((float)rate / (float)RDS_BITCLK_HZ);
 	for (int i = 0; i < 3; i ++) {
 	   sampleBuffer [i] = std::complex<float> (0, 0);
 	   sampleBufferRail [i] = std::complex<float> (0, 0);
@@ -62,10 +57,9 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
 	this	-> sampleCount		= 0;
 	   
 //	Tomneda: a double inverted pulse (manchester code)
-//	as matched filter is not working in my opinion
-//	(got also no good results) <-- since you ruined the filter
-//	so I use a matched RRC filter design with
-//	Ts = 1/(2 * 1187.5Hz), one side of the bi-phase puls
+//	as matched filter is not working with this M&M time sync variation.
+//	So I use a matched RRC filter design with Ts = 1/(2 * 1187.5Hz), 
+//	one side of the bi-phase pulse.
 	my_matchedFltKernelVec =
 	            ShapingFilter ().
 	                root_raised_cosine (1.0, sampleRate,
@@ -80,7 +74,8 @@ constexpr float RDS_BITCLK_HZ = 1187.5;
 	my_matchedFltBufIdx	= 0;
 }
 
-	rdsDecoder_2::~rdsDecoder_2 () {
+rdsDecoder_2::~rdsDecoder_2 () {
+	//symsync_crcf_destroy(q);
 }
 
 DSPCOMPLEX	rdsDecoder_2::doMatchFiltering (DSPCOMPLEX v) {
@@ -107,11 +102,9 @@ std::complex<float> r;
 
 	v = doMatchFiltering (v);
 	v = my_AGC. process_sample (v);
-#ifndef DO_STEREO_SEPARATION_TEST
-	 v = my_Costas. process_sample (v);
-#endif
+
 	if (process_sample (v, r)) {
-//	this runs 19000/16 = 1187.5 1/s times
+	   r = my_Costas. process_sample (r);
 	   bool theBit	= (real (r) >= 0);
 	   *d	= theBit ^ previousBit;
 	   previousBit	= theBit;
@@ -122,7 +115,6 @@ std::complex<float> r;
 }
 
 bool	rdsDecoder_2::process_sample (const DSPCOMPLEX iZ, DSPCOMPLEX &oZ) {
-
 	sampleBuffer [0] = sampleBuffer [1];
 	sampleBuffer [1] = sampleBuffer [2];
 	sampleBuffer [2] = iZ;
