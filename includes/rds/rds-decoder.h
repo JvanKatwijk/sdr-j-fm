@@ -44,6 +44,7 @@
 #include	"rds-blocksynchronizer.h"
 #include	"rds-groupdecoder.h"
 #include	"costas.h"
+#include	"agc.h"
 
 class RadioInterface;
 class	rdsDecoder_1;
@@ -73,6 +74,7 @@ private:
 	rdsGroupDecoder		my_rdsGroupDecoder;
 	rdsBlockSynchronizer	my_rdsBlockSync;
 	Costas			my_costas;
+	AGC			my_AGC;
 	rdsDecoder_1		*decoder_1;
 	rdsDecoder_2		*decoder_2;
 	rdsDecoder_3		*decoder_3;

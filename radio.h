@@ -127,28 +127,26 @@ private:
 	float		attValueR;
 
 	int32_t		fmBandwidth;
-	int32_t		LOFrequency;
+	int32_t		loFrequency;
 	int32_t		currentFreq;
 
 	QString		footText		();
 	void		restoreGUIsettings	(QSettings *);
 
 	int32_t		mapIncrement		(int32_t);
-	int32_t		IncrementInterval	(int16_t);
-	void		Display			(int32_t);
-	int16_t		IncrementIndex;
+	int32_t		incrementInterval	(int16_t);
+	void		displayFrequency		(int32_t);
+	int16_t		incrementIndex;
 	int32_t		autoIncrement_amount;
 	int32_t		fmIncrement;
 	int32_t		minLoopFrequency;
 	int32_t		maxLoopFrequency;
 
-	void		IncrementFrequency	(int32_t);
+	void		incrementFrequency	(int32_t);
 	void		set_incrementFlag	(int16_t);
 	void		stopIncrementing	();
 
 	void		stop_lcdTimer		();
-	void		stopDumping		();
-	int32_t		Panel;
 /*
  *	dumping
  */
@@ -160,8 +158,6 @@ private:
 
 	fmProcessor	*myFMprocessor;
 
-	QString		RadioText;
-	QString		StationLabel;
 	int32_t		currentPIcode;
 	int32_t		frequencyforPICode;
 	int16_t		logTime;
@@ -207,7 +203,6 @@ private slots:
 	void		setStart		();
 	void		updateTimeDisplay	();
 	void		handle_pauseButton	();
-
 	void		setIQBalance		(int);
 
 	void		handle_StreamOutSelector	(int);
@@ -259,7 +254,7 @@ public slots:
 	void		setHFplotterView	(int);
 	void		hfBufferLoaded		();
 	void		wheelEvent		(QWheelEvent *);
-	void		AdjustFrequency		(int);
+	void		adjustFrequency		(int);
 	void		setCRCErrors		(int);
 	void		setSyncErrors		(int);
 	void		setbitErrorRate		(double);
@@ -286,12 +281,12 @@ public slots:
 	void		showMetaData		(const fmProcessor::SMetaData *);
   //
   //	and for the extio handling NOT AVAILABLE IN THIS VERSION
-	void	set_ExtFrequency	(int);
-	void	set_ExtLO		(int);
-	void	set_lockLO		();
-	void	set_unlockLO		();
-	void	set_stopHW		();
-	void	set_startHW		();
-//	void	set_changeRate		(int);
+	void		set_ExtFrequency	(int);
+	void		set_ExtLO		(int);
+	void		set_lockLO		();
+	void		set_unlockLO		();
+	void		set_stopHW		();
+	void		set_startHW		();
+//	void		set_changeRate		(int);
 };
 #endif

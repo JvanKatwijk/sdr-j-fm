@@ -85,7 +85,7 @@ public:
 	                     AF_DIFF, AF_MONO_FILTERED, AF_LEFT_FILTERED,
 	                     AF_RIGHT_FILTERED, RDS_INPUT, RDS_DEMOD };
 	enum class ESqMode { OFF, NSQ, LSQ };
-	enum Channels { S_STEREO, S_STEREO_SWAPPED, S_LEFT,
+	enum Channels	{ S_STEREO, S_STEREO_SWAPPED, S_LEFT,
 		             S_RIGHT, S_LEFTplusRIGHT,
 		             S_LEFTminusRIGHT, S_LEFTminusRIGHT_Test };
 	struct SMetaData {
@@ -150,7 +150,7 @@ public:
 	void		setTestTone		(const bool iTTEnabled);
 	void		setDispDelay		(const int iDelay);
 
-	DSPFLOAT	get_demodDcComponent	();
+	float		get_demodDcComponent	();
 	void		startScanning		();
 	void		stopScanning		();
 	void		set_squelchValue	(int16_t);
@@ -176,7 +176,7 @@ private:
 	DecimatingFIR	fmBand_1;
 	DecimatingFIR	fmBand_2;
 	fftFilter	fmAudioFilter;
-	fftFilter	fmFilter;
+	fftFilter	inputFilter;
 	pilotRecovery	pilotRecover;
 	PerfectStereoSeparation pPSS;
 	fftFilter	rdsBandPassFilter;
@@ -186,9 +186,9 @@ private:
 	fm_Demodulator	*theDemodulator;
 	float		rdsPhaseBuffer [RDS_SAMPLE_DELAY];
 	int		rdsPhaseIndex;
-	std::atomic<bool>	fmFilterOn;
 	std::atomic<bool>	newAudioFilter;
-	int		audioFrequency;
+	std::atomic<bool>	inputFilterOn;
+	std::atomic<bool>	newInputFilter;
 
 	int		displaySize;
 	int		spectrumSize;
@@ -199,23 +199,24 @@ private:
 	int32_t		fmRate;       // typ.  192 kSpS = InputRate / 12
 	int32_t		workingRate;  // typ.   48 kSpS
 	int32_t		audioRate;    // typ.   48 kSpS
+	int		lowPassFrequency;
+	std::atomic<bool>	fmAudioFilterActive;
+	int32_t		fmBandwidth;
+	int32_t		fmFilterDegree;
+
 	int32_t		repeatRate;
 	int		ptyLocale;
 	bool		lfBuffer_newFlag;
 	RingBuffer<std::complex<float>> *hfBuffer;
 	RingBuffer<std::complex<float>> *lfBuffer;
 	RingBuffer<std::complex<float>> *iqBuffer;
+	std::vector<std::complex<float>> spectrumBuffer_lf;
 	bool		scanning;
 	int16_t		thresHold;
 
 	ESqMode		squelchMode;
-	std::vector<std::complex<float>> spectrumBuffer_lf;
-	double		*displayBuffer_lf;
 	int32_t		loFrequency;
 	std::atomic<bool> running;
-	int32_t		fmBandwidth;
-	int32_t		fmFilterDegree;
-	std::atomic<bool>	newFilter;
 	bool		autoMono;
 	bool		pssActive;
 
@@ -224,7 +225,6 @@ private:
 
 	bool		dumping;
 	SNDFILE		*dumpFile;
-	int32_t		decimatingScale;
 
 	int32_t		myCount;
 	DSPFLOAT	Lgain;
@@ -264,11 +264,8 @@ private:
 	DSPCOMPLEX	lastAudioSample;
 	DSPFLOAT	deemphAlpha;
 	DSPFLOAT	volumeFactor;
-	std::atomic<bool>	fmAudioFilterActive;
-
 
 	DSPFLOAT	panorama;
-	int16_t		balance;
 	DSPFLOAT	leftChannel;    // -(balance - 50.0) / 100.0;;
 	DSPFLOAT	rightChannel;   // (balance + 50.0) / 100.0;;
 	FM_Mode		fmModus;
@@ -284,7 +281,7 @@ private:
 	int32_t		spectrumSampleRate;
 	int32_t		zoomFactor;
 
-	SMetaData	metaData {};
+	SMetaData	metaData	{};
 
 signals:
 	void		setPLLisLocked		(bool);

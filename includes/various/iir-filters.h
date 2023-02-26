@@ -110,7 +110,7 @@ class	LowPassIIR : public Basic_IIR {
 public:
 			LowPassIIR	(int16_t, int32_t, int32_t, int16_t);
 	                LowPassIIR	(int16_t, int16_t, int32_t, int32_t, int32_t);
-			~LowPassIIR	(void);
+			~LowPassIIR	();
 };
 
 class	HighPassIIR : public Basic_IIR {

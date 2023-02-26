@@ -37,6 +37,7 @@
 	                        int32_t		rate):
 	                            my_rdsBlockSync (myRadioInterface),
 	                            my_rdsGroupDecoder (myRadioInterface),
+	                            my_AGC (2e-3f, 0.38f, 9.0f),
 	                            my_costas (rate, 1.0f / 16.0f,
 	                                            0.02f/16.0f, 10.0f) {
 	decoder_1	= new rdsDecoder_1 (myRadioInterface, rate);
@@ -68,15 +69,15 @@ void	rdsDecoder::reset () {
 bool	rdsDecoder::doDecode (DSPCOMPLEX v,
 	                      DSPCOMPLEX *m,
 	                      ERdsMode  mode, int ptyLocale) {
-// this is called typ. 19000 1/s
-DSPCOMPLEX r;
+// this is called typ. 24000 1/s
 bool	b;
 uint8_t	theBit;
 
-	v	= my_costas. process_sample (v);
 	switch (mode) {
 	   case rdsDecoder::ERdsMode::RDS_1:
-	      *m =  v * 4.0f;
+	      v	= my_costas. process_sample (v);
+	      *m = v * 4.0f;
+//	      *m	= my_AGC. process_sample (v);
 	      b = decoder_1 -> doDecode (real (v), &theBit);
 	      if (b)
 	         processBit (theBit, ptyLocale);
@@ -89,7 +90,9 @@ uint8_t	theBit;
 	      return b;
 
 	   case rdsDecoder::ERdsMode::RDS_3:
+	      v	= my_costas. process_sample (v);
 	      *m = v * 4.0f;
+//	      *m	= my_AGC. process_sample (v);
 	      b = decoder_3 -> doDecode (real (v), &theBit);
 	      if (b)
 	         processBit (theBit, ptyLocale);

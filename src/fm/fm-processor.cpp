@@ -74,7 +74,7 @@
 	                                           IRate,
 	                                           IRate / fmRate),
 	                             fmAudioFilter (2 * 4096, 756),
-	                             fmFilter	   (2 * 32768, 251),
+	                             inputFilter  (2 * 32768, 251),
 	                             pilotRecover (fmRate, OMEGA_PILOT,
 	                                           10 * (2 * M_PI) / fmRate,
 	                                           &mySinCos), 
@@ -97,7 +97,6 @@
 	this	-> theSink		= mySink;
 	this	-> inputRate		= inputRate;
 	this	-> fmRate		= fmRate;
-	this	-> decimatingScale	= inputRate / fmRate;
 	this	-> workingRate		= workingRate;
 	this	-> audioRate		= audioRate;
 	this	-> displaySize		= displaySize;
@@ -111,7 +110,7 @@
 	this	-> Lgain		= 20;
 	this	-> Rgain		= 20;
 
-	this	-> audioFrequency	= 15000;
+	this	-> lowPassFrequency	= 15000;
 	this	-> newAudioFilter. store (false);
 	this	-> squelchMode		= ESqMode::OFF;
 	this	-> spectrumSampleRate = fmRate;
@@ -143,23 +142,22 @@
 	int	Df			= 1000;
 	int	f			= 192000;
 //	fprintf (stderr, "order = %f\n", (float)f / Df * 40 / 22);
-// workingRate is typ. 48000S/s
+//	workingRate is typ. 48000S/s
 	peakLevelSampleMax		= workingRate / 50;
 
 	this	-> loFrequency		= 0;
 	this	-> fmBandwidth		= 0.95 * fmRate;
 //
-//	fmFilter is rather heavy on resource consumption, it is usually off
-	fmFilter. setLowPass (0.95 * fmRate / 2, inputRate);
-	this	-> fmFilterOn. store (false);
-	this	-> newFilter. store (false);
+//	inputFilter is rather heavy on resource consumption, it is usually off
+	inputFilter. setLowPass (0.95 * fmRate / 2, inputRate);
+	this	-> inputFilterOn. store (false);
+	this	-> newInputFilter. store (false);
   /*
    *	default values, will be set through the user interface
    *	to their appropriate values
    */
 	this	-> fmModus		= FM_Mode::Stereo;
 	this	-> soundSelector	= S_STEREO;
-	this	-> balance		= 0;
 	this	-> leftChannel		= 1.0;
 	this	-> rightChannel		= 1.0;
 	
@@ -237,17 +235,12 @@ float fmProcessor::get_demodDcComponent () {
 //
 void	fmProcessor::setBandwidth (const QString &f) {
 	if (f == "Off")
-	   fmFilterOn . store (false);
+	   inputFilterOn . store (false);
 	else {
 	   fmBandwidth = Khz (std::stol (f.toStdString ()));
-	   newFilter. store (true);
+	   newInputFilter. store (true);
 	}
 }
-
-//void	fmProcessor::setBandfilterDegree (int32_t d) {
-//	fmFilterDegree = d;
-//	newFilter. store (false);
-//}
 
 void	fmProcessor::setfmMode (FM_Mode m) {
 	fmModus = m;
@@ -290,11 +283,8 @@ void	fmProcessor::setStereoPanorama(int16_t iStereoPan) {
 	panorama = (float)iStereoPan / 100.0f;
 }
 
-void	fmProcessor::setSoundBalance (int16_t new_balance) {
+void	fmProcessor::setSoundBalance (int16_t balance) {
 //	range: -100 <= balance <= +100
-	balance = new_balance;
-//	leftChannel   = -(balance - 50.0) / 100.0;
-//	rightChannel  = (balance + 50.0) / 100.0;
 	leftChannel  = (balance > 0 ? (100 - balance) / 100.0 : 1.0f);
 	rightChannel = (balance < 0 ? (100 + balance) / 100.0 : 1.0f);
 }
@@ -409,16 +399,16 @@ int		iqCounter	= 0;
 	   }
 
 //	First: update according to potentially changed settings
-	   if (newFilter. load ()) {
-	      fmFilter. setLowPass (fmBandwidth / 2, inputRate);
-	      fmFilterOn. store (true);
+	   if (newInputFilter. load ()) {
+	      inputFilter. setLowPass (fmBandwidth / 2, inputRate);
+	      inputFilterOn. store (true);
+	      newInputFilter. store (false);
 	   }
-	   newFilter. store (false);
 
 	   if (newAudioFilter. load ()) {
-	      fmAudioFilter. setLowPass (audioFrequency, fmRate);
+	      fmAudioFilter. setLowPass (lowPassFrequency, fmRate);
 	      fmAudioFilterActive. store (true);
-	      fprintf (stderr, "audiofilter set to %d\n", audioFrequency);
+	      fprintf (stderr, "audiofilter set to %d\n", lowPassFrequency);
 	      newAudioFilter. store (false);
 	   }
 
@@ -481,9 +471,9 @@ int		iqCounter	= 0;
 	      v = v * localOscillator. nextValue (loFrequency);
 
 //	   first step: optional filtering and decimating
-	      if (fmFilterOn. load ())
-	         v = fmFilter. Pass (v);
-	      if (decimatingScale > 1) {
+	      if (inputFilterOn. load ())
+	         v = inputFilter. Pass (v);
+	      if (inputRate / fmRate > 1) {
 	         if (!fmBand_1. Pass (v, &v)) 
 	            continue;
 	         if (!fmBand_2. Pass (v, &v))
@@ -756,7 +746,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	   float rdsBaseBp	= rdsBandPassFilter. Pass (demod);
 	   std::complex<float> rdsBaseHilb =
 	                          rdsHilbertFilter. Pass (rdsBaseBp);
-	   float thePhase	= 3 * rdsPhaseBuffer [rdsPhaseIndex];
+	   float thePhase	= 3 * (rdsPhaseBuffer [rdsPhaseIndex] + PILOTTESTDELAY);
 	   rdsPhaseBuffer [rdsPhaseIndex]	= currentPilotPhase;
 	   rdsPhaseIndex	= (rdsPhaseIndex + 1) % RDS_SAMPLE_DELAY;
 //
@@ -768,7 +758,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	                                                      -sin (thePhase));
 	   *rdsValueCmpl = oscValue * rdsBaseHilb;
 //
-//	Note that offsets in the "curentPilotPhase" have
+//	Note that offsets in the "currentPilotPhase" have
 //	a significant effect.
 	}
 }
@@ -776,7 +766,7 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 //	
 void	fmProcessor::setlfcutoff (int32_t Hz) {
 	if (Hz > 0) {
-	   audioFrequency	= Hz;
+	   lowPassFrequency	= Hz;
 	   newAudioFilter. store (true);
 	}
 	else {

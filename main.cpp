@@ -38,7 +38,7 @@ int32_t		opt;
 /*
  *	The default values
  */
-QSettings	*ISettings;		/* .ini file	*/
+QSettings		*ISettings;		/* .ini file	*/
 int32_t	outputRate	= 48000;
 RadioInterface		*myRadioInterface;
 QString iniFile		= QDir::homePath ();
@@ -75,9 +75,10 @@ ThemeChoser	themeChooser;
         QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
 
-	QString styleSheetText = ISettings -> value ("styleSheet", ""). toString();
+	QString styleSheetText	=
+	                   ISettings -> value ("styleSheet", ""). toString();
 	int styleSheet		= themeChooser.
-	                      get_idx_of_sheet_name (styleSheetText);
+	                   get_idx_of_sheet_name (styleSheetText);
 
 	themeChooser. set_curr_style_sheet_idx (styleSheet);
 
@@ -94,10 +95,8 @@ ThemeChoser	themeChooser;
 
 	   a.setWindowIcon (QIcon (":fm-icon.ico"));
 	   exitCode = a. exec ();
-//#ifdef	__MINGW32__
 	   delete myRadioInterface;
 	   myRadioInterface	= nullptr;
-//#endif
 	} while (exitCode == PROGRAM_RESTART_EXIT_CODE );
 
 /*

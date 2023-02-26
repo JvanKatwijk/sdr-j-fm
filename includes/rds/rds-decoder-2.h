@@ -58,9 +58,6 @@ private:
 	                                                      DSPCOMPLEX & oZ); 
 	RadioInterface		*myRadioInterface;
 	int			sampleRate;
-	RDSGroup		*my_rdsGroup;
-	rdsBlockSynchronizer	*my_rdsBlockSync;
-	rdsGroupDecoder		*my_rdsGroupDecoder;
 	std::vector<float>      my_matchedFltKernelVec;
         std::vector<DSPCOMPLEX> my_matchedFltBuf;
         int16_t                 my_matchedFltBufIdx;

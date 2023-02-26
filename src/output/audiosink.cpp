@@ -235,22 +235,21 @@ int16_t	audioSink::numberofDevices	(void) {
 	return numofDevices;
 }
 
-const char	*audioSink::outputChannelwithRate (int16_t ch, int32_t rate) {
+QString	audioSink::outputChannelwithRate (int16_t ch, int32_t rate) {
 const PaDeviceInfo *deviceInfo;
 const	char	*name	= nullptr;
 
 	if ((ch < 0) || (ch >= numofDevices))
-	   return name;
+	   return "";
 
 	deviceInfo = Pa_GetDeviceInfo (ch);
 	if (deviceInfo == nullptr)
-	   return name;
+	   return "";
 	if (deviceInfo -> maxOutputChannels <= 0)
-	   return name;
+	   return "";
 
 	if (OutputrateIsSupported (ch, rate))
-	   name = deviceInfo -> name;
-	return name;
+	   return QString (deviceInfo -> name);
 }
 
 int16_t	audioSink::invalidDevice	(void) {

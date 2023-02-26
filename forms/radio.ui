@@ -1340,7 +1340,7 @@
          <item>
           <widget class="QPushButton" name="btnRestartPSS">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;This could be important when the analyzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a new report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Restarts the PSS (Perfect Stereo Separation) analyzer&lt;/p&gt;&lt;p&gt;This could be important when the analyzing failed if too little Stereo difference signal was existing while analyzing before (e.g, only a news report without music).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>Restart PSS analyzer</string>
@@ -1625,7 +1625,7 @@
            <item>
             <widget class="QComboBox" name="fmRdsSelector">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select RDS decoding:&lt;/p&gt;&lt;p&gt;RDS OFF: RDS is off at all&lt;/p&gt;&lt;p&gt;RDS 1: RDS works with a matched filter recognition based on cuteSDR&lt;br/&gt;&lt;br/&gt;RDS 2: RDS works with Matched Filter contributed by Tomneda&lt;br/&gt;&lt;br/&gt;RDS 2: RDS works with a classic approach of detecting the phases of the RDS signal&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;The state, i.e. the setting of the selector, is maintained between program invocations&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select RDS decoding:&lt;/p&gt;&lt;p&gt;RDS OFF: RDS is off at all&lt;/p&gt;&lt;p&gt;RDS 1: RDS works with a matched filter recognition based on cuteSDR&lt;br/&gt;&lt;br/&gt;RDS 2: RDS-2 works with matched Filter and time synchronizer contributed by Tomneda&lt;br/&gt;&lt;br/&gt;RDS 2: RDS works with a classic approach of detecting the phases of the RDS signal&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;The state, i.e. the setting of the selector, is maintained between program invocations&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <item>
               <property name="text">

@@ -65,5 +65,7 @@ uint16_t mapEBUtoUnicode(uint8_t alfabet, uint8_t character) {
 uint8_t columnnibble = (character & 0xF0) >> 4;
 uint8_t rownibble = character & 0x0F;
 	(void)alfabet;
+	if (columnnibble - 2 < 0)
+	   return ' '; 	//e.g. when END_OF_RADIO_TEXT is received
 	return EBU_E1 [rownibble][columnnibble - 2];
 }

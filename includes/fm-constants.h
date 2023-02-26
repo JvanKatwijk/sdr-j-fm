@@ -40,7 +40,7 @@
  * 2) Check different station with the IQ balance slider whether the signal get minimal at center "0" position
  * 3) You can also see in the RDS IQ scope the remaing phase (Costas Loop is switched off)
 */
-//#define	DO_STEREO_SEPARATION_TEST
+#define	DO_STEREO_SEPARATION_TEST
 
 #ifndef __FREEBSD__
 #include	<malloc.h>

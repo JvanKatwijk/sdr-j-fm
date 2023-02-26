@@ -1,11 +1,6 @@
 
-    FM receiver V3.1
+    FM receiver V3.15
 -------------------------
-
-    SOFTWARE UNDER CONSTRUCTION
-
-The software is contnuously changing since I am restructuring some parts
-Be advised NOT to use these sources now
 
 ========================================================================
 
@@ -53,7 +48,7 @@ you are in.
 Furthermore, the control widget contains a widget, *Combinear* on the
 picture, that can be used to dynamically set another "skin"
 
-The filtering, i.e. separation between transmissions close to each other
+The inputfiltering, i.e. separation between transmissions close to each other
 in frequency, or even with (slightly) overlapping frequencies,
 is improved.
 The filter is pretty strong, but that also means that the filter requires

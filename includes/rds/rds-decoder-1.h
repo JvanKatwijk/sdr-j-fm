@@ -30,11 +30,10 @@
 #include	<cmath>
 #include	<vector>
 #include	<fstream>
-#include	"rds-group.h"
-#include	"rds-blocksynchronizer.h"
-#include	"rds-groupdecoder.h"
 #include	"iir-filters.h"
 #include	"fir-filters.h"
+
+class	RadioInterface;
 
 class	rdsDecoder_1 : public QObject {
 Q_OBJECT
@@ -44,9 +43,9 @@ public:
 		~rdsDecoder_1	();
 	bool	doDecode	(float, uint8_t *);
 private:
+        RadioInterface          *myRadioInterface;
 	BandPassIIR		sharpFilter;
 	LowPassFIR		rdsFilter;
-        RadioInterface          *myRadioInterface;
 
 	bool			previousBit;
 	std::vector<float>	rdsBuffer;
