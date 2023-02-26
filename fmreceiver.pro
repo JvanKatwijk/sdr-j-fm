@@ -26,6 +26,12 @@ QMAKE_CXXFLAGS	+= -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc
 
+# Stereo sideband test (after activating compile switch DO_STEREO_SEPARATION_TEST)
+# Select "T|T" to hear the ortogonal demodulated sideband signal
+# Check different station with the IQ balance slider whether the signal get minimal at center "0" position
+# You can also see in the RDS IQ scope the current phase on the 38 khz carrier (Costas Loop for RDS decoding is also switched off)
+# DEFINES += DO_STEREO_SEPARATION_TEST
+
 TRANSLATIONS = i18n/de_DE.ts i18n/it_IT.ts i18n/hu_HU.ts
 
 DEPENDPATH += . \
