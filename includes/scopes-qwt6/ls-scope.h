@@ -61,7 +61,7 @@ private:
 	void		mapSpectrum (std::complex<float> *in,
                                      bool     showFull,
                                      double *const out,
-                                     int32_t ioZoomFactor);
+                                     int & ioZoomFactor);
 
 	int		averageCount;
 	int		displaySize;
