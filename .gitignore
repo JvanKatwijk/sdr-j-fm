@@ -4,4 +4,6 @@ linux-bin
 /CMakeLists.txt.user
 /fmreceiver.pro.user
 /build*
+/.vscode
+/.idea
 
