@@ -19,6 +19,10 @@ public:
 
 inline
 	DSPCOMPLEX process_sample (const DSPCOMPLEX z) {
+	#ifdef DO_STEREO_SEPARATION_TEST
+	   return z; // do nothing here
+	#endif   
+	
 	   const DSPCOMPLEX r	= z * std::exp (DSPCOMPLEX (0, -phase));
 	   const float error	= real (r) * imag (r);
 
