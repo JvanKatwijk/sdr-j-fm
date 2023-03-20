@@ -162,6 +162,19 @@ const char *deviceTable [] = {
 	nullptr
 };
 
+#define D_SDRPLAY       "sdrplay"
+#define D_SDRPLAY_V3    "sdrplay-v3"
+#define D_RTL_TCP       "rtl_tcp"
+#define D_HACKRF        "hackrf"
+#define D_LIME          "lime"
+#define D_COLIBRI       "colibri"
+#define D_AIRSPY        "airspy"
+#define D_RTLSDR        "dabstick"
+#define D_PLUTO         "pluto"
+#define D_ELAD_S1       "elad-s1"
+#define D_EXTIO         "extio"
+#define D_PMSDR         "pmsdr"
+#define D_FILEREADER    "filereader"
 static int startKnop;
 static	QTimer	*starter;
 constexpr int16_t delayTable [] = { 1, 3, 5, 7, 9, 10, 15 };
@@ -1906,7 +1919,6 @@ void	RadioInterface::handle_squelchSlider (int n) {
 }
 //
 void	RadioInterface::hfBufferLoaded () {
-double  temp		= (double)inputRate / 2 / displaySize;
 int32_t vfoFrequency;
 std::complex<float> tempBuffer [displaySize];
 	if (runMode. load () != ERunStates::RUNNING) 

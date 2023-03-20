@@ -105,7 +105,9 @@ std::complex<float> r;
 	v = doMatchFiltering (v);
 	v	= my_AGC. process_sample (v);
 	if (process_sample (v, r)) {
+#ifdef	DO_STEREO_SEPARATION_TEST
 	   r = my_Costas. process_sample (r);
+#endif
 	   bool theBit	= (real (r) >= 0);
 	   *d	= theBit ^ previousBit;
 	   previousBit	= theBit;

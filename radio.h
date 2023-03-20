@@ -77,11 +77,11 @@ public:
 		~RadioInterface ();
 
 private:
-	fm_Demodulator		theDemodulator;
-	IQDisplay	*iqScope;
 	RingBuffer<std::complex<float>>	iqBuffer;
 	RingBuffer<std::complex<float>>	hfBuffer;
 	RingBuffer<std::complex<float>>	lfBuffer;
+	fm_Demodulator		theDemodulator;
+	IQDisplay	*iqScope;
 
 //	Processing modes
 	enum class ERunStates {
@@ -135,7 +135,7 @@ private:
 
 	int32_t		mapIncrement		(int32_t);
 	int32_t		incrementInterval	(int16_t);
-	void		displayFrequency		(int32_t);
+	void		displayFrequency	(int32_t);
 	int16_t		incrementIndex;
 	int32_t		autoIncrement_amount;
 	int32_t		fmIncrement;

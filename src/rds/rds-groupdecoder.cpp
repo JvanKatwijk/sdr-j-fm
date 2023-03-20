@@ -329,7 +329,8 @@ bool	rdsGroupDecoder::alfabetSwitcher (uint8_t c1, uint8_t c2) {
 //	called with alfabetSwitcher == true, we only have to
 //	look at the first character
 uint8_t	rdsGroupDecoder::setAlfabetTo (uint8_t c1, uint8_t c2) {
-//	fprintf(stderr, "setting alfabet to %x %x\n", c1, c2);
+//	fprintf(stderr, "setting alfabet to %x %x\n", c1, c2)
+	(void)c2;
 	switch (c1) {
 	   default:   // should not happen
 	   case 0x0F:

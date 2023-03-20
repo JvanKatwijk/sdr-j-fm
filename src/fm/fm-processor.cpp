@@ -656,7 +656,8 @@ int		iqCounter	= 0;
 	      if (++lfCount > (fmRate / repeatRate)) {
 	         if (spectrumBuffer_lf. size () >= (unsigned)spectrumSize) {
 	            processLfSpectrum (spectrumBuffer_lf,
-	                               zoomFactor, showFullSpectrum,
+	                               zoomFactor,
+	                               showFullSpectrum,
 	                               lfBuffer_newFlag);
 	            lfBuffer_newFlag = false;
 	            spectrumBuffer_lf. resize (0);

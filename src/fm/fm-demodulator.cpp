@@ -222,7 +222,7 @@ float	res;
 //	get carrier offset to have AFC for AM, too
 	myfm_pll	-> do_pll (z);
 	res		= myfm_pll -> getPhaseIncr ();
-	fm_afc	= (1 - fmDcAlpha) * fm_afc + fmDcAlpha * res;
+	fm_afc		= (1 - fmDcAlpha) * fm_afc + fmDcAlpha * res;
 
 //	remove DC component from signal and norm level to carrier power
 	float gainLimit = 0.01f;
@@ -230,8 +230,8 @@ float	res;
 	             (am_carr_ampl < gainLimit ? gainLimit : am_carr_ampl);
 
 //	this avoids short spikes which would cause the auto level
-//	limitter to reduce audio level too much
-	constexpr float audioLimit = 1.0f;
+//	limiter to reduce audio level too much
+	float audioLimit = 1.0f;
 	if (res >  audioLimit)
 	   res =  audioLimit;
 	else

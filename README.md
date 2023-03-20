@@ -11,14 +11,14 @@ The version number is now 3.15
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 
-New is a so-called PSS (perfect stereo sound) control on the main widget,
+New is a so-called PSS (perfect stereo separation) control on the main widget,
 contributed by TomNeda.
 
 In computing the 38 Khz signal to decode the L-R signal, from the 19
 KHz pilot signal, an error may occur, an offset of a few Hz.
 The PSS algorithm applies some techniques to figure out what
 correction on the recomputed
-39 KHz carrier that has to be applied for a perfect match.
+38 KHz carrier that has to be applied for a perfect match.
 
 While in previous versions the list of configure devices was
 checked on program start up, to find an attacted device, the

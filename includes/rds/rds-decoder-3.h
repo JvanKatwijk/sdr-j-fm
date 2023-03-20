@@ -48,8 +48,8 @@ public:
 		~rdsDecoder_3	();
 	bool	doDecode	(float, uint8_t *);
 private:
-	LowPassFIR		rdsFilter;
 	SinCos			mySinCos;
+	LowPassFIR		rdsFilter;
 
 	RDSGroup		*my_rdsGroup;
 	rdsBlockSynchronizer	*my_rdsBlockSync;
