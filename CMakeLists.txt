@@ -47,17 +47,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 ######################################################################
 #       R E A D  T H I S
 #####################################################################
-#	adjust to your likings
-#	if you want to use the SSE support on your machine, comment
-#	set(NO_SSE_SUPPORT true)
-#
-#	if you want support for any of these devices, uncomment the line
-#	set(PMSDR true)
-	set(SDRPLAY true)
-#	set(SDRPLAY_V3 true)
-#	set(AIRSPY true)
-	set(DABSTICK true)
-#	set(ELAD_S1 true)
+option(PMSDR "Enable PM-SDR device support - http://www.rfsystem.it/pmsdr/" true)
+option(SDRPLAY "Enable SDRplay devices old API support - https://www.sdrplay.com/downloads/" false)
+option(SDRPLAY_V3 "Enable SDRplay version 3 API devices support" true)
+option(AIRSPY "Enable airspy devices support - https://airspy.com/" true)
+option(DABSTICK "Enable Dabstick devices support via librtlsdr" true)
+option(ELAD_S1 "Enable ELAD devices support - https://www.eladit.com/en/software-defined-radio" true)
 
 ########################################################################
 	find_package (PkgConfig)
