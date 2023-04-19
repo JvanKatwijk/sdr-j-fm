@@ -39,7 +39,6 @@ DEPENDPATH += . \
 	      ./includes/fm \
 	      ./includes/rds \
 	      ./includes/scopes-qwt6 \
-	      ./includes/various \
 	      ./src \
 	      ./src/output \
 	      ./src/various \
@@ -71,23 +70,23 @@ INCLUDEPATH += . \
 HEADERS += ./radio.h \
 	   ./includes/popup-keypad.h \
 	   ./includes/fm-constants.h \
-	   ./includes/various/keyboardfilter.h \
 	   ./includes/various/program-list.h \
+	   ./includes/various/keyboardfilter.h \
 	   ./includes/various/squelchClass.h \
 	   ./includes/various/oscillator.h \
            ./includes/various/ringbuffer.h \
 	   ./includes/various/pllC.h \
 	   ./includes/various/sincos.h \
 	   ./includes/various/newconverter.h \
-	   ./includes/various/fir-filters.h \
+	   ./includes/various/fft-complex.h \
 	   ./includes/various/fft-filters.h \
+	   ./includes/various/fir-filters.h \
 	   ./includes/various/iir-filters.h \
+	   ./includes/various/agc.h  \
+	   ./includes/various/costas.h  \
+	   ./includes/various/shaping_filter.h  \
 	   ./includes/various/Xtan2.h \
 	   ./includes/various/themechoser.h \
-	   ./includes/various/agc.h  \
-           ./includes/various/costas.h  \
-           ./includes/various/shaping_filter.h  \
-	   ./includes/various/fft-complex.h \
 	   ./includes/output/audiosink.h \
 	   ./includes/scopes-qwt6/iqdisplay.h \
 	   ./includes/scopes-qwt6/scope.h \
@@ -117,20 +116,20 @@ FORMS +=   ./forms/radio.ui \
 SOURCES += ./main.cpp \
 	   ./radio.cpp \
 	   ./src/popup-keypad.cpp \
+	   ./src/various/program-list.cpp \
 	   ./src/various/keyboardfilter.cpp \
 	   ./src/various/squelchClass.cpp \
-	   ./src/various/program-list.cpp \
-	   ./src/various/oscillator.cpp \
 	   ./src/various/pllC.cpp \
+	   ./src/various/oscillator.cpp \
 	   ./src/various/sincos.cpp \
 	   ./src/various/newconverter.cpp \
-	   ./src/various/fir-filters.cpp \
+	   ./src/various/fft-complex.cpp \
 	   ./src/various/fft-filters.cpp \
+	   ./src/various/fir-filters.cpp \
 	   ./src/various/iir-filters.cpp \
 	   ./src/various/Xtan2.cpp \
 	   ./src/various/themechoser.cpp \
 	   ./src/various/shaping_filter.cpp \
-	   ./src/various/fft-complex.cpp \
 	   ./src/output/audiosink.cpp \
 	   ./src/scopes-qwt6/iqdisplay.cpp \
 	   ./src/scopes-qwt6/scope.cpp \
@@ -179,7 +178,6 @@ CONFIG	+= pluto
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
-LIBS		+= -lfftw3f
 LIBS	+= -lportaudio
 LIBS	+= -lqwt-qt5
 LIBS	+= -lsndfile
@@ -215,9 +213,9 @@ CONFIG		+= qwt
 #INCLUDEPATH 	+= /usr/include/qt5/qwt
 #INCLUDEPATH 	+= /usr/local/qwt-6.2.0/include
 #for ubuntu the first line
-#LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
+#LIBS +=  -lqwt-qt5 -lusb-1.0 -lrt -lportaudio -lsndfile -ldl
 #for fedora 21
-LIBS += -lusb-1.0 -lrt -lportaudio -lsndfile -lfftw3f -ldl
+LIBS += -lusb-1.0 -lrt -lportaudio -lsndfile -ldl
 LIBS += -lsamplerate
 #QMAKE_CXXFLAGS += -Wno-hicpp-signed-bitwise
 }

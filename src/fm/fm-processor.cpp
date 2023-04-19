@@ -107,8 +107,8 @@
 	this	-> lfBuffer		= lfBuffer;
 	this	-> thresHold		= thresHold;
 	this	-> scanning		= false;
-	this	-> Lgain		= 20;
-	this	-> Rgain		= 20;
+	this	-> Lgain		= 1;
+	this	-> Rgain		= 1;
 
 	this	-> lowPassFrequency	= 15000;
 	this	-> newAudioFilter. store (false);
@@ -606,7 +606,7 @@ int		iqCounter	= 0;
 	            break;
 	         case ELfPlot::IF_FILTERED:
 	            // TODO: somehow the IF level got much higher, reduce level here for the scope
-	            spectrumBuffer_lf. push_back (v * 0.05f);
+	            spectrumBuffer_lf. push_back (v);
 	            break;
 	         case ELfPlot::DEMODULATOR:
 	            spectrumBuffer_lf. push_back (demod);
@@ -862,7 +862,7 @@ void	fmProcessor::triggerFrequencyChange() {
 
 void	fmProcessor::restartPssAnalyzer	() {
 	pilotDelayPSS = 0;
-	pPSS. reset (); // TODO shift this as it is called while RDS switch, too
+	pPSS. reset ();
 }
 
 void	fmProcessor::resetRds	() {

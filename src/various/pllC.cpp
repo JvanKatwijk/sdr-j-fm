@@ -109,4 +109,4 @@ DSPFLOAT	pllC::getPhaseError () {
 
 //bool		pllC::isLocked	() {
 //	return pll_lock;
-//	}
+

@@ -51,13 +51,37 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #	if you want to use the SSE support on your machine, comment
 #	set(NO_SSE_SUPPORT true)
 #
-#	if you want support for any of these devices, uncomment the line
-#	set(PMSDR true)
-	set(SDRPLAY true)
-#	set(SDRPLAY_V3 true)
-#	set(AIRSPY true)
-	set(DABSTICK true)
-#	set(ELAD_S1 true)
+if(DEFINED SDRPLAY)
+        set(SDRPLAY true)
+endif ()
+
+if(DEFINED SDRPLAY_V3)
+        set(SDRPLAY_V3 true)
+endif ()
+
+if(DEFINED RTLSDR_LINUX)
+        set(RTLSDR_LINUX true)
+endif ()
+
+if(DEFINED AIRSPY)
+        set(AIRSPY true)
+endif ()
+
+if(DEFINED RTLSDR)
+        set(RTLSDR true)
+endif ()
+
+if(DEFINED HACKRF)
+	set (HACKRF true)
+endif ()
+
+if(DEFINED LIME)
+	set (LIME true)
+endif ()
+
+if(DEFINED PLUTO)
+	set (PLUTO true)
+endif ()
 
 ########################################################################
 	find_package (PkgConfig)
@@ -88,34 +112,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #
 
 	include (FindPackageHandleStandardArgs)
-	if (FFTW_INCLUDE_DIRS)
-#	Already in cache, be silent
-	   set (FFTW_FIND_QUIETLY TRUE)
-	endif (FFTW_INCLUDE_DIRS)
-
-	find_path (FFTW_INCLUDE_DIR fftw3.h
-	           HINTS
-                   ENV FFTW_ROOT
-                   PATHS 
-	           PATH_SUFFIXES
-	           include
-	           Include
-	)
-
-	list (APPEND FFTW_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
-	find_library (FFTW_LIBRARIES NAMES fftw3f
-                      HINTS ENV FFTW_ROOT
-                      PATHS
-                      PATH_SUFFIXES lib64 Lib64 lib Lib)
-
-	message (STATUS ${FFTW_LIBRARIES} ${FFTW_INCLUDE_DIRS})
-#	handle the QUIETLY and REQUIRED arguments and set FFTW_FOUND to TRUE if
-#	all listed variables are TRUE
-
-	include (FindPackageHandleStandardArgs)
-	find_package_handle_standard_args (
-	                  FFTW DEFAULT_MSG FFTW_LIBRARIES FFTW_INCLUDE_DIRS)
-	mark_as_advanced (FFTW_LIBRARIES FFTW_INCLUDE_DIRS)
 
 	Find_Package (PkgConfig)
 
@@ -178,22 +174,26 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/various/program-list.h 
              ./includes/various/keyboardfilter.h 
 	     ./includes/various/squelchClass.h 
-	     ./includes/various/fft.h 
 	     ./includes/various/oscillator.h 
 	     ./includes/various/ringbuffer.h 
 	     ./includes/various/pllC.h 
 	     ./includes/various/sincos.h 
 	     ./includes/various/newconverter.h 
+	     ./includes/various/fft-complex.h
 	     ./includes/various/fir-filters.h 
 	     ./includes/various/fft-filters.h 
 	     ./includes/various/iir-filters.h 
 	     ./includes/various/Xtan2.h 
 	     ./includes/various/themechoser.h 
+	     ./includes/various/agc.h  
+	     ./includes/various/costas.h  
+	     ./includes/various/shaping_filter.h  
 	     ./includes/output/audiosink.h 
 	     ./includes/scopes-qwt6/iqdisplay.h 
 	     ./includes/scopes-qwt6/scope.h 
 	     ./includes/scopes-qwt6/spectrogramdata.h 
-	     ./includes/scopes-qwt6/fft-scope.h 
+	     ./includes/scopes-qwt6/hs-scope.h 
+	     ./includes/scopes-qwt6/ls-scope.h 
 	     ./includes/fm/fm-demodulator.h 
 	     ./includes/fm/pilot-recover.h 
 	     ./includes/fm/stereo-separation.h 
@@ -205,9 +205,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	     ./includes/rds/rds-blocksynchronizer.h 
 	     ./includes/rds/rds-group.h 
 	     ./includes/rds/rds-groupdecoder.h  
-	     ./includes/various/agc.h  
-	     ./includes/various/costas.h  
-	     ./includes/various/shaping_filter.h  
 	     ./devices/device-handler.h 
 	     ./devices/deviceselect.h
 	     ./devices/filereader/filereader.h 
@@ -221,20 +218,23 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/various/program-list.cpp 
 	      ./src/various/keyboardfilter.cpp 
 	      ./src/various/squelchClass.cpp 
-	      ./src/various/fft.cpp 
+#	      ./src/various/fft.cpp 
 	      ./src/various/oscillator.cpp 
 	      ./src/various/pllC.cpp 
 	      ./src/various/sincos.cpp 
 	      ./src/various/newconverter.cpp 
+	      ./src/various/fft-complex.cpp 
 	      ./src/various/fir-filters.cpp 
 	      ./src/various/fft-filters.cpp 
 	      ./src/various/iir-filters.cpp 
 	      ./src/various/Xtan2.cpp 
 	      ./src/various/themechoser.cpp 
+	      ./src/various/shaping_filter.cpp
 	      ./src/output/audiosink.cpp 
 	      ./src/scopes-qwt6/iqdisplay.cpp 
 	      ./src/scopes-qwt6/scope.cpp 
-	      ./src/scopes-qwt6/fft-scope.cpp 
+	      ./src/scopes-qwt6/hs-scope.cpp 
+	      ./src/scopes-qwt6/ls-scope.cpp 
 	      ./src/fm/fm-demodulator.cpp 
 	      ./src/fm/pilot-recover.cpp 
 	      ./src/fm/stereo-separation.cpp 
@@ -246,7 +246,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./src/rds/rds-blocksynchronizer.cpp 
 	      ./src/rds/rds-group.cpp 
 	      ./src/rds/rds-groupdecoder.cpp 
-	      ./src/various/shaping_filter.cpp
 	      ./devices/device-handler.cpp
 	      ./devices/deviceselect.cpp
 	      ./devices/filereader/filereader.cpp 
@@ -298,19 +297,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	endif (PMSDR)
 	
 	if (SDRPLAY)
-	   find_library (SDRPLAYLIB libmirsdrapi-rsp.so)
-	   if (NOT(SDRPLAYLIB))
-	      message (FATAL_ERROR "please install sdrplay library")
-	   else (NOT(SDRPLAYLIB))
-	      set (extraLibs ${extraLibs} ${SDRPLAYLIB})
-	   endif()
-	   find_path (SDRPLAYLIB_INCLUDE_DIR
-	              NAMES mirsdrapi-rsp.h
-	              PATHS
-	              /usr/local/include/
-	   )
-	   include_directories (${SDRPLAYLIB_INCLUDE_DIR})
-
 	   set (${objectName}_UIS
 	        ${${objectName}_UIS}
 	        ./devices/sdrplay-handler/sdrplay-widget.ui 
@@ -341,67 +327,51 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   add_definitions (-DHAVE_SDRPLAY)
 	endif (SDRPLAY)
 
-  if (SDRPLAY_V3)
-     find_library (SDRPLAYLIB_V3 libsdrplay_api.so)
-     if (NOT(SDRPLAYLIB_V3))
-        message (FATAL_ERROR "please install sdrplay-v3 library")
-     else (NOT(SDRPLAYLIB_V3))
-        set (extraLibs ${extraLibs} ${SDRPLAYLIB_V3})
-     endif()
-     find_path (SDRPLAYLIB_V3_INCLUDE_DIR
-                NAMES sdrplay_api.h
-                PATHS
-                /usr/local/include/
-     )
-     #message ("Tatata" ${SDRPLAYLIB_V3_INCLUDE_DIR})
+	if (SDRPLAY_V3)
 
-     include_directories (${SDRPLAYLIB_V3_INCLUDE_DIR})
+	   set (${objectName}_UIS
+                ${${objectName}_UIS}
+                ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
+           )
 
-     set (${objectName}_UIS
-          ${${objectName}_UIS}
-          ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
-     )
+	   set (${objectName}_MOCS
+	        ${${objectName}_MOCS}
+	        ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h
+                ./devices/sdrplay-handler-v3/Rsp-device.h
+           )
 
-     set (${objectName}_MOCS
-          ${${objectName}_MOCS}
-          ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h
-          #./devices/sdrplay-handler/sdrplayselect.h
-     )
+	   include_directories ( ./devices/sdrplay-handler-v3)
+	   include_directories ( ./devices/sdrplay-handler-v3/include)
 
-     include_directories (
-       ./devices/sdrplay-handler-v3
-     )
+	   set ($(objectName)_HDRS
+                  ${${objectName}_HDRS}
+                  ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h
+	          ./devices/sdrplay-handler-v3/sdrplay-commands.h
+`                 ./devices/sdrplay-handler-v3/Rsp-device.h
+`                 ./devices/sdrplay-handler-v3/Rsp1A-handler.h
+`                 ./devices/sdrplay-handler-v3/RspDuo-handler.h
+`                 ./devices/sdrplay-handler-v3/RspDx-handler.h
+`                 ./devices/sdrplay-handler-v3/RspII-handler.h)
+	
 
-     set ($(objectName)_HDRS
-          ${${objectName}_HDRS}
-          ./devices/sdrplay-handler-v3/sdrplay-handler.h
-          ./devices/sdrplay-handler-v3/sdrplay-commands.h
-     )
+	   set (${objectName}_SRCS
+	           ${${objectName}_SRCS}
+                  ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp
+	          ./devices/sdrplay-handler-v3/Rsp-device.cpp
+	          ./devices/sdrplay-handler-v3/Rsp1A-handler.cpp
+	          ./devices/sdrplay-handler-v3/RspDuo-handler.cpp
+	          ./devices/sdrplay-handler-v3/RspDx-handler.cpp
+	          ./devices/sdrplay-handler-v3/RspII-handler.cpp)
 
-     set (${objectName}_SRCS
-          ${${objectName}_SRCS}
-          ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp
-          #./devices/sdrplay-handler-v3/sdrplayselect.cpp
-     )
+	   add_definitions (-DHAVE_SDRPLAY_V3)
+	endif (SDRPLAY_V3)
 
-     add_definitions (-DHAVE_SDRPLAY_V3)
-  endif (SDRPLAY_V3)
+	if (AIRSPY)
 
-  if (AIRSPY)
-	   find_library (AIRSPY_LIB airspy)
-	   if (NOT(AIRSPY_LIB))
-	      message (FATAL_ERROR "please install airspy library")
-	   else (NOT(AIRSPY_LIB))
-	      set (extraLibs ${extraLibs} ${AIRSPY_LIB})
-	   endif()
-	   find_path (AIRSPYLIB_INCLUDE_DIR
-	              NAMES airspy.h
-	              PATHS
-	              /usr/local/include/
-	              /usr/local/include/libairspy
+	   include_directories (
+	     ./devices/airspy
+	     ./devices/airspy/libairspy
 	   )
-	   include_directories (${AIRSPYLIB_INCLUDE_DIR})
-
 	   set (${objectName}_UIS
 	        ${${objectName}_UIS}
 	        ./devices/airspy/airspy-widget.ui 
@@ -410,10 +380,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   set (${objectName}_MOCS
 	        ${${objectName}_MOCS}
 	        ./devices/airspy/airspy-handler.h
-	   )
-
-	   include_directories (
-	     ./devices/airspy
 	   )
 
 	   set ($(objectName)_HDRS
@@ -429,20 +395,11 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   add_definitions (-DHAVE_AIRSPY)
 	endif (AIRSPY)
 
-	if (DABSTICK)
-	   find_library (RTLSDR rtlsdr)
-	   if (NOT(RTLSDR))
-	      message (FATAL_ERROR "please install librtlsdr")
-	   else (NOT(RTLSDR))
-	      set (extraLibs ${extraLibs} ${RTLSDR})
-	   endif()
-	   find_path (DABSTICK_INCLUDE_DIR
-	              NAMES rtl-sdr.h
-	              PATHS
-	              /usr/local/include/
-	              /usr/include/
+	if (RTLSDR)
+
+	   include_directories (
+	        ./devices/rtlsdr-handler/
 	   )
-	   include_directories (${RTLSDR_INCLUDE_DIR})
 
 	   set (${objectName}_UIS
 	        ${${objectName}_UIS}
@@ -455,14 +412,12 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	        ./devices/rtlsdr-handler/rtlsdr-handler.h
 	   )
 
-	   include_directories (
-	        ./devices/rtlsdr-handler/
-	   )
-
 	   set (${objectName}_HDRS
 	        ${${objectName}_HDRS}
 	        ./devices/rtlsdr-handler/rtlsdr-handler.h 
 	        ./devices/rtlsdr-handler/dongleselect.h
+	        ./devices/rtlsdr-handler/rtl-sdr.h
+	        ./devices/rtlsdr-handler/rtl-sdr_export.h
 	   )
 
 	   set (${objectName}_SRCS
@@ -474,8 +429,82 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	   add_definitions (-DHAVE_DABSTICK)
 	endif()
 
+	if (HACKRF)
 
+	   include_directories ( ./devices/hackrf-handler
+	                         ./devices/hackrf-handler/libhackrf)
+
+	   set (${objectName}_UIS
+                ${${objectName}_UIS}
+                ./devices/hackrf-handler/hackrf-widget.ui
+           )
+
+	   set (${objectName}_MOCS
+	        ${${objectName}_MOCS}
+	        ./devices/hackrf-handler/hackrf-handler.h
+           )
+
+	   set ($(objectName)_HDRS
+                  ${${objectName}_HDRS}
+                  ./devices/hackrf-handler/hackrf-handler.h)
+
+	   set (${objectName}_SRCS ${${objectName}_SRCS}
+                 ./devices/hackrf-handler/hackrf-handler.cpp)
+
+	   add_definitions (-DHAVE_HACKRF)
+	endif (HACKRF)
+
+	if (LIME)
+
+	   include_directories ( ./devices/lime-handler)
+
+	   set (${objectName}_MOCS
+	        ${${objectName}_MOCS}
+	        ./devices/lime-handler/lime-handler.h
+           )
+
+	   set ($(objectName)_HDRS
+                  ${${objectName}_HDRS}
+                  ./devices/lime-handler/lime-handler.h
+                  ./devices/lime-handler/lime-widget.h 
+                  ./devices/lime-handler/LMS7002M_parameters.h)
+
+	   set (${objectName}_SRCS
+	          ${${objectName}_SRCS}
+                  ./devices/lime-handler/lime-handler.cpp)
+
+	   add_definitions (-DHAVE_LIME)
+	endif (LIME)
+#
+	if (PLUTO)
+
+	   include_directories (./devices/pluto-handler )
+
+	   set (${objectName}_UIS
+                ${${objectName}_UIS}
+                ./devices/pluto-handler/pluto-widget.ui
+           )
+	   set (${objectName}_MOCS
+	        ${${objectName}_MOCS}
+	        ./devices/pluto-handler/pluto-handler.h
+           )
+
+	   set ($(objectName)_HDRS
+                  ${${objectName}_HDRS}
+                  ./devices/pluto-handler/pluto-handler.h
+	          ./devices/pluto-handler/fmFilter.h)
+
+	   set (${objectName}_SRCS ${${objectName}_SRCS}
+                  ./devices/pluto-handler/pluto-handler.cpp)
+
+	   add_definitions (-DHAVE_PLUTO)
+	endif (PLUTO)
+#
 	if (ELAD_S1)
+	   include_directories (
+	        ./devices/sw-elad-s1/
+	   )
+
 	   set (${objectName}_UIS
 	        ${${objectName}_UIS}
 	        ./devices/sw-elad-s1/elad_widget.ui
@@ -485,10 +514,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	        ${${objectName}_MOCS}
 	        ./devices/sw-elad-s1/elad-s1.h
 	        ./devices/sw-elad-s1/elad-worker.h
-	   )
-
-	   include_directories (
-	        ./devices/sw-elad-s1/
 	   )
 
 	   set (${objectName}_HDRS
@@ -530,7 +555,8 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 	      ./devices/filereader/filereader.h
 	      ./devices/filereader/filehulp.h
 	      ./devices/deviceselect.h
-	      ./includes/scopes-qwt6/fft-scope.h
+	      ./includes/scopes-qwt6/hs-scope.h
+	      ./includes/scopes-qwt6/ls-scope.h
 	)
 
 	QT5_WRAP_CPP (MOCS ${${objectName}_MOCS})

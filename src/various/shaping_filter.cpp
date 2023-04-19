@@ -19,7 +19,7 @@ double scale = 0;
 	   x2 = 4 * alpha * xindx / spb;
 	   x3 = x2 * x2 - 1;
 
-	   if (fabs(x3) >= 0.000001) { // Avoid Rounding errors...
+	   if (fabs (x3) >= 0.000001) { // Avoid Rounding errors...
 	      if (i != ntaps / 2) {
 	         num = cos((1 + alpha) * x1) +
 	                  sin((1 - alpha) * x1) / (4 * alpha * xindx / spb);
