@@ -20,8 +20,7 @@
  *    along with fmreceiver; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef __FFT_FILTER_H
-#define __FFT_FILTER_H
+#pragma once
 
 #include	"fm-constants.h"
 
@@ -60,4 +59,3 @@ private:
 	void		setHilbert		();
 };
 
-#endif

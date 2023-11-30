@@ -18,8 +18,8 @@
  *    You should have received a copy of the GNU General Public License
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef	__KEYPAD_H
-#define	__KEYPAD_H
+#pragma once
+
 #include	<QWidget>
 #include	<QGridLayout>
 #include	<QButtonGroup>
@@ -64,6 +64,4 @@ private:
 signals:
 	void		newFrequency	(int);
 };
-
-#endif
 

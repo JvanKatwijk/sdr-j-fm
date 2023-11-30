@@ -24,8 +24,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef	SPECTROGRAM_QWT5
-#define	SPECTROGRAM_QWT5
+
+#pragma once
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -71,6 +71,4 @@ virtual QwtDoubleInterval range() const {
 }
 
 };
-
-#endif
 

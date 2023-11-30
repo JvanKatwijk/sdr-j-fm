@@ -24,8 +24,8 @@
 //	Starting with version 4.2 we include keyboard
 //	alternatives for mouse clicks.
 //	The keyboard filter is the generic handler for this
-#ifndef	__KEYBOARDFILTER
-#define	__KEYBOARDFILTER
+
+#pragma once
 
 #include	<QObject>
 
@@ -39,5 +39,6 @@ bool	eventFilter	(QObject *, QEvent *);
 signals:
 void	KeyPressed	(int);
 };
-#endif
+
+
 

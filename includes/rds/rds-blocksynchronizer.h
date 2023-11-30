@@ -30,8 +30,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __RDS_BLOCK_SYNCHRONIZER_H
-#define	__RDS_BLOCK_SYNCHRONIZER_H
+#pragma once
 
 #include	"fm-constants.h"
 #include	"rds-group.h"
@@ -104,6 +103,4 @@ signals:
 	void		setRDSisSynchronized	(bool);
 	void		setbitErrorRate		(double);
 };
-
-#endif
 

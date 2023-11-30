@@ -22,8 +22,7 @@
  *
  */
 
-#ifndef _SINCOS_H
-#define _SINCOS_H
+#pragma once
 
 #include	"fm-constants.h"
 
@@ -43,6 +42,4 @@ private:
 	double		C;
 	int32_t		fromPhasetoIndex	(DSPFLOAT);
 };
-
-#endif
 

@@ -336,7 +336,6 @@ const float right = volumeFactor * rightChannel * imag(z);
 	   }
 	}
 #endif
-
 	return { left, right };
 }
 
@@ -391,7 +390,7 @@ int		iqCounter	= 0;
 
 	while (running. load ()) {
 	   while (running. load () && (myRig -> Samples () < bufferSize)) {
-	      msleep(1); // should be enough
+	      msleep (1); // should be enough
 	   }
 
 	   if (!running. load ()) {

@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __SQUELCHCLASS_H
-#define __SQUELCHCLASS_H
+#pragma once
 
 #include "fm-constants.h"
 #include "iir-filters.h"
@@ -75,4 +74,3 @@ signals:
 	void	setSquelchIsActive	(bool);
 };
 
-#endif

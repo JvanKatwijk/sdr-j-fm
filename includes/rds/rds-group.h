@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -20,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __RDSGROUP_H
-#define __RDSGROUP_H
+#pragma once
 
 #include	"fm-constants.h"
 
@@ -72,4 +72,4 @@ static const uint8_t NUM_BLOCKS_PER_RDSGROUP	= BLOCK_D + 1;
 private:
 uint16_t	rdsBlocks [NUM_BLOCKS_PER_RDSGROUP];
 };
-#endif
+

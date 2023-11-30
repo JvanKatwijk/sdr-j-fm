@@ -20,8 +20,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __FM_DEMODULATOR_H
-#define __FM_DEMODULATOR_H
+#pragma once
 
 #include	<QString>
 #include	<QStringList>
@@ -65,4 +64,3 @@ private:
 	DSPFLOAT	am_carr_ampl;
 
 };
-#endif

@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -34,8 +35,7 @@
  */
 
 
-#ifndef __RDS_DECODER_H
-#define __RDS_DECODER_H
+#pragma once
 
 #include	<QObject>
 #include	<vector>
@@ -87,4 +87,3 @@ signals:
 
 };
 
-#endif

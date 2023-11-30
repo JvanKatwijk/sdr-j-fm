@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #
-#ifndef __FM_CONSTANTS__
-#define	__FM_CONSTANTS__
+#pragma once
 
 #include	<math.h>
 #include	<complex>
@@ -89,7 +88,7 @@ using namespace std;
 #define I_Only		0102
 #define	Q_Only		0104
 
-#define	CURRENT_VERSION	"3.15"
+#define	CURRENT_VERSION	"3.16"
 
 #define	MSECFORTIMER	10
 //
@@ -157,5 +156,4 @@ DSPFLOAT	PI_Constrain (DSPFLOAT val) {
 	   return val + 2 * M_PI;
 	return 2 * M_PI - fmod (- val, 2 * M_PI);
 }
-#endif
 

@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -18,10 +19,9 @@
  *    You should have received a copy of the GNU General Public License
  *    along with SDR-J; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
  */
-#ifndef __SPECTROGRAM_H
-#define __SPECTROGRAM_H
+
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,4 +129,4 @@ double	value	(double x, double y) const override {
 }
 
 };
-#endif
+

@@ -529,7 +529,8 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 	s	-> setValue ("peakLevelDelaySteps",
 				     configWidget. sbDispDelay	-> value ());
 
-	s -> setValue ("styleSheet", configWidget. cbThemes -> currentText ());
+	s	-> setValue ("styleSheet",
+	                        configWidget. cbThemes -> currentText ());
 
 	s	-> sync ();
 }

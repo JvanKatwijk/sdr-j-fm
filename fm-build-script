@@ -1,5 +1,5 @@
      mkdir -p appdir/usr/bin
-     cp ./linux-bin/fmreceiver-3.1 appdir/usr/bin/fmreceiver
+     cp ./linux-bin/fmreceiver-3.* appdir/usr/bin/fmreceiver
      mkdir -p appdir/usr/lib
      mkdir -p appdir/usr/share/applications
      cp fmreceiver.desktop appdir/usr/share/applications

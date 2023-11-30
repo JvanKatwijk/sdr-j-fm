@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -20,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __FM_PROCESSOR_H
-#define __FM_PROCESSOR_H
+#pragma once
 
 #include	<QThread>
 #include	<QObject>
@@ -292,6 +292,4 @@ signals:
 	void		scanresult		();
 	void		showPeakLevel		(const float, const float);
 };
-
-#endif
 

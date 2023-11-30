@@ -20,8 +20,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __HS_SCOPE_H
-#define __HS_SCOPE_H
+#pragma once
 
 #include "fm-constants.h"
 #include "scope.h"
@@ -79,4 +78,3 @@ private:
 	uint32_t	averageCount;
 };
 
-#endif

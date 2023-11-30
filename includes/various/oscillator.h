@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __OSCILLATOR_H
-#define __OSCILLATOR_H
+#pragma once
 
 #include	"fm-constants.h"
 
@@ -38,6 +37,4 @@ private:
 	int32_t		Rate;
 	int32_t		LOPhase;
 };
-
-#endif
 

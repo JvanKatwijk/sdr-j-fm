@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C)  2010, 2011, 2012
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -20,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __LS_SCOPE_H
-#define __LS_SCOPE_H
+#pragma once
 
 #include "fm-constants.h"
 #include "scope.h"
@@ -82,4 +82,3 @@ private:
 
 };
 
-#endif

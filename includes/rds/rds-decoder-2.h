@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	__RDS_DECODER_2_H
-#define	__RDS_DECODER_2_H
+#pragma once
 
 #include	<QObject>
 #include	<stdlib.h>
@@ -72,4 +71,4 @@ private:
 	int32_t			skipNrSamples;  // 2 to fill out buffer
 	int32_t			sampleCount;
 };
-#endif
+

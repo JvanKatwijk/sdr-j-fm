@@ -20,8 +20,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef	__STEREO_SEPARATION_H
-#define	__STEREO_SEPARATION_H
+
+#pragma once
 
 #include	"fft-filters.h"
 #include	"fm-constants.h"
@@ -56,5 +56,4 @@ private:
 	DSPCOMPLEX	curMixResult;
 };
 
-#endif
 

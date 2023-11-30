@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C)  2014
+ *    Copyright (C)  2012 .. 2024
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __RADIO_H
-#define __RADIO_H
+#pragma once
 
 #include	<QTableWidget>
 #include	<QTableWidgetItem>
@@ -203,6 +202,7 @@ private slots:
 	void		updateTimeDisplay	();
 	void		handle_pauseButton	();
 	void		setIQBalance		(int);
+	void		autoIncrement_timeout	();
 
 	void		handle_StreamOutSelector	(int);
 	void		handle_dumpButton	();
@@ -217,7 +217,6 @@ private slots:
 	void		handle_fmDeemphasis	(const QString &);
 	void		handle_fmLFcutoff	(const QString &);
 
-	void		autoIncrement_timeout	();
 	void		handle_fc_plus		();
 	void		handle_fc_min		();
 	void		handle_fm_increment	(int);
@@ -288,4 +287,3 @@ public slots:
 	void		set_startHW		();
 //	void		set_changeRate		(int);
 };
-#endif

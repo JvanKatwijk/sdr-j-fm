@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2008, 2009, 2010
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -19,8 +20,7 @@
  *    along with SDR-J-FM; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef __IQDISPLAY_H
-#define __IQDISPLAY_H
+#pragma once
 
 #include <qwt.h>
 #include <qwt_plot.h>
@@ -54,4 +54,4 @@ signals:
 	void		replot		();
 
 };
-#endif
+

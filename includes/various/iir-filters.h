@@ -21,8 +21,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef 	__IIR_FILTER_H
-#define		__IIR_FILTER_H
+#pragma once
+
 #include	"fm-constants.h"
 
 #define	S_CHEBYSHEV	0100
@@ -127,5 +127,4 @@ public:
 			~BandPassIIR	(void);
 };
 
-#endif
 

@@ -4,8 +4,7 @@
 //	a Java discussion on the net
 //	http://www.java-gaming.org/index.php?topic=14647.0
 
-#ifndef		__COMP_ATAN_H
-#define		__COMP_ATAN_H
+#pragma once
 
 #include	<math.h>
 #include	<stdio.h>
@@ -32,4 +31,3 @@ private:
 	float	Stretch;
 };
 
-#endif

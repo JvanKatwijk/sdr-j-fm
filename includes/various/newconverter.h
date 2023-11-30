@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef	__NEW_CONVERTER_H
-#define	__NEW_CONVERTER_H
+#pragma once
 
 #include	<math.h>
 #include	<complex>
@@ -56,5 +55,4 @@ bool	convert (DSPCOMPLEX v,
 int32_t	getOutputsize ();
 };
 
-#endif
 

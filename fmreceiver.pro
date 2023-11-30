@@ -5,7 +5,7 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-3.15
+TARGET		= fmreceiver-3.16
 QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
@@ -13,9 +13,9 @@ QMAKE_CXXFLAGS  += -std=c++14
 #
 # Note that the fastmath option eliminates the isinf and isnan
 # functions that are used to validate the data
-QMAKE_CFLAGS	+= -flto 
-QMAKE_CXXFLAGS	+= -flto 
-QMAKE_LFLAGS	+= -flto
+#QMAKE_CFLAGS	+= -flto 
+#QMAKE_CXXFLAGS	+= -flto 
+#QMAKE_LFLAGS	+= -flto
 QMAKE_CXXFLAGS	+= -g
 QMAKE_CFLAGS	+= -g
 QMAKE_LFLAGS	+= -g
@@ -180,8 +180,10 @@ INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 LIBS	+= -lportaudio
 LIBS	+= -lqwt-qt5
-LIBS	+= -lsndfile
-LIBS	+= -lsamplerate
+#LIBS	+= -lsndfile
+#LIBS	+= -lsamplerate
+LIBS            += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsndfile-1.dll
+LIBS            += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsamplerate-0.dll
 LIBS	+= -lole32
 LIBS	+= -lwinmm
 LIBS 	+= -lstdc++

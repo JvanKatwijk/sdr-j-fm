@@ -10,7 +10,7 @@ public:
 
 	using TStringVec = std::vector<QString>;
 
-	int	get_style_sheet_size		() const;
+//	int	get_style_sheet_size		() const;
 const	TStringVec & get_style_sheet_names	() const;
 
 	int	get_idx_of_sheet_name		(const QString &) const;
@@ -20,7 +20,7 @@ const	TStringVec & get_style_sheet_names	() const;
 const	QString	get_curr_style_sheet_string	() const;
 
 private:
-	TStringVec vecStyleSheetCode;
+	TStringVec vecStyleFileName;
 	TStringVec vecStyleSheetName;
 	int        currIdx = 0;
 };

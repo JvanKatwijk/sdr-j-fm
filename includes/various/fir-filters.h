@@ -1,3 +1,4 @@
+#
 /*
  *
  *    Copyright (C) 2010, 2011, 2012
@@ -22,8 +23,7 @@
  *
  */
 
-#ifndef FIR_FILTERS_H
-#define FIR_FILTERS_H
+#pragma once
 
 #include  "fm-constants.h"
 #include  <stdlib.h>
@@ -196,4 +196,3 @@ private:
 	void		adjustFilter	(DSPFLOAT);
 };
 
-#endif

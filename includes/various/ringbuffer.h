@@ -66,8 +66,7 @@
  */
 
 
-#ifndef __RINGBUFFER
-#define	__RINGBUFFER
+#pragma once
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<string.h>
@@ -317,5 +316,4 @@ int32_t	skipDataInBuffer (uint32_t n_values) {
 }
 
 };
-#endif
 

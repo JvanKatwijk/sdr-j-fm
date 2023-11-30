@@ -1,3 +1,4 @@
+#
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
@@ -29,8 +30,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __RDS_GROUP_DECODER_H
-#define __RDS_GROUP_DECODER_H
+#pragma once
 
 #include	<QObject>
 #include	"fm-constants.h"
@@ -102,4 +102,3 @@ signals:
 	void	setAFDisplay		(int, int);
 };
 
-#endif

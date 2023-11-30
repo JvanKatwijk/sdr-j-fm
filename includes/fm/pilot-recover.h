@@ -21,8 +21,8 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#ifndef	__PILOT_RECOVER_H
-#define	__PILOT_RECOVER_H
+
+#pragma once
 
 #include	"fft-filters.h"
 #include	"fm-constants.h"
@@ -49,7 +49,4 @@ private:
 	bool		pll_isLocked;
 	bool		LockStable;
 };
-
-
-#endif
 

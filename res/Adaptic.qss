@@ -21,12 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-R"(
-
 /*-----QWidget-----*/
 QWidget
 {
-	background-color: #121212;
+	background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(102, 115, 140, 255),stop:1 rgba(56, 63, 77, 255));
 	color: #ffffff;
 	border-color: #051a39;
 
@@ -38,6 +36,7 @@ QLabel
 {
 	background-color: transparent;
 	color: #ffffff;
+	font-weight: bold;
 
 }
 
@@ -45,7 +44,7 @@ QLabel
 QLabel::disabled
 {
 	background-color: transparent;
-	color: #656565;
+	color: #898988;
 
 }
 
@@ -53,9 +52,10 @@ QLabel::disabled
 /*-----QMenuBar-----*/
 QMenuBar
 {
-	background-color: #0a0a0a;
+	background-color: #484c58;
 	color: #ffffff;
 	border-color: #051a39;
+	font-weight: bold;
 
 }
 
@@ -63,7 +63,7 @@ QMenuBar
 QMenuBar::disabled
 {
 	background-color: #404040;
-	color: #656565;
+	color: #898988;
 	border-color: #051a39;
 
 }
@@ -78,15 +78,16 @@ QMenuBar::item
 
 QMenuBar::item:selected
 {
-    background-color: #607cff;
-    border: 1px solid #41cd52;
+    background-color: #c4c5c3;
+	color: #000000;
+    border: 1px solid #000000;
 
 }
 
 
 QMenuBar::item:pressed
 {
-    background-color: #4969ff;
+    background-color: #979796;
     border: 1px solid #000;
     margin-bottom: -1px;
     padding-bottom: 1px;
@@ -97,9 +98,10 @@ QMenuBar::item:pressed
 /*-----QMenu-----*/
 QMenu
 {
-    background-color: #121212;
+    background-color: #c4c5c3;
     border: 1px solid;
-    color: #ffffff;
+    color: #000000;
+	font-weight: bold;
 
 }
 
@@ -107,7 +109,7 @@ QMenu
 QMenu::separator
 {
     height: 1px;
-    background-color: #6d8eff;
+    background-color: #363942;
     color: #ffffff;
     padding-left: 4px;
     margin-left: 10px;
@@ -126,7 +128,7 @@ QMenu::item
 
 QMenu::item:selected
 {
-    background-color: #4969ff;
+    background-color: #363942;
     color: #ffffff;
 
 }
@@ -134,17 +136,18 @@ QMenu::item:selected
 
 QMenu::item:disabled
 {
-    color: #262626;
+    color: #898988;
 }
 
 
 /*-----QToolTip-----*/
 QToolTip
 {
-	border : 1px solid #000000;
-	background-color: #26264f;
-	color: #ffffff;
+	background-color: #bbbcba;
+	color: #000000;
 	border-color: #051a39;
+	border : 1px solid #000000;
+	border-radius: 2px;
 
 }
 
@@ -152,8 +155,9 @@ QToolTip
 /*-----QPushButton-----*/
 QPushButton
 {
-	background-color: #607cff;
+	background-color: qlineargradient(spread:repeat, x1:0.486, y1:0, x2:0.505, y2:1, stop:0.00480769 rgba(170, 0, 0, 255),stop:1 rgba(122, 0, 0, 255));
 	color: #ffffff;
+	font-weight: bold;
 	border-style: solid;
 	border-width: 1px;
 	border-radius: 3px;
@@ -174,7 +178,7 @@ QPushButton::disabled
 
 QPushButton::hover
 {
-	background-color: #8399ff;
+	background-color: #9c0000;
 	color: #ffffff;
 	border-style: solid;
 	border-width: 1px;
@@ -187,26 +191,28 @@ QPushButton::hover
 
 QPushButton::pressed
 {
-	background-color: #4969ff;
+	background-color: #880000;
 	color: #ffffff;
 	border-style: solid;
-	border-width: 1px;
+	border-width: 2px;
 	border-radius: 3px;
-	border-color: #051a39;
+	border-color: #000000;
 	padding: 5px;
 
 }
 
 
 /*-----QToolButton-----*/
-QToolButton
+QToolButton 
 {
-	background-color: #607cff;
+	background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(177, 181, 193, 255),stop:1 rgba(159, 163, 174, 255));
 	color: #ffffff;
+	font-weight: bold;
+	border-style: solid;
 	border-width: 1px;
 	border-radius: 3px;
 	border-color: #051a39;
-	padding: 3px;
+	padding: 5px;
 
 }
 
@@ -222,24 +228,26 @@ QToolButton::disabled
 
 QToolButton::hover
 {
-	background-color: #8399ff;
+	background-color: #9fa3ae;
 	color: #ffffff;
+	border-style: solid;
 	border-width: 1px;
 	border-radius: 3px;
 	border-color: #051a39;
-	padding: 3px;
+	padding: 5px;
 
 }
 
 
 QToolButton::pressed
 {
-	background-color: #4969ff;
+	background-color: #7b7e86;
 	color: #ffffff;
-	border-width: 1px;
+	border-style: solid;
+	border-width: 2px;
 	border-radius: 3px;
-	border-color: #051a39;
-	padding: 3px;
+	border-color: #000000;
+	padding: 5px;
 
 }
 
@@ -247,11 +255,12 @@ QToolButton::pressed
 /*-----QComboBox-----*/
 QComboBox
 {
-    background-color: #607cff;
-    border: 1px solid;
+    background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(118, 118, 118, 255),stop:1 rgba(70, 70, 70, 255));
+    border: 1px solid #333333;
     border-radius: 3px;
     padding-left: 6px;
-    color: #ffffff;
+    color: lightgray;
+	font-weight: bold;
     height: 20px;
 
 }
@@ -268,24 +277,25 @@ QComboBox::disabled
 
 QComboBox:hover
 {
-    background-color: #8399ff;
+    background-color: #646464;
 
 }
 
 
 QComboBox:on
 {
-    background-color: #4969ff;
+    background-color: #979796;
+	color: #000000;
 
 }
 
 
 QComboBox QAbstractItemView
 {
-    background-color: #383838;
-    color: #ffffff;
+    background-color: #c4c5c3;
+    color: #000000;
     border: 1px solid black;
-    selection-background-color: #4969ff;
+    selection-background-color: #363942;
     selection-color: #ffffff;
     outline: 0;
 
@@ -297,7 +307,7 @@ QComboBox::drop-down
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 15px;
-    border-left-width: 0px;
+    border-left-width: 1px;
     border-left-color: darkgray;
     border-left-style: solid; 
     border-top-right-radius: 3px; 
@@ -319,11 +329,11 @@ QSpinBox,
 QDoubleSpinBox,
 QDateTimeEdit
 {
-	background-color: #525251;
-	color: #ffffff;
-	border: 1px solid #051a39;
-	border-radius: 3px;
-	padding : 2px;
+	background-color: #000000;
+	color: #00ff00;
+	font-weight: bold;
+	border: 1px solid #333333;
+	padding : 4px;
 
 }
 
@@ -343,10 +353,7 @@ QSpinBox:hover,
 QDoubleSpinBox::hover,
 QDateTimeEdit::hover
 {
-    background-color: #626262;
-    border: 1px solid #607cff;
-    color:  #fff;
-    padding: 2px
+    border: 1px solid #00ff00;
 
 }
 
@@ -355,8 +362,8 @@ QSpinBox::up-button, QSpinBox::down-button,
 QDoubleSpinBox::up-button, QDoubleSpinBox::down-button,
 QDateTimeEdit::up-button, QDateTimeEdit::down-button
 {
-    background-color: #607cff;
-	border-radius: 2px;
+	background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(118, 118, 118, 255),stop:1 rgba(70, 70, 70, 255));
+    border: 0px solid #333333;
 
 }
 
@@ -376,8 +383,9 @@ QSpinBox::up-button:hover, QSpinBox::down-button:hover,
 QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover,
 QDateTimeEdit::up-button:hover, QDateTimeEdit::down-button:hover
 {
-    background-color: #8399ff;
-    border: 1px solid #8399ff;
+	background-color: #646464;
+    border: 1px solid #333333;
+
 
 }
 
@@ -397,8 +405,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed,
 QDoubleSpinBox::up-button:pressed, QDoubleSpinBox::down-button::pressed,
 QDateTimeEdit::up-button:pressed, QDateTimeEdit::down-button::pressed
 {
-    background-color: #4969ff;
-    border: 1px solid #4969ff;
+    background-color: #979796;
+    border: 1px solid #444444;
 
 }
 
@@ -426,12 +434,18 @@ QDateTimeEdit::up-arrow
 /*-----QLineEdit-----*/
 QLineEdit
 {
-	background-color: #525251;
-	color: #ffffff;
-	border-width: 1px;
-	border-radius: 3px;
-	border-color: #051a39;
-	padding: 2px;
+	background-color: #000000;
+	color: #00ff00;
+	font-weight: bold;
+    border: 1px solid #333333;
+	padding: 4px;
+
+}
+
+
+QLineEdit:hover
+{
+    border: 1px solid #00ff00;
 
 }
 
@@ -441,7 +455,6 @@ QLineEdit::disabled
 	background-color: #404040;
 	color: #656565;
 	border-width: 1px;
-	border-radius: 3px;
 	border-color: #051a39;
 	padding: 2px;
 
@@ -451,9 +464,9 @@ QLineEdit::disabled
 /*-----QTextEdit-----*/
 QTextEdit
 {
-	background-color: #ffffff;
-	color: #010201;
-	border-color: #051a39;
+	background-color: #808080;
+	color: #fff;
+	border: 1px groove #333333;
 
 }
 
@@ -470,22 +483,29 @@ QTextEdit::disabled
 /*-----QGroupBox-----*/
 QGroupBox 
 {
-    border: 1px solid;
-    border-color: #607cff;
-    margin-top: 22px;
+    border: 1px groove #333333;
+	border-radius: 2px;
+    margin-top: 20px;
+
+}
+
+
+QGroupBox 
+{
+	background-color: qlineargradient(spread:repeat, x1:0.486, y1:0, x2:0.505, y2:1, stop:0.00480769 rgba(170, 169, 169, 255),stop:1 rgba(122, 122, 122, 255));
+	font-weight: bold;
 
 }
 
 
 QGroupBox::title  
 {
-    background-color: #607cff;
+    background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(71, 75, 87, 255),stop:1 rgba(35, 37, 43, 255));
     color: #ffffff;
+    border: 2px groove #333333;
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    padding: 5px;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
+    padding: 2px;
 
 }
 
@@ -504,11 +524,19 @@ QGroupBox::title::disabled
 
 
 /*-----QCheckBox-----*/
+QCheckBox{
+	background-color: transparent;
+	font-weight: bold;
+	color: #fff;
+
+}
+
+
 QCheckBox::indicator
 {
     color: #b1b1b1;
     background-color: #323232;
-    border: 1px solid #b1b1b1;
+    border: 2px solid #222222;
     width: 12px;
     height: 12px;
 
@@ -518,14 +546,14 @@ QCheckBox::indicator
 QCheckBox::indicator:checked
 {
     image:url(://checkbox.png);
-    border: 1px solid #607cff;
+    border: 2px solid #00ff00;
 
 }
 
 
 QCheckBox::indicator:unchecked:hover
 {
-    border: 1px solid #607cff;
+    border: 2px solid #00ff00;
 
 }
 
@@ -547,11 +575,19 @@ QCheckBox::indicator:disabled
 
 
 /*-----QRadioButton-----*/
+QRadioButton{
+	background-color: transparent;
+	font-weight: bold;
+	color: #fff;
+
+}
+
+
 QRadioButton::indicator::unchecked
 { 
-	border: 2px inset gray; 
-	border-radius: 5px; 
-	background-color:  #fff;
+	border: 2px inset #222222; 
+	border-radius: 6px; 
+	background-color:  #323232;
 	width: 9px; 
 	height: 9px; 
 
@@ -560,9 +596,9 @@ QRadioButton::indicator::unchecked
 
 QRadioButton::indicator::unchecked:hover
 { 
-	border: 2px solid #607cff; 
+	border: 2px solid #00ff00; 
 	border-radius: 5px; 
-	background-color:  #fff;
+	background-color:  #323232;
 	width: 9px; 
 	height: 9px; 
 
@@ -571,9 +607,9 @@ QRadioButton::indicator::unchecked:hover
 
 QRadioButton::indicator::checked
 { 
-	border: 2px inset darkgray; 
+	border: 2px inset #222222; 
 	border-radius: 5px; 
-	background-color: #4969ff; 
+	background-color: #00ff00; 
 	width: 9px; 
 	height: 9px; 
 
@@ -599,10 +635,11 @@ QRadioButton::indicator:disabled
 /*-----QTableView & QTableWidget-----*/
 QTableView
 {
-    background-color: #242526;
-    border: 1px solid #32414B;
+    background-color: #808080;
+    border: 1px groove #333333;
     color: #f0f0f0;
-    gridline-color: #8faaff;
+	font-weight: bold;
+    gridline-color: #333333;
     outline : 0;
 
 }
@@ -621,7 +658,7 @@ QTableView::disabled
 
 QTableView::item:hover 
 {
-    background-color: #26264f;
+    background-color: #484c58;
     color: #f0f0f0;
 
 }
@@ -629,8 +666,8 @@ QTableView::item:hover
 
 QTableView::item:selected 
 {
-    background-color: #1a1b1c;
-    border: 2px solid #4969ff;
+    background-color: #484c58;
+    border: 2px groove #00ff00;
     color: #F0F0F0;
 
 }
@@ -647,16 +684,16 @@ QTableView::item:selected:disabled
 
 QTableCornerButton::section
 {
-    background-color: #505050;
-    color: #fff;
+    background-color: #282830;
 
 }
 
 
 QHeaderView::section
 {
-    background-color: #525251;
+    background-color: #282830;
     color: #fff;
+	font-weight: bold;
     text-align: left;
 	padding: 4px;
 	
@@ -673,8 +710,7 @@ QHeaderView::section:disabled
 
 QHeaderView::section:checked
 {
-    color: #fff;
-    background-color: #4969ff;
+    background-color: #00ff00;
 
 }
 
@@ -690,14 +726,14 @@ QHeaderView::section:checked:disabled
 QHeaderView::section::vertical::first,
 QHeaderView::section::vertical::only-one
 {
-    border-top: 1px solid #353635;
+    border-top: 0px;
 
 }
 
 
 QHeaderView::section::vertical
 {
-    border-top: 1px solid #353635;
+    border-top: 0px;
 
 }
 
@@ -705,14 +741,14 @@ QHeaderView::section::vertical
 QHeaderView::section::horizontal::first,
 QHeaderView::section::horizontal::only-one
 {
-    border-left: 1px solid #353635;
+    border-left: 0px;
 
 }
 
 
 QHeaderView::section::horizontal
 {
-    border-left: 1px solid #353635;
+    border-left: 0px;
 
 }
 
@@ -720,15 +756,12 @@ QHeaderView::section::horizontal
 /*-----QTabWidget-----*/
 QTabBar::tab
 {
-	background-color: #262626;
+	background-color: transparent;
 	color: #ffffff;
-	border-style: solid;
-	border-width: 1px;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
-	border-color: #051a39;
-	padding: 5px;
-
+	font-weight: bold;
+	width: 80px;
+	height: 9px;
+	
 }
 
 
@@ -742,24 +775,19 @@ QTabBar::tab:disabled
 
 QTabWidget::pane 
 {
-	background-color: #262626;
+	background-color: transparent;
 	color: #ffffff;
-    border: 1px solid;
-    border-color: #607cff;
+	border: 1px groove #333333;
 
 }
 
 
 QTabBar::tab:selected
 {
-    background-color: #607cff;
+    background-color: #484c58;
 	color: #ffffff;
-	border-style: solid;
-	border-width: 1px;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
-	border-color: #051a39;
-	padding: 5px;
+	border: 1px groove #333333;
+	border-bottom: 0px;
 
 }
 
@@ -774,21 +802,21 @@ QTabBar::tab:selected:disabled
 
 QTabBar::tab:!selected 
 {
-    background-color: #262626;
+    background-color: #a3a7b2;
 
 }
 
 
 QTabBar::tab:!selected:hover 
 {
-    background-color: #8399ff;
+    background-color: #484c58;
 
 }
 
 
 QTabBar::tab:top:!selected 
 {
-    margin-top: 3px;
+    margin-top: 1px;
 
 }
 
@@ -833,21 +861,21 @@ QTabBar::tab:top:only-one, QTabBar::tab:bottom:only-one
 
 QTabBar::tab:left:!selected 
 {
-    margin-right: 3px;
+    margin-right: 2px;
 
 }
 
 
 QTabBar::tab:right:!selected
 {
-    margin-left: 3px;
+    margin-left: 2px;
 
 }
 
 
 QTabBar::tab:left, QTabBar::tab:right 
 {
-    min-height: 8ex;
+    min-height: 15ex;
     margin-bottom: -1px;
     padding: 10px 5px 10px 5px;
 
@@ -877,43 +905,50 @@ QTabBar::tab:left:only-one, QTabBar::tab:right:only-one
 
 
 /*-----QSlider-----*/
+QSlider{
+	background-color: transparent;
+
+}
+
+
 QSlider::groove:horizontal 
 {
 	background-color: transparent;
-	height: 5px;
+	height: 6px;
 
 }
 
 
 QSlider::sub-page:horizontal 
 {
-	background-color: #607cff;
+	background-color: qlineargradient(spread:reflect, x1:1, y1:0, x2:1, y2:1, stop:0.00480769 rgba(201, 201, 201, 255),stop:1 rgba(72, 72, 72, 255));
+	border: 1px solid #000;
 
 }
 
 
 QSlider::add-page:horizontal 
 {
-	background-color: #666765;
+	background-color: #404040;
+	border: 1px solid #000; 
 
 }
 
 
 QSlider::handle:horizontal 
 {
-	background-color: #607cff;
-	width: 14px;
+	background-color: qlineargradient(spread:reflect, x1:1, y1:0, x2:1, y2:1, stop:0.00480769 rgba(201, 201, 201, 255),stop:1 rgba(72, 72, 72, 255));
+	border: 1px solid #000; 
+	width: 12px;
 	margin-top: -6px;
 	margin-bottom: -6px;
-	border-radius: 3px;
 
 }
 
 
 QSlider::handle:horizontal:hover 
 {
-	background-color: #607cff;
-	border-radius: 3px;
+	background-color: #808080;
 
 }
 
@@ -938,7 +973,6 @@ QSlider::handle:horizontal:disabled
 {
 	background-color: #eee;
 	border: 1px solid #aaa;
-	border-radius: 3px;
 
 }
 
@@ -946,40 +980,41 @@ QSlider::handle:horizontal:disabled
 QSlider::groove:vertical 
 {
 	background-color: transparent;
-	width: 5px;
+	width: 6px;
 
 }
 
 
 QSlider::sub-page:vertical 
 {
-	background-color: #607cff;
+	background-color: qlineargradient(spread:reflect, x1:0, y1:0.483, x2:1, y2:0.517, stop:0.00480769 rgba(201, 201, 201, 255),stop:1 rgba(72, 72, 72, 255));
+	border: 1px solid #000;
 
 }
 
 
 QSlider::add-page:vertical 
 {
-	background-color: #666765;
+	background-color: #404040;
+	border: 1px solid #000;
 
 }
 
 
 QSlider::handle:vertical 
 {
-	background-color: #607cff;
-	height: 14px;
+	background-color: qlineargradient(spread:reflect, x1:0, y1:0.483, x2:1, y2:0.517, stop:0.00480769 rgba(201, 201, 201, 255),stop:1 rgba(72, 72, 72, 255));
+	border: 1px solid #000;
+	height: 12px;
 	margin-left: -6px;
 	margin-right: -6px;
-	border-radius: 3px;
 
 }
 
 
 QSlider::handle:vertical:hover 
 {
-	background-color: #607cff;
-	border-radius: 3px;
+	background-color: #808080;
 
 }
 
@@ -1012,7 +1047,7 @@ QSlider::handle:vertical:disabled
 /*-----QDial-----*/
 QDial
 {
-	background-color: #607cff;
+	background-color: #600000;
 
 }
 
@@ -1028,16 +1063,18 @@ QDial::disabled
 QScrollBar:horizontal
 {
     border: 1px solid #222222;
-    background-color: #3d3d3d;
-    height: 13px;
-    margin: 0px 16px 0 16px;
+    background-color: #63676d;
+    height: 18px;
+    margin: 0px 18px 0 18px;
 
 }
 
 
 QScrollBar::handle:horizontal
 {
-    background: #607cff;
+    background-color: #a6acb3;
+	border: 1px solid #656565;
+	border-radius: 2px;
     min-height: 20px;
 
 }
@@ -1046,8 +1083,8 @@ QScrollBar::handle:horizontal
 QScrollBar::add-line:horizontal
 {
     border: 1px solid #1b1b19;
-    background-color: #607cff;
-    width: 14px;
+    background-color: #a6acb3;
+    width: 18px;
     subcontrol-position: right;
     subcontrol-origin: margin;
 
@@ -1057,8 +1094,8 @@ QScrollBar::add-line:horizontal
 QScrollBar::sub-line:horizontal
 {
     border: 1px solid #1b1b19;
-    background-color: #607cff;
-    width: 14px;
+    background-color: #a6acb3;
+    width: 18px;
     subcontrol-position: left;
     subcontrol-origin: margin;
 
@@ -1068,8 +1105,8 @@ QScrollBar::sub-line:horizontal
 QScrollBar::right-arrow:horizontal
 {
     image: url(://arrow-right.png);
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 
 }
 
@@ -1077,8 +1114,8 @@ QScrollBar::right-arrow:horizontal
 QScrollBar::left-arrow:horizontal
 {
     image: url(://arrow-left.png);
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 
 }
 
@@ -1092,9 +1129,9 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal
 
 QScrollBar:vertical
 {
-    background-color: #3d3d3d;
-    width: 13px;
-    margin: 16px 0 16px 0;
+    background-color: #63676d;
+    width: 18px;
+    margin: 18px 0 18px 0;
     border: 1px solid #222222;
 
 }
@@ -1102,7 +1139,9 @@ QScrollBar:vertical
 
 QScrollBar::handle:vertical
 {
-    background-color: #607cff;
+    background-color: #a6acb3;
+	border: 1px solid #656565;
+	border-radius: 2px;
     min-height: 20px;
 
 }
@@ -1111,8 +1150,8 @@ QScrollBar::handle:vertical
 QScrollBar::add-line:vertical
 {
     border: 1px solid #1b1b19;
-    background-color: #607cff;
-    height: 14px;
+    background-color: #a6acb3;
+    height: 18px;
     subcontrol-position: bottom;
     subcontrol-origin: margin;
 
@@ -1122,8 +1161,8 @@ QScrollBar::add-line:vertical
 QScrollBar::sub-line:vertical
 {
     border: 1px solid #1b1b19;
-    background-color: #607cff;
-    height: 14px;
+    background-color: #a6acb3;
+    height: 18px;
     subcontrol-position: top;
     subcontrol-origin: margin;
 
@@ -1133,8 +1172,8 @@ QScrollBar::sub-line:vertical
 QScrollBar::up-arrow:vertical
 {
     image: url(://arrow-up.png);
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 
 }
 
@@ -1142,8 +1181,8 @@ QScrollBar::up-arrow:vertical
 QScrollBar::down-arrow:vertical
 {
     image: url(://arrow-down.png);
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 
 }
 
@@ -1158,25 +1197,41 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
 /*-----QProgressBar-----*/
 QProgressBar
 {
-	background-color: #383838;
-	color: #ffffff;
-	border: 1px solid #607cff;
-	border-radius: 3px;
+	background-color: #000;
+	color: #00ff00;
+	font-weight: bold;
+	border: 0px groove #000;
+	border-radius: 10px;
+	text-align: center;
+
+}
+
+
+QProgressBar:disabled
+{
+	background-color: #404040;
+	color: #656565;
+	border-color: #051a39;
+	border: 1px solid #000;
+	border-radius: 10px;
 	text-align: center;
 
 }
 
 
 QProgressBar::chunk {
-	background-color: #607cff;
-	color: #fff;
+	background-color: #ffaf02;
+	border: 0px;
+	border-radius: 10px;
+	color: #000;
 
 }
 
 
 QProgressBar::chunk:disabled {
-	background-color: #656565;
-	border: 1px solid #aaa;
+	background-color: #333;
+	border: 0px;
+	border-radius: 10px;
 	color: #656565;
 }
 
@@ -1184,11 +1239,11 @@ QProgressBar::chunk:disabled {
 /*-----QStatusBar-----*/
 QStatusBar
 {
-	background-color: #0a0a0a;
+	background-color: qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(102, 115, 140, 255),stop:1 rgba(56, 63, 77, 255));
 	color: #ffffff;
 	border-color: #051a39;
+	font-weight: bold;
 
 }
 
-)"
 
