@@ -76,7 +76,8 @@ ThemeChoser	themeChooser;
 #endif
 
 	QString styleSheetText	=
-	                   ISettings -> value ("styleSheet", ""). toString();
+	                   ISettings -> value ("styleSheet",
+	                                     "Combinear"). toString();
 	int styleSheet		= themeChooser.
 	                          get_idx_of_sheet_name (styleSheetText);
 

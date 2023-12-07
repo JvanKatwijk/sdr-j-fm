@@ -491,7 +491,7 @@ sdrplayHandler  *p      = static_cast<sdrplayHandler *> (cbContext);
 //	p -> lnaGRdBDisplay     -> display ((int)lnaGRdB);
 }
 
-bool	sdrplayHandler::restartReader	(void) {
+bool	sdrplayHandler::restartReader	() {
 int	gRdBSystem;
 int	samplesPerPacket;
 mir_sdr_ErrT	err;
@@ -547,7 +547,7 @@ int     lnaState        = lnaGainSetting -> value ();
 	return true;
 }
 
-void	sdrplayHandler::stopReader	(void) {
+void	sdrplayHandler::stopReader	() {
 	if (!running. load ())
 	   return;
 
@@ -564,23 +564,23 @@ int32_t	sdrplayHandler::getSamples (DSPCOMPLEX *V,
 	return _I_Buffer. getDataFromBuffer (V, size);
 }
 
-int32_t	sdrplayHandler::Samples	(void) {
+int32_t	sdrplayHandler::Samples	() {
 	return _I_Buffer. GetRingBufferReadAvailable ();
 }
 
-uint8_t	sdrplayHandler::myIdentity	(void) {
+uint8_t	sdrplayHandler::myIdentity	() {
 	return SDRPLAY;
 }
 
-void	sdrplayHandler::resetBuffer	(void) {
+void	sdrplayHandler::resetBuffer	() {
 	_I_Buffer. FlushRingBuffer ();
 }
 
-int16_t	sdrplayHandler::bitDepth	(void) {
+int16_t	sdrplayHandler::bitDepth	() {
 	return 12;
 }
 
-bool	sdrplayHandler::loadFunctions	(void) {
+bool	sdrplayHandler::loadFunctions	() {
 
 	my_mir_sdr_StreamInit	= (pfn_mir_sdr_StreamInit)
 	                    GETPROCADDRESS (this -> Handle,
@@ -809,7 +809,7 @@ void	sdrplayHandler::debugControl_toggled (int agcMode) {
 	my_mir_sdr_DebugEnable (debugControl -> isChecked () ? 1 : 0);
 }
 
-int32_t	sdrplayHandler::getRate	(void) {
+int32_t	sdrplayHandler::getRate	() {
 	return inputRate;
 }
 

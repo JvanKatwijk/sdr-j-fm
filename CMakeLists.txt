@@ -51,37 +51,15 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #	if you want to use the SSE support on your machine, comment
 #	set(NO_SSE_SUPPORT true)
 #
-if(DEFINED SDRPLAY)
-        set(SDRPLAY true)
-endif ()
+option(AIRSPY OFF)       
+option(SDRPLAY OFF)
+option(SDRPLAY_V3 OFF)
+option(HACKRF OFF)
+option(LIMESDR OFF) 
+option(RTL_TCP OFF) 
+option(PLUTO OFF) 
+option(UHD OFF)      
 
-if(DEFINED SDRPLAY_V3)
-        set(SDRPLAY_V3 true)
-endif ()
-
-if(DEFINED RTLSDR_LINUX)
-        set(RTLSDR_LINUX true)
-endif ()
-
-if(DEFINED AIRSPY)
-        set(AIRSPY true)
-endif ()
-
-if(DEFINED RTLSDR)
-        set(RTLSDR true)
-endif ()
-
-if(DEFINED HACKRF)
-	set (HACKRF true)
-endif ()
-
-if(DEFINED LIME)
-	set (LIME true)
-endif ()
-
-if(DEFINED PLUTO)
-	set (PLUTO true)
-endif ()
 
 ########################################################################
 	find_package (PkgConfig)
@@ -572,6 +550,7 @@ endif ()
 	                ${${objectName}_SRCS}
 	                ${UIS}
 	                ${MOCS}
+	                resources.qrc
 	)
 
 	target_link_libraries (${objectName}
