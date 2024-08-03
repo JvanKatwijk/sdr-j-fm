@@ -368,7 +368,7 @@ int	ret;
 //        if (ret < 0)
 //           fprintf (stderr, "mislukt, error code %d\n", ret);
 //	go for the filter
-	int enabled;
+	int enabled = 0;
 	ad9361_get_trx_fir_enable (get_ad9361_phy (ctx), &enabled);
 	if (enabled)
 	   ad9361_set_trx_fir_enable (get_ad9361_phy (ctx), 0);
@@ -628,7 +628,8 @@ void	plutoHandler::toggle_debugButton	() {
 }
 
 void	plutoHandler::handle_filterButton	() {
-int enabled;
+int enabled = 0;
+
         ad9361_get_trx_fir_enable (get_ad9361_phy (ctx), &enabled);
         if (enabled)
            ad9361_set_trx_fir_enable (get_ad9361_phy (ctx), 0);

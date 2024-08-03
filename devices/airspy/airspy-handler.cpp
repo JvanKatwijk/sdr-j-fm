@@ -258,7 +258,6 @@ int32_t	bufSize	= EXTIO_NS * EXTIO_BASE_TYPE_SIZE * 2;
 	   return false;
 	}
 	
-//	setExternalRate (inputRate);
 	set_linearity	(linearitySlider -> value ());
 	set_sensitivity	(sensitivitySlider -> value ());
 	
@@ -373,26 +372,9 @@ int result = my_airspy_open (&device);
 	}
 }
 
-//void	airspyHandler::set_rateSelector (const QString &s) {
-//int32_t v	= s. toInt ();
-
-//	setExternalRate (Khz (v));
-//	set_changeRate (Khz (v));
-//}
-
-
 int	airspyHandler::setExternalRate (int nsr) {
-airspy_samplerate_t as_nsr;
-
-	int result = my_airspy_set_samplerate (device, as_nsr);
-	if (result != AIRSPY_SUCCESS) {
-	   fprintf (stderr, "airspy_set_samplerate() failed: %s (%d)\n",
-	               my_airspy_error_name ((airspy_error)result), result);
-	   return -1;
-	} else
-	   return 0;
+	return 0;
 }
-
 
 void	airspyHandler::resetBuffer () {
 	_I_Buffer. FlushRingBuffer ();

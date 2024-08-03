@@ -19,53 +19,47 @@
  *    along with Qt-Dab if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-#include	"RspII-handler.h"
+#include	"RspI-handler.h"
 #include	"sdrplay-handler-v3.h"
 
-	RspII_handler::RspII_handler (sdrplayHandler_v3 *parent,
+static
+int	RSP1_Table [3][5] = {
+	{4, 0, 24, 19, 43},
+	{4, 0,  7, 19, 26},
+	{4, 0,  5, 19, 24}};
+
+
+	Rsp1_handler::Rsp1_handler   (sdrplayHandler_v3 *parent,
 	                              sdrplay_api_DeviceT *chosenDevice,
 	                              int	sampleRate,
 	                              int	freq,
 	                              bool	agcMode,
 	                              int	lnaState,
-	                              int 	GRdB, 
-	                              int	antennaValue,
-	                              bool 	biasT) :
+	                              int 	GRdB,
+	                              bool	biasT) :
 	                              Rsp_device (parent,
 	                                          chosenDevice, 
-	                                         sampleRate,
-	                                         freq,
-	                                         agcMode,
-	                                         lnaState,
-	                                         GRdB, biasT) {
+	                                          sampleRate,
+	                                          freq,
+	                                          agcMode,
+	                                          lnaState,
+	                                          GRdB, biasT) {
 
-	set_antenna (antennaValue);
-	this	-> lna_upperBound	= 9;
-	this	-> deviceModel		= "RSP-II";
-	this	-> nrBits		= 14;
-	if (freq < Mhz (420))
-	   lna_upperBound = 9;
-	else
-	   lna_upperBound = 6;
+	this	-> deviceModel		= "RSP-1";
+	this	-> nrBits		= 12;
+	this	-> lna_upperBound =  lnaStates (freq);
+	set_lnabounds_signal	(0, lna_upperBound);
 	if (lnaState > lna_upperBound)
-	   this -> lnaState = lna_upperBound - 1;
+	   this -> lnaState = lna_upperBound;
 	set_lna (this -> lnaState);
+
 	if (biasT)
 	   set_biasT (true);
 }
 
-	RspII_handler::~RspII_handler	() {}
+	Rsp1_handler::~Rsp1_handler	() {}
 
-
-static
-int     RSPII_Table [3] [10] = {
-	{9, 0, 10, 15, 21, 24, 34, 39, 45, 64},
-	{6, 0,  7, 10, 17, 22, 41, -1, -1, -1},
-	{6, 0,  5, 21, 15, 15, 32, -1, -1, -1}
-};
-
-int16_t RspII_handler::bankFor_rspII (int freq) { 
+int16_t Rsp1_handler::bankFor_rsp1 (int freq) {
 	if (freq < MHz (420))
 	   return 0;
 	if (freq < MHz (1000))
@@ -73,17 +67,17 @@ int16_t RspII_handler::bankFor_rspII (int freq) {
 	return 2;
 }
 
-int	RspII_handler::lnaStates (int frequency) {
-int band	= bankFor_rspII (frequency);
-	return RSPII_Table [band][0];
+int	Rsp1_handler::lnaStates (int frequency) {
+int band	= bankFor_rsp1 (frequency);
+	return RSP1_Table [band][0];
 }
 
-int	RspII_handler::get_lnaGain (int lnaState, int freq) {
-int	band	= bankFor_rspII (freq);
-	return RSPII_Table [band][lnaState + 1];
+int	Rsp1_handler::get_lnaGain (int lnaState, int freq) {
+int	band	= bankFor_rsp1 (freq);
+	return RSP1_Table [band][lnaState + 1];
 }
 
-bool	RspII_handler::restart (int freq) {
+bool	Rsp1_handler::restart (int freq) {
 sdrplay_api_ErrT        err;
 
 	chParams -> tunerParams. rfFreq. rfHz = (float)freq;
@@ -98,22 +92,17 @@ sdrplay_api_ErrT        err;
 	}
 
 	this -> freq	= freq;
-	if (freq < MHz (420))
-	   this	-> lna_upperBound	= 9;
-	else
-	   this -> lna_upperBound	= 6;
-	
+	this	-> lna_upperBound	= 3;
 	set_lnabounds_signal	(0, lna_upperBound);
 	show_lnaGain (get_lnaGain (lnaState, freq));
-	
 	return true;
 }
 
-bool	RspII_handler::set_agc	(int setPoint, bool on) {
+bool	Rsp1_handler::set_agc	(int setPoint, bool on) {
 sdrplay_api_ErrT        err;
 
 	if (on) {
-	   chParams    -> ctrlParams. agc. setPoint_dBfs = - setPoint;
+	   chParams    -> ctrlParams. agc. setPoint_dBfs = setPoint;
 	   chParams    -> ctrlParams. agc. enable = sdrplay_api_AGC_100HZ;
 	}
 	else
@@ -134,7 +123,7 @@ sdrplay_api_ErrT        err;
 	return true;
 }
 
-bool	RspII_handler::set_GRdB	(int GRdBValue) {
+bool	Rsp1_handler::set_GRdB	(int GRdBValue) {
 sdrplay_api_ErrT        err;
 
 	chParams -> tunerParams. gain. gRdB = GRdBValue;
@@ -151,23 +140,12 @@ sdrplay_api_ErrT        err;
 	return true;
 }
 
-bool	RspII_handler::set_ppm	(int ppmValue) {
-sdrplay_api_ErrT        err;
-
-	deviceParams    -> devParams -> ppm = ppmValue;
-	err = parent -> sdrplay_api_Update (chosenDevice -> dev,
-	                                    chosenDevice -> tuner,
-	                                    sdrplay_api_Update_Dev_Ppm,
-	                                    sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success) {
-	   fprintf (stderr, "lna: error %s\n",
-	                          parent -> sdrplay_api_GetErrorString (err));
-	   return false;
-	}
+bool	Rsp1_handler::set_ppm	(int ppmValue) {
+	(void)ppmValue;
 	return true;
 }
 
-bool	RspII_handler::set_lna	(int lnaState) {
+bool	Rsp1_handler::set_lna	(int lnaState) {
 sdrplay_api_ErrT        err;
 
 	chParams -> tunerParams. gain. LNAstate = lnaState;
@@ -185,39 +163,8 @@ sdrplay_api_ErrT        err;
 	return true;
 }
 
-bool	RspII_handler::set_antenna (int antenna) {
-sdrplay_api_Rsp2TunerParamsT *rsp2TunerParams;
-sdrplay_api_ErrT        err;
-
-	rsp2TunerParams   = &(chParams -> rsp2TunerParams);
-	rsp2TunerParams -> antennaSel =
-	                           antenna == 'A' ?
-                                             sdrplay_api_Rsp2_ANTENNA_A :
-                                             sdrplay_api_Rsp2_ANTENNA_B;
-	    
-	err = parent ->  sdrplay_api_Update (chosenDevice -> dev, 
-	                                     chosenDevice -> tuner,
-	                                     sdrplay_api_Update_Rsp2_AntennaControl,
-	                                     sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success)
-	   return false;
-
-	return true;
-}
-
-bool	RspII_handler::set_biasT (bool biasT_value) {
-sdrplay_api_Rsp2TunerParamsT *rsp2TunerParams;
-sdrplay_api_ErrT        err;
-
-	rsp2TunerParams   = &(chParams -> rsp2TunerParams);
-	rsp2TunerParams -> biasTEnable = biasT_value;
-	err	= parent ->   sdrplay_api_Update (chosenDevice -> dev,
-                                       chosenDevice -> tuner,
-                                       sdrplay_api_Update_Rsp2_BiasTControl,
-                                       sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success)
-	   return false;
-
+bool	Rsp1_handler::set_biasT	(bool biasT_value) {
+	(void)biasT_value;
 	return true;
 }
 

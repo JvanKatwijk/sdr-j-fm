@@ -325,17 +325,19 @@ option(UHD OFF)
                   ${${objectName}_HDRS}
                   ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h
 	          ./devices/sdrplay-handler-v3/sdrplay-commands.h
-`                 ./devices/sdrplay-handler-v3/Rsp-device.h
-`                 ./devices/sdrplay-handler-v3/Rsp1A-handler.h
-`                 ./devices/sdrplay-handler-v3/RspDuo-handler.h
-`                 ./devices/sdrplay-handler-v3/RspDx-handler.h
-`                 ./devices/sdrplay-handler-v3/RspII-handler.h)
+	          ./devices/sdrplay-handler-v3/Rsp-device.h
+                  ./devices/sdrplay-handler-v3/RspI-handler.h
+                  ./devices/sdrplay-handler-v3/Rsp1A-handler.h
+                  ./devices/sdrplay-handler-v3/RspDuo-handler.h
+                  ./devices/sdrplay-handler-v3/RspDx-handler.h
+                  ./devices/sdrplay-handler-v3/RspII-handler.h)
 	
 
 	   set (${objectName}_SRCS
 	           ${${objectName}_SRCS}
                   ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp
 	          ./devices/sdrplay-handler-v3/Rsp-device.cpp
+	          ./devices/sdrplay-handler-v3/RspI-handler.cpp
 	          ./devices/sdrplay-handler-v3/Rsp1A-handler.cpp
 	          ./devices/sdrplay-handler-v3/RspDuo-handler.cpp
 	          ./devices/sdrplay-handler-v3/RspDx-handler.cpp
