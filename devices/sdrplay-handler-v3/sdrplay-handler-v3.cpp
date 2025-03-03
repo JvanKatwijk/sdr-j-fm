@@ -4,40 +4,19 @@
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of Qt-DAB
+ *    This file is part of sdr-j-FM
  *
- *    Qt-Dab is free software; you can redistribute it and/or modify
+ *    sdr-j-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation version 2 of the License.
  *
- *    Qt-Dab is distributed in the hope that it will be useful,
+ *    sdr-j-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-Dab if not, write to the Free Software
- *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-/*
- *    Copyright (C) 2020
- *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Computing
- *
- *    This file is part of Qt-DAB
- *
- *    Qt-DAB is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation version 2 of the License.
- *
- *    Qt-DAB is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with Qt-DAB if not, write to the Free Software
+ *    along with sdr-j-FM if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -113,19 +92,26 @@
            biasT_selector -> setChecked (true);
 	
 //	and be prepared for future changes in the settings
-	connect (GRdBSelector, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_ifgainReduction (int)));
-	connect (lnaGainSetting, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_lnagainReduction (int)));
-	connect (agcControl, SIGNAL (stateChanged (int)),
-	         this, SLOT (set_agcControl (int)));
-	connect (ppmControl, SIGNAL (valueChanged (int)),
-	         this, SLOT (set_ppmControl (int)));
-	connect (antennaSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (set_selectAntenna (const QString &)));
-	connect (biasT_selector, SIGNAL (stateChanged (int)),
-	         this, SLOT (set_biasT (int)));
-
+	connect (GRdBSelector, qOverload<int>(&QSpinBox::valueChanged),
+	         this, &sdrplayHandler_v3::set_ifgainReduction);
+	connect (lnaGainSetting, qOverload<int>(&QSpinBox::valueChanged),
+	         this, &sdrplayHandler_v3::set_lnagainReduction);
+#if QT_VERSION >= QT_VERSION_CHECK (6, 0, 2)
+	connect (agcControl, &QCheckBox::checkStateChanged,
+#else
+	connect (agcControl, &QCheckBox::stateChanged,
+#endif
+	         this, &sdrplayHandler_v3::set_agcControl);
+	connect (ppmControl, qOverload<double>(&QDoubleSpinBox::valueChanged),
+	         this, &sdrplayHandler_v3::set_ppmControl);
+//	connect (dumpButton, &QPushButton::clicked,
+//	         this, &sdrplayHandler_v3::set_xmlDump);
+#if QT_VERSION >= QT_VERSION_CHECK (6, 0, 2)
+	connect (biasT_selector, &QCheckBox::checkStateChanged,	
+#else
+	connect (biasT_selector, &QCheckBox::stateChanged,	
+#endif
+	         this, &sdrplayHandler_v3::set_biasT);
 	vfoFrequency	= MHz (220);
 	theGain		= -1;
 	debugControl	-> hide ();
@@ -181,7 +167,6 @@ bool	sdrplayHandler_v3::legalFrequency	(int freq) {
 	return (MHz (60) <= freq) && (freq <= MHz (250));
 }
 
-
 int32_t	sdrplayHandler_v3::getVFOFrequency() {
 	return vfoFrequency;
 }
@@ -207,6 +192,66 @@ stopRequest r;
         messageHandler (&r);
 }
 //
+void	sdrplayHandler_v3::set_ifgainReduction	(int GRdB) {
+GRdBRequest r (GRdB);
+
+	if (!receiverRuns. load ())
+           return;
+        messageHandler (&r);
+}
+
+void	sdrplayHandler_v3::set_lnagainReduction (int lnaState) {
+lnaRequest r (lnaState);
+
+	if (!receiverRuns. load ())
+           return;
+        messageHandler (&r);
+}
+
+void	sdrplayHandler_v3::set_agcControl (int dummy) {
+bool    agcMode = agcControl -> isChecked ();
+agcRequest r (agcMode, 30);
+	(void)dummy;
+        messageHandler (&r);
+	if (agcMode) {
+           GRdBSelector         -> hide ();
+           gainsliderLabel      -> hide ();
+	}
+	else {
+	   GRdBRequest r2 (GRdBSelector -> value ());
+	   GRdBSelector		-> show ();
+	   gainsliderLabel	-> show ();
+	   messageHandler  (&r2);
+	}
+}
+
+void	sdrplayHandler_v3::set_ppmControl (int ppm) {
+ppmRequest r (ppm);
+        messageHandler (&r);
+}
+
+void	sdrplayHandler_v3::set_biasT (int v) {
+biasT_Request r (biasT_selector -> isChecked () ? 1 : 0);
+
+	messageHandler (&r);
+	sdrplaySettings -> setValue ("biasT_selector",
+	                              biasT_selector -> isChecked () ? 1 : 0);
+}
+
+void	sdrplayHandler_v3::set_selectAntenna	(const QString &s) {
+	messageHandler (new antennaRequest (s == "Antenna A" ? 'A' :
+	                                    s == "Antenna B" ? 'B' : 'C'));
+}
+
+void	sdrplayHandler_v3::set_selectTuner	(const QString &s) {
+	int tuner = s == "Tuner 1" ? 1 : 2; 
+	messageHandler (new tunerRequest (tuner));
+	
+	sdrplaySettings	-> beginGroup ("sdrplaySettings_v3");
+	sdrplaySettings -> setValue ("sdrplay_tuner", tuner);
+	sdrplaySettings	-> endGroup ();
+}
+
 int32_t	sdrplayHandler_v3::getSamples (std::complex<float> *V,
 	                               int32_t size, uint8_t Mode) { 
 std::complex<int16_t> temp [size];
@@ -270,56 +315,6 @@ void    sdrplayHandler_v3::show_lnaGain (int g) {
         lnaGRdBDisplay  -> display (g);
 }
 
-void	sdrplayHandler_v3::set_ifgainReduction	(int GRdB) {
-GRdBRequest r (GRdB);
-
-	if (!receiverRuns. load ())
-           return;
-        messageHandler (&r);
-}
-
-void	sdrplayHandler_v3::set_lnagainReduction (int lnaState) {
-lnaRequest r (lnaState);
-
-	if (!receiverRuns. load ())
-           return;
-        messageHandler (&r);
-}
-
-void	sdrplayHandler_v3::set_agcControl (int dummy) {
-bool    agcMode = agcControl -> isChecked ();
-agcRequest r (agcMode, 30);
-	(void)dummy;
-        messageHandler (&r);
-	if (agcMode) {
-           GRdBSelector         -> hide ();
-           gainsliderLabel      -> hide ();
-	}
-	else {
-	   GRdBRequest r2 (GRdBSelector -> value ());
-	   GRdBSelector		-> show ();
-	   gainsliderLabel	-> show ();
-	   messageHandler  (&r2);
-	}
-}
-
-void	sdrplayHandler_v3::set_ppmControl (int ppm) {
-ppmRequest r (ppm);
-        messageHandler (&r);
-}
-
-void	sdrplayHandler_v3::set_biasT (int v) {
-biasT_Request r (biasT_selector -> isChecked () ? 1 : 0);
-
-	messageHandler (&r);
-	sdrplaySettings -> setValue ("biasT_selector",
-	                              biasT_selector -> isChecked () ? 1 : 0);
-}
-
-void	sdrplayHandler_v3::set_selectAntenna	(const QString &s) {
-	messageHandler (new antennaRequest (s == "Antenna A" ? 'A' :
-	                                    s == "Antenna B" ? 'B' : 'C'));
-}
 
 //
 ////////////////////////////////////////////////////////////////////////
@@ -337,28 +332,22 @@ int	sdrplayHandler_v3::set_antennaSelect (int sdrDevice) {
 	   antennaSelector	-> show ();
 	}
 
-//	sdrplaySettings -> beginGroup (SDRPLAY_SETTINGS);
-//	QString setting	=
-//	      sdrplaySettings	-> value (SDRPLAY_ANTENNA,
-//	                                         "Antenna A"). toString ();
-//	sdrplaySettings	-> endGroup ();
-//	int k	= antennaSelector -> findText (setting);
-//	if (k >= 0) 
-//	   antennaSelector -> setCurrentIndex (k);
+	sdrplaySettings	-> beginGroup ("sdrplaySettings_v3");
+	QString setting	=
+	      sdrplaySettings	-> value ("Antenna", "Antenna A"). toString ();
+	sdrplaySettings	-> endGroup ();
+	int k	= antennaSelector -> findText (setting);
+	if (k >= 0) 
+	   antennaSelector -> setCurrentIndex (k);
 	connect (antennaSelector,
-	         qOverload<const QString &>(&QComboBox::activated),
-	         this, &sdrplayHandler_v3::set_selectAntenna);
-//	return k == 2 ? 'C' : k == 1 ? 'B' : 'A';
-	return 'A';
-	
-}
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2)
+                 &QComboBox::textActivated,
+#else
+                 qOverload<const QString &>(&QComboBox::activated),
+#endif
+                 this, &sdrplayHandler_v3::set_selectAntenna);
 
-
-void	sdrplayHandler_v3::show_tunerSelector	(bool b) {
-	if (b)
-	   tunerSelector	-> show	();
-	else
-	   tunerSelector	-> hide	();
+	return k == 2 ? 'C' : k == 1 ? 'B' : 'A';
 }
 
 //
@@ -417,6 +406,7 @@ sdrplayHandler_v3 *p	= static_cast<sdrplayHandler_v3 *> (cbContext);
 	p -> theGain	= params -> gainParams. currGain;
 	switch (eventId) {
 	   case sdrplay_api_GainChange:
+	      p -> show_tuner_gain (params -> gainParams. currGain);
 	      break;
 
 	   case sdrplay_api_PowerOverloadChange:
@@ -454,10 +444,12 @@ uint32_t                ndev;
 
 	chosenDevice		= nullptr;
 
-	connect (this, SIGNAL (set_serial_signal (const QString &)),
-	         this, SLOT (set_serial (const QString &)));
-	connect (this, SIGNAL (set_apiVersion_signal (float)),
-	         this, SLOT (set_apiVersion (float)));
+	connect (this, &sdrplayHandler_v3::set_serial_signal,
+                 this, &sdrplayHandler_v3::set_serial);
+        connect (this, &sdrplayHandler_v3::set_apiVersion_signal,
+                 this, &sdrplayHandler_v3::set_apiVersion);
+        connect (this, &sdrplayHandler_v3::show_tuner_gain,
+                 this, &sdrplayHandler_v3::display_gain);
 
 	denominator		= 2048;		// default
 	nrBits			= 12;		// default
@@ -551,6 +543,9 @@ uint32_t                ndev;
 	hwVersion	= devs [0]. hwVer;
 //
 	try {
+	   int antennaValue;
+	   int lnaBounds;
+
 	   switch (hwVersion) {
 	      case SDRPLAY_RSPdx_ :
 	      case SDRPLAY_RSPdxR2_ :
@@ -567,7 +562,7 @@ uint32_t                ndev;
 	                                     lnaState,
 	                                     GRdBValue,
 	                                     antennaValue,
-	                                     biasT);
+	                                     biasT, ppmValue);
 	         break;
 
 	      case SDRPLAY_RSP1_ :
@@ -581,7 +576,8 @@ uint32_t                ndev;
                                              agcMode,
                                              lnaState,
                                              GRdBValue,
-                                             biasT);
+                                             biasT, 
+	                                     ppmValue);
                  break;
 
 	      case SDRPLAY_RSP1A_ :
@@ -598,7 +594,7 @@ uint32_t                ndev;
 	                                     agcMode,
 	                                     lnaState,
 	                                     GRdBValue,
-	                                     biasT);
+	                                     biasT, ppmValue);
 	         break;
 
 	      case SDRPLAY_RSP2_ :
@@ -615,13 +611,21 @@ uint32_t                ndev;
 	                                     lnaState,
 	                                     GRdBValue,
 	                                     antennaValue,
-	                                     biasT);
+	                                     biasT, ppmValue);
 	         break;
 
 	      case SDRPLAY_RSPduo_ :
 	         nrBits         = 14;
                  denominator    = 4096;
                  deviceModel    = "RSP-Duo";
+	         tunerSelector	-> show ();
+	         connect (tunerSelector,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2)
+                 &QComboBox::textActivated,
+#else
+                 qOverload<const QString &>(&QComboBox::activated),
+#endif
+                 this, &sdrplayHandler_v3::set_selectTuner);
 	         theRsp	= new RspDuo_handler (this,
 	                                     chosenDevice,
 	                                     inputRate,
@@ -630,10 +634,17 @@ uint32_t                ndev;
 	                                     lnaState,
 	                                     GRdBValue,
 	                                     antennaValue,
-	                                     biasT);
+	                                     1,
+	                                     biasT,
+	                                     ppmValue);
 	         break;
 
 	      default:
+	         nrBits         = 14;
+                 denominator    = 4096.0f;
+                 deviceModel    = "UNKNOWN";
+                 lnaBounds      = 4;
+                 lnaGainSetting -> setRange (0, lnaBounds - 1);
 	         theRsp	= new Rsp_device (this,
 	                                  chosenDevice,
 	                                  2112000,
@@ -641,7 +652,7 @@ uint32_t                ndev;
 	                                  agcMode,
 	                                  lnaState,
 	                                  GRdBValue,
-	                                  biasT);
+	                                  biasT, ppmValue);
 	         break;
 	   }
 	} catch (int e) {
@@ -728,6 +739,16 @@ uint32_t                ndev;
 	         break;
 	      }
 	
+	      case TUNERSELECT_REQUEST: {
+	         tunerRequest *p =
+	               (tunerRequest *)(server_queue. front ());
+	         server_queue. pop();
+	         fprintf (stderr, "Going to call set_tuner\n");
+	         p -> result = theRsp -> set_tuner (p -> tuner);
+	         p -> waiter. release (1);
+	         break;
+	      }
+
 	      default:		// cannot happen
 	         fprintf (stderr, "Helemaal fout\n");
 	         break;
@@ -944,4 +965,7 @@ bool	sdrplayHandler_v3::loadFunctions () {
 	return true;
 }
 
+void	sdrplayHandler_v3::display_gain	(double gain) {
+	gainLabel -> setText (QString::number (gain, 'f', 0) + "dB");
+}
 

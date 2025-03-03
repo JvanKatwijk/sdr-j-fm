@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2020
+ *    Copyright (C) 2020 .. 2024
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -20,8 +20,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	__RSPII_HANDLER_H
-#define	__RSPII_HANDLER_H
+#pragma once
 
 #include	"Rsp-device.h"
 
@@ -37,14 +36,12 @@ public:
 	                       int	lnaState,
 	                       int 	GRdB,
 	                       int	antennaValue,
-	                       bool	biasT);
+	                       bool	biasT,
+	                       double	ppmValue);
 		~RspII_handler	();
 
 	int	lnaStates	(int frequency);
 	bool	restart		(int freq);
-	bool	set_agc		(int setPoint, bool on);
-	bool	set_GRdB	(int GRdBValue);
-	bool	set_ppm		(int ppm);
 	bool	set_lna		(int lnaState);
 	bool	set_antenna	(int antenna);
 	bool	set_biasT	(bool biasT);
@@ -52,7 +49,6 @@ private:
 	int16_t	bankFor_rspII 	(int freq);
 	int	get_lnaGain	(int, int);
 };
-#endif
 
 
 

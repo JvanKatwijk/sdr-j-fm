@@ -20,8 +20,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	__RSP_DEVICE_H
-#define	__RSP_DEVICE_H
+#pragma once
 
 #include	<QObject>
 #include	<stdint.h>
@@ -54,25 +53,24 @@ public:
 	                         int startFrequency,
 	                         bool agcMode,
 	                         int lnaState,
-	                         int GRdB, bool biasT);
+	                         int GRdB,
+	                         bool biasT,
+	                         double ppmValue);
 	virtual	~Rsp_device	();
 virtual int	lnaStates	(int frequency);
 
 virtual	bool	restart		(int freq);
-virtual	bool	set_agc		(int setPoint, bool on);
+	bool	set_agc		(int setPoint, bool on);
+	bool	set_GRdB	(int GRdBValue);
+	bool	set_ppm		(double ppm);
 virtual	bool	set_lna		(int lnaState);
-virtual	bool	set_GRdB	(int GRdBValue);
-virtual	bool	set_ppm		(int ppm);
 virtual	bool	set_antenna	(int antenna);
 virtual	bool	set_amPort 	(int amPort);
 virtual	bool	set_biasT 	(bool biasT);
+virtual	bool	set_tuner	(int tuner);
 signals:
 	void	set_lnabounds_signal	(int, int);
-	void	set_deviceName_signal	(const QString &);
-	void	set_antennaSelect_signal (int);
-	void	set_nrBits_signal	(int);
 	void	show_lnaGain		(int);
 };
-#endif
 
 

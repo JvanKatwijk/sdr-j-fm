@@ -1,13 +1,16 @@
 
-    FM receiver V3.15
+    FM receiver V3.20
 -------------------------
+
+In version 3.20 the software was made ready to work with Qt6. Furthermore
+the "tunerselect" function for the SDRplay RSPduo was implemented.
 
 ========================================================================
 
 Some significant modifications were made by Thomas Neder, apart from the
 "skin", most mods were "under the hood". 
 
-The version number is now 3.15
+The version number is now 3.20
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 

@@ -1,22 +1,22 @@
 #
 /*
- *    Copyright (C) 2020
+ *    Copyright (C) 2020 .. 2025
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of Qt-DAB
+ *    This file is part of sdr-j-FM
  *
- *    Qt-Dab is free software; you can redistribute it and/or modify
+ *    sdr-j-FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation version 2 of the License.
  *
- *    Qt-Dab is distributed in the hope that it will be useful,
+ *    sdr-j-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-Dab if not, write to the Free Software
+ *    along with sdr-j-FM if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -31,7 +31,8 @@
 	                              int	lnaState,
 	                              int 	GRdB,
 	                              int	antennaValue,
-	                              bool	biasT) :
+	                              bool	biasT,
+	                              double	ppmValue) :
 	                              Rsp_device (parent,
 	                                          chosenDevice, 
 	                                         sampleRate,
@@ -39,7 +40,7 @@
 	                                         agcMode,
 	                                         lnaState,
 	                                         GRdB,
-	                                         biasT) {
+	                                         biasT, ppmValue) {
 
 	set_antenna (antennaValue);
 	this	-> deviceModel		= "RSP-Dx";
@@ -68,7 +69,6 @@ int	RSPdx_Table [6][29] = {
 	{19, 0, 5,  8, 11, 14, 17, 20, 32, 35, 38, 41, 44, 47, 50,
 	          53, 56, 59, 62, 65, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
-
 
 int16_t RspDx_handler::bankFor_rspdx (int freq) {
 	if (freq < Mhz (60))
@@ -110,64 +110,6 @@ sdrplay_api_ErrT        err;
 	set_lnabounds_signal	(0, lnaStates (freq));
 	show_lnaGain (get_lnaGain (lnaState, freq));
 
-	return true;
-}
-
-bool	RspDx_handler::set_agc	(int setPoint, bool on) {
-sdrplay_api_ErrT        err;
-
-	if (on) {
-	   chParams    -> ctrlParams. agc. setPoint_dBfs = - setPoint;
-	   chParams    -> ctrlParams. agc. enable = sdrplay_api_AGC_100HZ;
-	}
-	else
-	   chParams    -> ctrlParams. agc. enable =
-                                             sdrplay_api_AGC_DISABLE;
-
-	err = parent ->  sdrplay_api_Update (chosenDevice -> dev,
-	                                     chosenDevice -> tuner,
-                                             sdrplay_api_Update_Ctrl_Agc,
-                                             sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success) {
-	   fprintf (stderr, "agc: error %s\n",
-	                          parent -> sdrplay_api_GetErrorString (err));
-	   return false;
-	}
-
-	this	-> agcMode = on;
-	return true;
-}
-
-bool	RspDx_handler::set_GRdB	(int GRdBValue) {
-sdrplay_api_ErrT        err;
-
-	chParams -> tunerParams. gain. gRdB = GRdBValue;
-	err = parent ->  sdrplay_api_Update (chosenDevice -> dev,
-	                                     chosenDevice -> tuner,
-	                                     sdrplay_api_Update_Tuner_Gr,
-	                                     sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success) {
-	   fprintf (stderr, "grdb: error %s\n",
-                                   parent -> sdrplay_api_GetErrorString (err));
-	   return false;
-	}
-	this	-> GRdB = GRdBValue;
-	return true;
-}
-
-bool	RspDx_handler::set_ppm	(int ppmValue) {
-sdrplay_api_ErrT        err;
-
-	deviceParams    -> devParams -> ppm = ppmValue;
-	err = parent -> sdrplay_api_Update (chosenDevice -> dev,
-	                                    chosenDevice -> tuner,
-	                                    sdrplay_api_Update_Dev_Ppm,
-	                                    sdrplay_api_Update_Ext1_None);
-	if (err != sdrplay_api_Success) {
-	   fprintf (stderr, "lna: error %s\n",
-	                          parent -> sdrplay_api_GetErrorString (err));
-	   return false;
-	}
 	return true;
 }
 

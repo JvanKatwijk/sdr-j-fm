@@ -5,20 +5,20 @@
 ######################################################################
 
 TEMPLATE	= app
-TARGET		= fmreceiver-3.16
+TARGET		= fmreceiver-3.20
 QT		+= widgets
 #CONFIG		+= console
 CONFIG		-= console
-QMAKE_CXXFLAGS  += -std=c++14
+QMAKE_CXXFLAGS  += -std=c++17
 #
 # Note that the fastmath option eliminates the isinf and isnan
 # functions that are used to validate the data
-#QMAKE_CFLAGS	+= -flto 
-#QMAKE_CXXFLAGS	+= -flto 
-#QMAKE_LFLAGS	+= -flto
-QMAKE_CXXFLAGS	+= -g
-QMAKE_CFLAGS	+= -g
-QMAKE_LFLAGS	+= -g
+QMAKE_CFLAGS	+= -flto 
+QMAKE_CXXFLAGS	+= -flto 
+QMAKE_LFLAGS	+= -flto
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_CFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
 #QMAKE_CXXFLAGS	+= -fsanitize=address
 #QMAKE_CFLAGS	+= -fsanitize=address
 #QMAKE_LFLAGS	+= -fsanitize=address

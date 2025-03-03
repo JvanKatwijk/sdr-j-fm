@@ -221,12 +221,10 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 //	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
 //	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
 
-	thermoPeakLevelLeft	-> setFillBrush (Qt::darkBlue);
-	thermoPeakLevelRight	-> setFillBrush (Qt::darkBlue);
-	thermoPeakLevelLeft	-> setAlarmBrush (Qt::red);
-	thermoPeakLevelRight	-> setAlarmBrush (Qt::red);
-	thermoPeakLevelLeft	-> setAlarmEnabled (true);
-	thermoPeakLevelRight	-> setAlarmEnabled(true);
+	thermoPeakLevelLeft	-> setFillBrush (QColor ("white"));
+        thermoPeakLevelRight	-> setFillBrush (QColor ("white"));
+	thermoPeakLevelLeft	-> setValue (-30);
+	thermoPeakLevelRight	-> setValue (-30);
 	
 	reset_afc ();
 //
@@ -407,8 +405,12 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	      configWidget. countrySelector	-> setCurrentIndex (k);
 	}
 	connect (configWidget. countrySelector,
-	                      SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_countrySelector (const QString &)));
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this,  &RadioInterface::handle_countrySelector);
 
 	QString device =
 	          fmSettings -> value ("device", "no device").toString ();
@@ -1408,28 +1410,70 @@ void    RadioInterface::localConnects () {
 		 this, SLOT (handle_configButton ()));
 	connect (pauseButton, SIGNAL (clicked ()),
 	         this, SLOT (handle_pauseButton ()));
-	connect (squelchSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_squelchSelector (const QString &)));
+
+	connect (squelchSelector,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_squelchSelector);
 	connect (squelchSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_squelchSlider (int)));
 	connect (IQbalanceSlider, SIGNAL (valueChanged (int) ),
 	              this, SLOT (setIQBalance (int) ));
-	connect (fmModeSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmModeSelector (const QString &)));
-	connect (fmChannelSelect, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmChannelSelector (const QString &)));
-	connect (fmRdsSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmRdsSelector (const QString &)));
+
+	connect (fmModeSelector,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmModeSelector);
+
+	connect (fmChannelSelect,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmChannelSelector);
+
+	connect (fmRdsSelector,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmRdsSelector);
 	connect (fmStereoPanoramaSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fmStereoPanoramaSlider (int)));
 	connect (fmStereoBalanceSlider, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fmStereoBalanceSlider (int)));
-	connect (fmLFcutoff, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmLFcutoff (const QString &)));
-	connect (plotSelector, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_plotTypeSelector (const QString &)));
-	connect (plotFactor, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_PlotZoomFactor (const QString &)));
+
+	connect (fmLFcutoff,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmLFcutoff);
+
+	connect (plotSelector,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_plotTypeSelector);
+
+	connect (plotFactor,
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_PlotZoomFactor);
 //
 //	and for the configuration widget:
 	connect (configWidget. streamOutSelector, SIGNAL (activated (int)),
@@ -1447,21 +1491,38 @@ void    RadioInterface::localConnects () {
 	connect (configWidget. f_minus, SIGNAL (clicked ()),
 	         this, SLOT (handle_f_min ()));
 	connect (configWidget. loggingButton,
-	                             SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_loggingButton (const QString &)));
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_loggingButton);
 	connect (configWidget. logSaving, SIGNAL (clicked ()),
 	         this, SLOT (handle_logSavingButton ()));
 	connect (configWidget. fmFilterSelect,
-	                            SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmFilterSelect (const QString &)));
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmFilterSelect);
 	connect (configWidget. fmDecoderSelector,
-	                         SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_fmDecoderSelector (const QString &)));
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmDecoderSelector);
 	connect (configWidget. fmDeemphasisSelector,
-	                         SIGNAL (activated (const QString&)),
-	         this, SLOT (handle_fmDeemphasis (const QString &)));
-	connect (configWidget. cbThemes, SIGNAL (activated (int)),
-	         this, SLOT (handle_cbThemes (int)));
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+                    qOverload<const QString &> (&QComboBox::textActivated),
+#else 
+                    qOverload<const QString &> (&QComboBox::activated),
+#endif
+	         this, &RadioInterface::handle_fmDeemphasis);
+
+	connect (configWidget. cbThemes, &QComboBox::activated,
+	         this, &RadioInterface::handle_cbThemes);
 }
 
 void	RadioInterface::handle_fmStereoPanoramaSlider (int n) {

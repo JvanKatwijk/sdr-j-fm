@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __SDRPLAY_HANDLER_V3__
-#define	__SDRPLAY_HANDLER_V3__
+#pragma once
 
 #include	<QThread>
 #include	<QFrame>
@@ -89,9 +88,10 @@ public:
 	sdrplay_api_Init_t              sdrplay_api_Init;
 	sdrplay_api_Uninit_t            sdrplay_api_Uninit;
 	sdrplay_api_Update_t            sdrplay_api_Update;
-
+	sdrplay_api_SwapRspDuoActiveTuner_t sdrplay_api_SwapRspDuoActiveTuner;
 	sdrplay_api_DeviceT             *chosenDevice;
 	Rsp_device		*theRsp;
+
 	QString			deviceName   ();
 
 	int			inputRate;
@@ -131,13 +131,17 @@ signals:
 	void			new_GRdBValue		(int);
 	void			new_lnaValue		(int);
 	void			new_agcSetting		(bool);
+	void			show_tuner_gain		(double);
 private slots:
 	void			set_ifgainReduction	(int);
 	void			set_lnagainReduction	(int);
 	void			set_agcControl		(int);
 	void			set_ppmControl		(int);
 	void			set_selectAntenna	(const QString &);
+	void			set_selectTuner         (const QString &);
 	void			set_biasT		(int);
+	void			display_gain		(double);
+
 public slots:
 	void			set_lnabounds		(int, int);
 	void			set_nrBits		(int);
@@ -145,7 +149,6 @@ public slots:
 	void			set_serial		(const QString &);
 	void			set_apiVersion		(float);
 	int			set_antennaSelect	(int);
-	void			show_tunerSelector	(bool);
 	void			show_lnaGain		(int);
 signals:
 	void			set_lnabounds_signal	(int, int);
@@ -154,5 +157,4 @@ signals:
 	void			set_apiVersion_signal	(float);
 	void			set_antennaSelect_signal	(bool);
 };
-#endif
 

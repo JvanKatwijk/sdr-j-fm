@@ -1,22 +1,22 @@
 #
 /*
- *    Copyright (C) 2020
+ *    Copyright (C) 2020 .. 2024
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of Qt-DAB
+ *    This file is part of sdr-j-FM
  *
- *    Qt-Dab is free software; you can redistribute it and/or modify
+ *    sdr-j=FM is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation version 2 of the License.
  *
- *    Qt-Dab is distributed in the hope that it will be useful,
+ *    sdr-j-FM is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with Qt-Dab if not, write to the Free Software
+ *    along with sdr-j-FM if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -32,7 +32,9 @@
 	                         int startFreq,
 	                         bool agcMode,
 	                         int lnaState,
-	                         int GRdB, bool biasT) {
+	                         int GRdB,
+	                         bool biasT,
+	                         double ppmValue) {
 sdrplay_api_ErrT        err;
 	this	-> parent	= parent;
 	this	-> chosenDevice	=  chosenDevice;
@@ -43,17 +45,10 @@ sdrplay_api_ErrT        err;
 	this	-> GRdB		= GRdB;
 	this	-> biasT	= biasT;
 
-	connect (this, SIGNAL (set_lnabounds_signal (int, int)),
-                 parent, SLOT (set_lnabounds (int, int)));
-        connect (this, SIGNAL (set_deviceName_signal (const QString &)),
-                 parent, SLOT (set_deviceName (const QString &)));
-        connect (this,	SIGNAL (set_antennaSelect_signal (int)),
-	         parent, SLOT (set_antennaSelect (int)));
-        connect (this, SIGNAL (set_nrBits_signal (int)),
-	         parent, SLOT (set_nrBits (int)));
-	connect (this, SIGNAL (show_lnaGain (int)),
-	         parent, SLOT (show_lnaGain (int)));
-
+	connect (this, &Rsp_device::set_lnabounds_signal,
+                 parent, &sdrplayHandler_v3::set_lnabounds);
+        connect (this, &Rsp_device::show_lnaGain,
+                 parent, &sdrplayHandler_v3::show_lnaGain);
 
 	err = parent -> sdrplay_api_GetDeviceParams (chosenDevice -> dev,
 	                                             &deviceParams);
@@ -87,13 +82,18 @@ sdrplay_api_ErrT        err;
 	   this -> GRdB = 20;
         chParams        -> tunerParams. gain.gRdB       = this -> GRdB;
 	chParams        -> tunerParams. gain.LNAstate   = 3;
-	if (this -> agcMode) {
-           chParams    -> ctrlParams. agc. setPoint_dBfs = -30;
-           chParams    -> ctrlParams. agc. enable =
-                                             sdrplay_api_AGC_100HZ;
-        }
+
+//	Thanks to Peter M:
+        chParams        -> ctrlParams. agc. setPoint_dBfs = -30;
+        chParams        -> ctrlParams. agc. attack_ms = 500;
+        chParams        -> ctrlParams. agc. decay_ms = 500;
+        chParams        -> ctrlParams. agc. decay_delay_ms = 200;
+        chParams        -> ctrlParams. agc. decay_threshold_dB = 3;
+
+        if (this -> agcMode)
+           chParams     -> ctrlParams. agc. enable = sdrplay_api_AGC_CTRL_EN;
         else
-           chParams    -> ctrlParams. agc. enable =
+           chParams     -> ctrlParams. agc. enable =
                                              sdrplay_api_AGC_DISABLE;
 
 	err	= parent -> sdrplay_api_Init (chosenDevice -> dev,
@@ -106,50 +106,93 @@ sdrplay_api_ErrT        err;
 }
 
 	Rsp_device::~Rsp_device	() {}
-
+//
+//	lns states are model dependent
 int	Rsp_device::lnaStates	(int frequency) {
 	(void)frequency;
 	return 0;
 }
-
+//
+//	restart is model dependent
 bool	Rsp_device::restart	(int freq) {
 	(void)freq;
 	return false;
 }
-
-bool	Rsp_device::set_agc	(int setPoint, bool on) {
-	(void)setPoint;
-	(void)on;
-	return false;
-}
-
+//
+//	setting an lna state is model dependent
 bool	Rsp_device::set_lna	(int lnaState) {
 	(void)lnaState;
 	return false;
 }
+//
+//	setting antenna is model dependent
+bool    Rsp_device::set_antenna (int antenna) {
+        (void)antenna;
+        return false;
+}
+//
+//	setting amPort is mode dependent
+bool    Rsp_device::set_amPort  (int amPort) {
+        (void)amPort;
+        return false;
+}
+//
+//	setting bias is model dependent
+bool    Rsp_device::set_biasT (bool  b) {
+        (void)b;
+        return false;
+}
+//
+//	setting tuner is model dependent
+bool    Rsp_device::set_tuner   (int tuner) {
+        (void)tuner;
+        return false;
+}
+//
+//
+//	setting agc is common to all models
+bool	Rsp_device::set_agc	(int setPoint, bool on) {
+sdrplay_api_ErrT err;
 
+	if (on) {
+	   chParams -> ctrlParams. agc. setPoint_dBfs = setPoint;
+	   chParams -> ctrlParams. agc.enable = sdrplay_api_AGC_CTRL_EN;
+	}
+	else
+	   chParams->ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
+
+	err = parent -> sdrplay_api_Update (chosenDevice -> dev,
+	                                    chosenDevice -> tuner,
+	                                    sdrplay_api_Update_Ctrl_Agc,
+	                                    sdrplay_api_Update_Ext1_None);
+	return err == sdrplay_api_Success;
+}
+
+//	setting  GRdB is common to all models
 bool	Rsp_device::set_GRdB	(int GRdBValue) {
-	(void)GRdBValue;
+sdrplay_api_ErrT err;
+
+	chParams -> tunerParams. gain.gRdB = GRdBValue;
+	err = parent -> sdrplay_api_Update (chosenDevice -> dev,
+	                                    chosenDevice -> tuner,
+	                                    sdrplay_api_Update_Tuner_Gr,
+	                                    sdrplay_api_Update_Ext1_None);
+	if (err == sdrplay_api_Success) {
+	   GRdB = GRdBValue;
+	   return true;
+	}
 	return false;
 }
+//
+//	setting ppm is common to all models
+bool	Rsp_device::set_ppm	(double ppmValue) {
+sdrplay_api_ErrT err;
 
-bool	Rsp_device::set_ppm	(int ppm) {
-	(void)ppm;
-	return false;
-}
-
-bool	Rsp_device::set_antenna	(int antenna) {
-	(void)antenna;
-	return false;
-}
-
-bool	Rsp_device::set_amPort 	(int amPort) {
-	(void)amPort;
-	return false;
-}
-
-bool	Rsp_device::set_biasT (bool  b) {
-	(void)b;
-	return false;
+	deviceParams -> devParams -> ppm = ppmValue;
+	err = parent -> sdrplay_api_Update (chosenDevice -> dev,
+	                                    chosenDevice -> tuner,
+	                                    sdrplay_api_Update_Dev_Ppm,
+	                                    sdrplay_api_Update_Ext1_None);
+	return err == sdrplay_api_Success;
 }
 

@@ -80,7 +80,7 @@
 	thePad		-> addButton (clearButton, 103);
 	thePad		-> addButton (correctButton, 104);
 	theDisplay	-> display (0);
-	connect (thePad, SIGNAL (buttonClicked (int)),
+	connect (thePad, SIGNAL (idClicked (int)),
 	         this, SLOT (collectData (int)));
 //
 //	initially the keypad is not visible,
@@ -88,8 +88,7 @@
 	shown		= false;
 }
 
-
-	keyPad::~keyPad	(void) {
+	keyPad::~keyPad	() {
 	delete	oneButton;
 	delete	twoButton;
 	delete	threeButton;
@@ -123,6 +122,7 @@ bool	keyPad::isVisible	(void) {
 }
 
 void	keyPad::collectData	(int id) {
+	fprintf (stderr, "clicked\n");
 	if (0 <= id && id < 10) {
 	   panel = 10 * panel + id;
 	   theDisplay	-> display (panel);

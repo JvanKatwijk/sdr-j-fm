@@ -25,8 +25,8 @@
 //
 //	The file contains the definitions of the interface data between
 //	the calling and the callee thread
-#ifndef	__SDRPLAY_COMMANDS__
-#define	__SDRPLAY_COMMANDS__
+#pragma once
+
 #define RESTART_REQUEST         0100
 #define STOP_REQUEST            0101
 #define SETFREQUENCY_REQUEST	0102
@@ -36,6 +36,7 @@
 #define LNA_REQUEST             0106
 #define ANTENNASELECT_REQUEST   0107
 #define	BIAS_T_REQUEST		0110
+#define	TUNERSELECT_REQUEST	0112
 
 #include	<QSemaphore>
 
@@ -145,5 +146,13 @@ public:
 	~biasT_Request	() {}
 };
 	
-#endif
-
+class	tunerRequest: public generalCommand {
+public:
+	int	tuner;
+	tunerRequest (int tuner) :
+	           generalCommand (TUNERSELECT_REQUEST) {
+	   this	-> tuner	= tuner;
+	fprintf (stderr, "Creating a message for set_tuner for tuner %d\n", tuner);
+	}
+	~tunerRequest	() {}
+};
