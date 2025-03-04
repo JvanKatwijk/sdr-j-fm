@@ -1521,8 +1521,8 @@ void    RadioInterface::localConnects () {
 #endif
 	         this, &RadioInterface::handle_fmDeemphasis);
 
-	connect (configWidget. cbThemes, &QComboBox::activated,
-	         this, &RadioInterface::handle_cbThemes);
+	connect (configWidget. cbThemes, SIGNAL (activated (int)),
+	         this, SLOT (handle_cbThemes(int)));
 }
 
 void	RadioInterface::handle_fmStereoPanoramaSlider (int n) {

@@ -285,11 +285,11 @@ ULONG APIkeyValue_length = 255;
            if (err != mir_sdr_Success)
               fprintf (stderr, "error %d in setting antenna\n", err);
            connect (antennaSelector,	
-if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
                     qOverload<const QString &> (&QComboBox::textActivated),
 #else 
                     qOverload<const QString &> (&QComboBox::activated),
-#endi
+#endif
                     this, &sdrplayHandler::set_antennaSelect);
         }
 
@@ -299,12 +299,12 @@ if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
            if (err != mir_sdr_Success)
               fprintf (stderr, "error %d in setting of rspDuo\n", err);
            connect (tunerSelector,
-if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
+#if QT_VERSION >= QT_VERSION_CHECK (5, 15, 2)
                     qOverload<const QString &> (&QComboBox::textActivated),
 #else 
                     qOverload<const QString &> (&QComboBox::activated),
-#endi
-                    this, sdrplayHandler::set_tunerSelect);
+#endif
+                    this, &sdrplayHandler::set_tunerSelect);
         }
 
 //      and be prepared for future changes in the settings
