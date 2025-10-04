@@ -557,6 +557,7 @@ option(UHD OFF)
 
 	target_link_libraries (${objectName}
 	                       Qt5::Widgets
+	                       Qt5::Xml
 	                       ${FFTW_LIBRARIES}
 	                       ${extraLibs}
 	                       ${SAMPLERATE_LIBRARIES}
