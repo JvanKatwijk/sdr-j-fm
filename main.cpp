@@ -71,17 +71,16 @@ ThemeChoser	themeChooser;
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-//#if QT_VERSION < QT_VERSION_CHECK (6, 0, 0)
-//	QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
-//#endif
-
+#if QT_VERSION < QT_VERSION_CHECK (6, 0, 0)
+	QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+#endif
 	QString styleSheetText	=
 	                   ISettings -> value ("styleSheet",
 	                                     "globstyle"). toString();
 	int styleSheet		= themeChooser.
 	                          get_idx_of_sheet_name (styleSheetText);
 
-//	themeChooser. set_curr_style_sheet_idx (styleSheet);
+	themeChooser. set_curr_style_sheet_idx (styleSheet);
 
 	int exitCode = 0;
 
