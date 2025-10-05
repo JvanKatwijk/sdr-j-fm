@@ -72,9 +72,8 @@ ThemeChoser	themeChooser;
  *	instantiate
  */
 #if QT_VERSION < QT_VERSION_CHECK (6, 0, 0)
-        QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+	QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
-
 	QString styleSheetText	=
 	                   ISettings -> value ("styleSheet",
 	                                     "globstyle"). toString();
@@ -92,6 +91,7 @@ ThemeChoser	themeChooser;
 		                                  stationList,
 	                                          &themeChooser,
 	                                          outputRate);
+	
 	   myRadioInterface -> show ();
 
 	   a.setWindowIcon (QIcon (":fm-icon.ico"));

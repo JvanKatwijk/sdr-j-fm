@@ -1,5 +1,5 @@
 /*
- *    Copyright (C)  2014
+ *    Copyright (C)  2025
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -42,7 +42,6 @@ struct {
 	{DIFF_DECODER,		"FM Difference Based"},
 	{0,		""}
 };
-
 //	Just to play around a little, I implemented 5 common
 //	fm decoders. The main source of inspiration is found in
 //	a Diploma Thesis "Implementation of FM demodulator Algorithms
