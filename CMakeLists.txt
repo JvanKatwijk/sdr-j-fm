@@ -69,9 +69,11 @@ option(UHD OFF)
         find_package (Qt5Widgets REQUIRED)
         find_package (Qt5Network REQUIRED)
         find_package (Qt5Xml REQUIRED)
+        find_package (Qt5Multimedia REQUIRED)
         include_directories (
           ${Qt5Network_INCLUDE_DIRS}
           ${Qt5Xml_INCLUDE_DIRS}
+          ${Qt5Multimedia_INCLUDE_DIRS}
         )
 
 	find_package(Qwt)
@@ -557,6 +559,8 @@ option(UHD OFF)
 
 	target_link_libraries (${objectName}
 	                       Qt5::Widgets
+	                       Qt5::Xml
+	                       Qt5::Multimedia
 	                       ${FFTW_LIBRARIES}
 	                       ${extraLibs}
 	                       ${SAMPLERATE_LIBRARIES}

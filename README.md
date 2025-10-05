@@ -2,20 +2,13 @@
     FM receiver V3.20
 -------------------------
 
-In version 3.20 the software was made ready to work with Qt6. Furthermore
-the "tunerselect" function for the SDRplay RSPduo was implemented.
-
-========================================================================
-
-Some significant modifications were made by Thomas Neder, apart from the
-"skin", most mods were "under the hood". 
-
-The version number is now 3.20
+In version 3.20, the software was made ready for compilation using either Qt5 or  Qt6, while furthermore the SDRplay driver was adapted to handle tuner switches with the SDRplay RSPDuo, and the software for saving and restoring the stationlist was rewritten, now the stationlist is maintained as a regular xml file.
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 
 New is a so-called PSS (perfect stereo separation) control on the main widget,
-contributed by TomNeda.
+contributed by TomNeda, who made quite a number of contributions to the
+code.
 
 In computing the 38 Khz signal to decode the L-R signal, from the 19
 KHz pilot signal, an error may occur, an offset of a few Hz.
@@ -40,7 +33,6 @@ some controls were  transferred to a separate "control" widget.
 The main widget has a button, labeled *Config* with which one can select
 and deselect this control widget.
 
-
 ![fm receiver](/fm-configwidget.png?raw=true)
 
 Buttons on the control widget are typically those that are not
@@ -48,7 +40,7 @@ often touched when just listening to the radio.
 Buttons for setting the deemphasis and the pty labels are therefore now
 on the configuration widget, since their setting depends on the country
 you are in.
-Furthermore, the control widget contains a widget, *Combinear* on the
+Furthermore, the control widget contains a widget, *globstyle* on the
 picture, that can be used to dynamically set another "skin"
 
 The inputfiltering, i.e. separation between transmissions close to each other
@@ -68,10 +60,11 @@ Supported devices
 
 Devices that are supported are
  * SDRplay devices. Note that on Windows, whenever you have installed a library 3.10 or up, the 2.13 library is not accessible. On Linux there is the
-cjoice between using the 2.13 library and 3.07 (or up) library. Note that
+cjoice between using the 2.13 library and 3.14 (or up) library. Note that
 wwhile the 2.13 library supports the original SDRplay RSP I, the 2.13
 library does noot provide support for the RSPdx, the 3.0X library
-does not provide support for the RSP I.
+does not provide support for the RSP I when running on Windows.
+Note that the SDRplay driver for 3.XX now supports a selector for the tuner in case an SDRplay RSPDuo is used.
  * Airspy devices;
  * Lime devices;
  * Hackrf devices;
@@ -90,11 +83,12 @@ it is of course possible to generate an executable.
 
 For compiling and linking lots of libraries and utilities
 have to be installed
-On Ubuntu, in any case, the (older) 16 version that I use to
+On Ubuntu, in any case, the (older) 20 version that I use to
 create appImages. I use qmake for generating a Makefile,
 if you have cmake installed, it is possible to use that instead,
 here it is assumed that qmake is used
 
+In Ubuntu 20, where I create AppImages, an executable is generated using Qt5.
 - sudo apt-get update
 - sudo apt-get install git
 - sudo apt-get install qt5-qmake build-essential g++

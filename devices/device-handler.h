@@ -24,8 +24,8 @@
  *	want the interface with different devices (including  filehandling)
  *	to be transparent
  */
-#ifndef	__DEVICE_HANDLER__
-#define	__DEVICE_HANDLER__
+
+#pragma once
 
 #include	<stdint.h>
 #include	"fm-constants.h"
@@ -44,6 +44,7 @@
 #define	SDRPLAY_V3	0121
 #define	PLUTO		0122
 #define	COLIBRI		0124
+#define	SPYSERVER	0125
 //
 //	in some cases we only want to differentiate between sticks
 //	and non-sticks
@@ -82,5 +83,5 @@ protected:
 signals:
 		void	set_changeRate	(int);
 };
-#endif
+
 

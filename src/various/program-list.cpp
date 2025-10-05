@@ -26,6 +26,9 @@
 #include	<QDataStream>
 #include	<QMessageBox>
 #include	<QHeaderView>
+#include	<QDomDocument>
+#include	<QTextStream>
+#include	<QFile>
 
 	programList::programList (RadioInterface *mr,
 	                          const QString &saveName,
@@ -57,7 +60,6 @@
 
        programList::~programList () {
 int16_t rows    = tableWidget -> rowCount ();
-
         for (int i = rows; i > 0; i --)
            removeRow (i);
 }
@@ -101,47 +103,43 @@ void	programList::removeRow (int row, int column) {
 }
 
 void	programList::saveTable () {
-QFile file (saveName);
 
-	if (file. open (QIODevice::WriteOnly)) {
-	   QDataStream stream (&file);
-	   int32_t n	= tableWidget -> rowCount ();
-	   int32_t m	= tableWidget -> columnCount ();
-	   stream << n << m;
-
-	   for (int i = 0; i < n; i++) {
-	      for (int j = 0; j < m; j++) {
-	         tableWidget -> item (i, j) -> write (stream);
-	      }
-	   }
-
-	   file.close();
+	QDomDocument theScanList;
+	QDomElement root	= theScanList. createElement ("fmList");
+	theScanList. appendChild (root);
+	for (int i = 0; i <  tableWidget -> rowCount (); i ++) {
+	   QString stationName	= tableWidget -> item (i, 0) -> text ();
+	   QString frequency	= tableWidget -> item (i, 1) -> text ();
+	   QDomElement element	= theScanList.
+	                              createElement ("fm-transmitter");
+	   element. setAttribute ("theName", stationName);
+	   element. setAttribute ("theFrequency", frequency);
+	   root. appendChild (element);
 	}
+
+	QFile file (saveName);
+	if (!file. open (QIODevice::WriteOnly | QIODevice::Text))
+	   return;
+	QTextStream stream (&file);
+	stream << theScanList. toString ();
+	file.close();
 }
 
 void	programList::loadTable () {
 QFile file (saveName);
-
-	if (file. open (QIODevice::ReadOnly)) {
-	   QDataStream stream (&file);
-	   int32_t     n, m;
-	   stream >> n >> m;
-	   tableWidget -> setRowCount (n);
-	   tableWidget -> setColumnCount (m);
-
-	   for (int i = 0; i < n; i++) {
-	      for (int j = 0; j < m; j++) {
-	         QTableWidgetItem *item = new QTableWidgetItem;
-	         item -> read (stream);
-	         item -> setTextAlignment ((j == 0 ?
-	                                    Qt::AlignLeft :
-	                                    Qt::AlignRight) | Qt::AlignVCenter);
-	         tableWidget -> setItem (i, j, item);
-	      }
-	   }
-
-	   file. close ();
+int	rowCount = 0;
+	if (!file. open (QIODevice::ReadOnly))
+	   return;
+	QDomDocument xmlBOM;
+	xmlBOM. setContent (&file);
+	file. close ();
+	QDomElement root	= xmlBOM. documentElement ();
+	for (QDomElement component = root. firstChildElement ("fm-transmitter");
+	     !component. isNull ();
+	     component = component. nextSiblingElement ("fm-transmitter")) {
+	   QString stationName	= component. attribute ("theName");
+	   QString frequency	= component. attribute ("theFrequency");
+	   addRow (stationName, frequency);
 	}
-
-	tableWidget -> resizeColumnsToContents ();
+	tableWidget -> show ();
 }

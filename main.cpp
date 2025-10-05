@@ -31,7 +31,7 @@
 #include	"themechoser.h"
 
 #define	DEFAULT_INI	".jsdr-fm.ini"
-#define	STATION_LIST	".jsdr-fm-stations.bin"
+#define	STATION_LIST	".sdr-j-fm-stations.xml"
 
 int	main (int argc, char **argv) {
 int32_t		opt;
@@ -71,17 +71,17 @@ ThemeChoser	themeChooser;
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-#if QT_VERSION >= 0x050600
-        QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
-#endif
+//#if QT_VERSION < QT_VERSION_CHECK (6, 0, 0)
+//	QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
+//#endif
 
 	QString styleSheetText	=
 	                   ISettings -> value ("styleSheet",
-	                                     "Combinear"). toString();
+	                                     "globstyle"). toString();
 	int styleSheet		= themeChooser.
 	                          get_idx_of_sheet_name (styleSheetText);
 
-	themeChooser. set_curr_style_sheet_idx (styleSheet);
+//	themeChooser. set_curr_style_sheet_idx (styleSheet);
 
 	int exitCode = 0;
 
@@ -92,6 +92,7 @@ ThemeChoser	themeChooser;
 		                                  stationList,
 	                                          &themeChooser,
 	                                          outputRate);
+	
 	   myRadioInterface -> show ();
 
 	   a.setWindowIcon (QIcon (":fm-icon.ico"));

@@ -6,6 +6,7 @@
         <file>fm-icon.ico</file>
         <file>AUTHORS</file>
         <file>COPYING</file>
+        <file>./res/globstyle.qss</file>
         <file>./res/EasyCode.qss</file>
         <file>./res/Darkeum.qss</file>
         <file>./res/Adaptic.qss</file>

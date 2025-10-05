@@ -4,9 +4,9 @@
 # portaudio
 ######################################################################
 
-TEMPLATE	= app
+TEMPLATE	= app 
 TARGET		= fmreceiver-3.20
-QT		+= widgets
+QT		+= widgets xml
 #CONFIG		+= console
 CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++17
@@ -19,9 +19,9 @@ QMAKE_LFLAGS	+= -flto
 #QMAKE_CXXFLAGS	+= -g
 #QMAKE_CFLAGS	+= -g
 #QMAKE_LFLAGS	+= -g
-#QMAKE_CXXFLAGS	+= -fsanitize=address
-#QMAKE_CFLAGS	+= -fsanitize=address
-#QMAKE_LFLAGS	+= -fsanitize=address
+#QMAKE_CXXFLAGS	+= -g -fsanitize=address
+#QMAKE_CFLAGS	+= -g -fsanitize=address
+#QMAKE_LFLAGS	+= -g -fsanitize=address
 QMAKE_CXXFLAGS	+= -isystem $$[QT_INSTALL_HEADERS]
 RC_ICONS        =  fm-icon.ico
 RESOURCES       += resources.qrc

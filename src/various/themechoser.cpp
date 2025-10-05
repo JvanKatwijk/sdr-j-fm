@@ -11,6 +11,8 @@
 	vecStyleSheetName. push_back ( "Default");
 	vecStyleFileName.  push_back ( "");
 /* ------------------------------------------------- */
+	vecStyleSheetName. push_back ("globstyle");
+	vecStyleFileName.  push_back (":res/globstyle.qss");
 	vecStyleSheetName. push_back ("Adaptic");
 	vecStyleFileName.  push_back (":res/Adaptic.qss");
 	vecStyleSheetName. push_back ("Combinear");
