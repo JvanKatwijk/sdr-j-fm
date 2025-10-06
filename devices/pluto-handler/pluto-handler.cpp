@@ -33,6 +33,8 @@
 //      Description for the fir-filter is here:
 #include        "fmFilter.h"
 
+#include	"device-exceptions.h"
+
 /* static scratch mem for strings */
 static char tmpstr[64];
 
@@ -195,29 +197,19 @@ int	ret;
 	setupUi (&myFrame);
 	myFrame. show	();
 
-#ifdef	__MINGW32__
-	wchar_t *libname = (wchar_t *)L"libiio.dll";
-        Handle  = LoadLibrary (libname);
-	if (Handle == NULL) {
-	  fprintf (stderr, "Failed to libiio.dll\n");
-	  throw (22);
-	}
-#else
-	Handle		= dlopen ("libiio.so", RTLD_NOW);
-	if (Handle == NULL) {
-	   fprintf (stderr,  "%s", "we could not load libiio.so");
-	   throw (23);
-	}
-#endif
+	const char	*libraryString	= "libiio.so";
 
-	bool success			= loadFunctions ();
-	if (!success) {
-#ifdef __MINGW32__
-           FreeLibrary (Handle);
-#else
-           dlclose (Handle);
-#endif
-           throw (23);
+	library_p	= new QLibrary (libraryString);
+	library_p	-> load ();
+
+	if (!library_p -> isLoaded ()) {
+           throw (device_exception ("failed to open " +
+                                        std::string (libraryString)));
+        }
+
+	if (!loadFunctions ()) {
+           delete library_p;
+           throw (device_exception ("one or more library functions could not be loaded"));
         }
 
 	this	-> ctx			= nullptr;
@@ -263,26 +255,27 @@ int	ret;
 	}
 
 	if (ctx == nullptr) {
-	   fprintf (stderr, "No pluto found, fatal\n");
-	   throw (24);
+	   delete library_p;
+	   fprintf (stderr, "No pluto context found, fatal\n");
+	   throw (device_exception ("no pluto context found\n"));
 	}
 //
 
 	if (iio_context_get_devices_count (ctx) <= 0) {
 	   fprintf (stderr, "no devices, fatal");
-	   throw (25);
+	   throw (device_exception ("no device found\n"));
 	}
 
 	fprintf (stderr, "* Acquiring AD9361 streaming devices\n");
 	if (!get_ad9361_stream_dev (ctx, RX, &rx)) {
 	   fprintf (stderr, "No RX device found\n");
-	   throw (27);
+	   throw (device_exception ("no RX device found\n"));
 	}
 
 	fprintf (stderr, "* Configuring AD9361 for streaming\n");
 	if (!cfg_ad9361_streaming_ch (ctx, &rx_cfg, RX, 0)) {
 	   fprintf (stderr, "RX port 0 not found\n");
-	   throw (28);
+	   throw (device_exception ("no RX port 0\n"));
 	}
 
 	struct iio_channel *chn;
@@ -308,12 +301,12 @@ int	ret;
 	fprintf (stderr, "* Initializing AD9361 IIO streaming channels\n");
 	if (!get_ad9361_stream_ch (ctx, RX, rx, 0, &rx0_i)) {
 	   fprintf (stderr, "RX chan i not found");
-	   throw (30);
+	   throw (device_exception ("no RX chan I (from IQ) found\n"));
 	}
 	
 	if (!get_ad9361_stream_ch (ctx, RX, rx, 1, &rx0_q)) {
 	   fprintf (stderr,"RX chan q not found");
-	   throw (31);
+	   throw (device_exception ("no RX chan Q (from IQ) found\n"));
 	}
 	
         state -> setText ("* Enabling IIO streaming channels");
@@ -326,7 +319,7 @@ int	ret;
 	   if (debugFlag) 
 	      fprintf (stderr, "could not create RX buffer, fatal\n");
 	   iio_context_destroy (ctx);
-	   throw (35);
+	   throw (device_exception ("could not create buffer\n"));
 	}
 //
 	iio_buffer_set_blocking_mode (rxbuf, true);
@@ -568,7 +561,6 @@ void	plutoHandler::stopReader() {
 void	plutoHandler::run	() {
 char	*p_end, *p_dat;
 int	p_inc;
-int	nbytes_rx;
 std::complex<float> localBuf [4 * 2304];
 int	index	= 0;
 
@@ -652,116 +644,100 @@ uint8_t	plutoHandler::myIdentity	() {
 bool	plutoHandler::loadFunctions	() {
 
 	iio_device_find_channel = (pfn_iio_device_find_channel)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_device_find_channel");
+	                   library_p -> resolve ( "iio_device_find_channel");
 	if (iio_device_find_channel == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_find_channel");
 	   return false;
 	}
 	iio_create_default_context = (pfn_iio_create_default_context)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_create_default_context");
+	                   library_p -> resolve ("iio_create_default_context");
 	if (iio_create_default_context == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_create_default_context");
 	   return false;
 	}
 	iio_create_local_context = (pfn_iio_create_local_context)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_create_local_context");
+	                   library_p -> resolve ("iio_create_local_context");
 	if (iio_create_local_context == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_create_local_context");
 	   return false;
 	}
 	iio_create_network_context = (pfn_iio_create_network_context)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_create_network_context");
+	                   library_p -> resolve ("iio_create_network_context");
 	if (iio_create_network_context == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_create_network_context");
 	   return false;
 	}
 	iio_context_get_name = (pfn_iio_context_get_name)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_context_get_name");
+	                   library_p -> resolve ("iio_context_get_name");
 	if (iio_context_get_name == nullptr) {
-	   fprintf (stderr, "could not load %s\n", iio_context_get_name);
+	   fprintf (stderr, "could not load iio_context_get_name\n");
 	   return false;
 	}
 	iio_context_get_devices_count = (pfn_iio_context_get_devices_count)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_context_get_devices_count");
+	                   library_p -> resolve ("iio_context_get_devices_count");
 	if (iio_context_get_devices_count == nullptr) {
-	   fprintf (stderr, "could not load %s\n", "iio_context_get_devices_count");
+	   fprintf (stderr, "could not load iio_context_get_devices_count \n");
 	   return false;
 	}
 	iio_context_find_device = (pfn_iio_context_find_device)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_context_find_device");
+	                    library_p -> resolve ("iio_context_find_device");
 	if (iio_context_find_device == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_context_find_device");
 	   return false;
 	}
 
 	iio_device_attr_read_bool = (pfn_iio_device_attr_read_bool)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_device_attr_read_bool");
+	                     library_p -> resolve ("iio_device_attr_read_bool");
 	if (iio_device_attr_read_bool == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_attr_read_bool");
 	   return false;
 	}
 	iio_device_attr_write_bool = (pfn_iio_device_attr_write_bool)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_device_attr_write_bool");
+	                      library_p -> resolve ("iio_device_attr_write_bool");
 	if (iio_device_attr_write_bool == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_attr_write_bool");
 	   return false;
 	}
-
 	iio_channel_attr_read_bool = (pfn_iio_channel_attr_read_bool)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_channel_attr_read_bool");
+	                      library_p -> resolve ("iio_channel_attr_read_bool");
 	if (iio_channel_attr_read_bool == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_channel_attr_read_bool");
 	   return false;
 	}
 	iio_channel_attr_write_bool = (pfn_iio_channel_attr_write_bool)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_channel_attr_write_bool");
+	                      library_p -> resolve ("iio_channel_attr_write_bool");
 	if (iio_channel_attr_write_bool == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_channel_attr_write_bool");
 	   return false;
 	}
 	iio_channel_enable = (pfn_iio_channel_enable)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_channel_enable");
+	                      library_p -> resolve ("iio_channel_enable");
 	if (iio_channel_enable == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_channel_enable");
 	   return false;
 	}
 	iio_channel_attr_write = (pfn_iio_channel_attr_write)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_channel_attr_write");
+	                       library_p -> resolve ("iio_channel_attr_write");
 	if (iio_channel_attr_write == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_channel_attr_write");
 	   return false;
 	}
 	iio_channel_attr_write_longlong = (pfn_iio_channel_attr_write_longlong)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_channel_attr_write_longlong");
+	                       library_p -> resolve (
+	                                    "iio_channel_attr_write_longlong");
 	if (iio_channel_attr_write_longlong == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_channel_attr_write_longlong");
 	   return false;
 	}
-
 	iio_device_attr_write_longlong = (pfn_iio_device_attr_write_longlong)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_device_attr_write_longlong");
+	                       library_p -> resolve (
+	                                    "iio_device_attr_write_longlong");
 	if (iio_device_attr_write_longlong == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_attr_write_longlong");
 	   return false;
 	}
-
 	iio_device_attr_write_raw = (pfn_iio_device_attr_write_raw)
-	                           GETPROCADDRESS (this -> Handle,
+	                       library_p -> resolve (
 	                                           "iio_device_attr_write_raw");
 	if (iio_device_attr_write_raw == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_attr_write_raw");
@@ -769,58 +745,52 @@ bool	plutoHandler::loadFunctions	() {
 	}
 
 	iio_device_create_buffer = (pfn_iio_device_create_buffer)
-	                           GETPROCADDRESS (this -> Handle,
+	                       library_p -> resolve (
 	                                           "iio_device_create_buffer");
 	if (iio_device_create_buffer == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_device_create_buffer");
 	   return false;
 	}
 	iio_buffer_set_blocking_mode = (pfn_iio_buffer_set_blocking_mode)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_set_blocking_mode");
+	                        library_p -> resolve (
+	                                        "iio_buffer_set_blocking_mode");
 	if (iio_buffer_set_blocking_mode == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_set_blocking_mode");
 	   return false;
 	}
 	iio_buffer_destroy = (pfn_iio_buffer_destroy)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_destroy");
+	                        library_p -> resolve ("iio_buffer_destroy");
 	if (iio_buffer_destroy == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_destroy");
 	   return false;
 	}
 	iio_context_destroy = (pfn_iio_context_destroy)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_context_destroy");
+	                        library_p -> resolve ("iio_context_destroy");
 	if (iio_context_destroy == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_context_destroy");
 	   return false;
 	}
 
 	iio_buffer_refill = (pfn_iio_buffer_refill)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_refill");
+	                         library_p -> resolve ("iio_buffer_refill");
 	if (iio_buffer_refill == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_refill");
 	   return false;
 	}
 	iio_buffer_step = (pfn_iio_buffer_step)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_step");
+	                         library_p -> resolve ("iio_buffer_step");
 	if (iio_buffer_step == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_step");
 	   return false;
 	}
 	iio_buffer_end = (pfn_iio_buffer_end)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_end");
+	                          library_p -> resolve ("iio_buffer_end");
 	if (iio_buffer_end == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_end");
 	   return false;
 	}
 	iio_buffer_first = (pfn_iio_buffer_first)
-	                           GETPROCADDRESS (this -> Handle,
-	                                           "iio_buffer_first");
+	                           library_p -> resolve ("iio_buffer_first");
 	if (iio_buffer_first == nullptr) {
 	   fprintf (stderr, "could not load %s\n", "iio_buffer_first");
 	   return false;

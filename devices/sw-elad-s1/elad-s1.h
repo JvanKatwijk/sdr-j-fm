@@ -2,30 +2,26 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the FM software
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    FM software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    FM software is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with FM software; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __ELAD_S1
-#define	__ELAD_S1
+#pragma once
 
 #include	<QObject>
 #include	<QFrame>
@@ -45,22 +41,22 @@ class	eladHandler: public deviceHandler, public Ui_elad_widget {
 Q_OBJECT
 public:
 		eladHandler		(QSettings *, bool, bool *);
-		~eladHandler		(void);
+		~eladHandler		();
 	void	setVFOFrequency		(int32_t);
-	int32_t	getVFOFrequency		(void);
+	int32_t	getVFOFrequency		();
 	bool	legalFrequency		(int32_t);
-	int32_t	defaultFrequency	(void);
+	int32_t	defaultFrequency	();
 
-	bool	restartReader		(void);
-	void	stopReader		(void);
+	bool	restartReader		();
+	void	stopReader		();
 	int32_t	getSamples		(DSPCOMPLEX *, int32_t, uint8_t);
-	int32_t	Samples			(void);
-	int32_t	getRate			(void);
-	int16_t	bitDepth		(void);
+	int32_t	Samples			();
+	int32_t	getRate			();
+	int16_t	bitDepth		();
 private	slots:
-	void	setGainReduction	(void);
+	void	setGainReduction	();
 	void	setMHzOffset		(int);
-	void	setFilter		(void);
+	void	setFilter		();
 	void	setAttenuation		(int);
 private:
 	QSettings	*eladSettings;
@@ -78,5 +74,4 @@ private:
 	int16_t		iqSize;
 	int16_t		attenuation;
 };
-#endif
 

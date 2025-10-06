@@ -30,7 +30,7 @@ int	err;
 	this	-> outRate	= outRate;
 	inputLimit		= inSize;
 	ratio			= double(outRate) / inRate;
-	fprintf (stderr, "ratio = %f\n", ratio);
+//	fprintf (stderr, "ratio = %f\n", ratio);
 	outputLimit		= inSize * ratio;
 //	converter		= src_new (SRC_SINC_BEST_QUALITY, 2, &err);
 //	converter		= src_new (SRC_LINEAR, 2, &err);

@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __PLUTO_HANDLER__
-#define	__PLUTO_HANDLER__
+#pragma once
 
 #include	<QtNetwork>
 #include        <QMessageBox>
@@ -30,20 +29,13 @@
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
+#include	<QLibrary>
 #include	<atomic>
 #include	<iio.h>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
 #include	"device-handler.h"
 #include	"ui_pluto-widget.h"
-
-#ifndef	GETPROCADDRESS
-#ifdef __MINGW32__
-#define GETPROCADDRESS  GetProcAddress
-#else
-#define GETPROCADDRESS  dlsym
-#endif
-#endif
 
 #ifndef	PLUTO_RATE
 #define	PLUTO_RATE	2304000
@@ -141,8 +133,8 @@ public:
 	int16_t		bitDepth		();
 
 private:
+	QLibrary	*library_p;
 	bool		loadFunctions		();
-	HINSTANCE	Handle;
 
 	QFrame			myFrame;
 	RingBuffer<std::complex<float>>	_I_Buffer;
@@ -251,5 +243,4 @@ private slots:
 	void		toggle_debugButton	();
 	void		handle_filterButton	();
 };
-#endif
 

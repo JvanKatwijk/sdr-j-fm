@@ -21,12 +21,12 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __LIME_HANDLER__
-#define	__LIME_HANDLER__
+#pragma once
 
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
+#include	<QLibrary>
 #include	<atomic>
 #include	<vector>
 #include	"fm-constants.h"
@@ -34,12 +34,6 @@
 #include	<LimeSuite.h>
 #include	"device-handler.h"
 #include	"lime-widget.h"
-
-#ifdef __MINGW32__
-#define GETPROCADDRESS  GetProcAddress
-#else
-#define GETPROCADDRESS  dlsym
-#endif
 
 //	DLL and ".so" function prototypes
 typedef int	(*pfn_LMS_GetDeviceList)(lms_info_str_t *dev_list);
@@ -122,7 +116,7 @@ private:
 	lms_name_t	antennas [10];
 	RingBuffer<std::complex<int16_t>> _I_Buffer;
 	bool		load_limeFunctions();
-	HINSTANCE	Handle;
+	QLibrary	*library_p;
 	bool		libraryLoaded;
 	lms_stream_meta_t meta;
         lms_stream_t    stream;
@@ -164,6 +158,4 @@ private slots:
 public slots:
 	void		showErrors	(int, int);
 };
-
-#endif
 

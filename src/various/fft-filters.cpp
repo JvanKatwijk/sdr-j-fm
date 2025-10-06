@@ -61,8 +61,9 @@ BasicBandPass BandPass (filterDegree, low, high, rate);
 	for (int i = 0; i < filterDegree; i++)
 	   filterVector [i] = (BandPass. getKernel ()) [i];
 
-        memset (&filterVector [filterDegree], 0,
-                        (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
+	for (int i = filterDegree; i < fftSize; i ++)
+	   filterVector [i] = DSPCOMPLEX (0, 0);
+
 	Fft_transform (filterVector, fftSize, false);
         inp             = 0;
 }
@@ -72,8 +73,10 @@ BandPassFIR BandPass ((int)filterDegree, low, high, rate);
 
 	for (int i = 0; i < filterDegree; i ++)
            filterVector [i] = (BandPass. getKernel ()) [i];
-        memset (&filterVector [filterDegree], 0,
-                        (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
+	
+	fir (int i = filterDegree; i < fftSizel i ++)
+	   filterVector [i] = DSPCOMPLEX (0, 0);
+
 	Fft_transform (filterVector, fftSize, false);
         inp             = 0;
 }
@@ -83,8 +86,10 @@ LowPassFIR LowPass (filterDegree, low, rate);
 
 	for (int i = 0; i < filterDegree; i ++)
 	   filterVector [i] = (LowPass. getKernel ()) [i];
-	memset (&filterVector [filterDegree], 0,
-	                (fftSize - filterDegree) * sizeof (DSPCOMPLEX));
+
+	fir (int i = filterDegree; i < fftSizel i ++)
+	   filterVector [i] = DSPCOMPLEX (0, 0);
+
 	Fft_transform (filterVector, fftSize, false);
 	inp	= 0;
 }
@@ -97,8 +102,9 @@ DSPFLOAT	sample;
 
 	if (++inp >= NumofSamples) {
 	   inp = 0;
-	   memset (&FFT_A [NumofSamples], 0,
-	               (fftSize - NumofSamples) * sizeof (DSPCOMPLEX));
+	   for (int i = NumofSamples; i < fftSize; i ++)
+	      FFT_A [i] = DSPCOMPLEX (0, 0);
+
 	   Fft_transform (FFT_A, fftSize, false);
 
 	   for (int j = 0; j < fftSize; j ++) {
@@ -126,14 +132,14 @@ DSPFLOAT	sample;
 DSPCOMPLEX	fftFilter::Pass (DSPCOMPLEX z) {
 DSPCOMPLEX	sample;
 int		j;
-
 	sample	= FFT_C [inp];
 	FFT_A [inp] = DSPCOMPLEX (real (z), imag (z));
 
 	if (++inp >= NumofSamples) {
 	   inp = 0;
-	   memset (&FFT_A [NumofSamples], 0,
-	               (fftSize - NumofSamples) * sizeof (DSPCOMPLEX));
+	   for (int i = NumofSamples; i < fftSize; i ++)
+	      FFT_A [i] = DSPCOMPLEX (0, 0);
+
 	   Fft_transform (FFT_A, fftSize, false);
 
 	   for (j = 0; j < fftSize; j ++) 

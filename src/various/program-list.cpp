@@ -127,7 +127,6 @@ void	programList::saveTable () {
 
 void	programList::loadTable () {
 QFile file (saveName);
-int	rowCount = 0;
 	if (!file. open (QIODevice::ReadOnly))
 	   return;
 	QDomDocument xmlBOM;

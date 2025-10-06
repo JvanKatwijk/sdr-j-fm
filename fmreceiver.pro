@@ -105,6 +105,7 @@ HEADERS += ./radio.h \
 	   ./includes/rds/rds-group.h \
 	   ./includes/rds/rds-groupdecoder.h  \
 	   ./devices/device-handler.h \
+	   ./devices/device-exceptions.h \
 	   ./devices/deviceselect.h \
 	   ./devices/filereader/filereader.h \
 	   ./devices/filereader/filehulp.h
@@ -166,9 +167,7 @@ isEmpty(GITHASHSTRING) {
 }
 
 #CONFIG	-= console
-#CONFIG	+= extio
 CONFIG	+= dabstick
-CONFIG	+= sdrplay
 CONFIG	+= sdrplay-v3
 CONFIG	+= airspy
 CONFIG	+= hackrf
@@ -179,7 +178,7 @@ LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 LIBS	+= -lportaudio
-LIBS	+= -lqwt-qt5
+LIBS	+= -lqwt-qt6
 #LIBS	+= -lsndfile
 #LIBS	+= -lsamplerate
 LIBS            += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsndfile-1.dll
@@ -204,7 +203,6 @@ exists ("./.git") {
 isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
-CONFIG		+= sdrplay
 CONFIG		+= sdrplay-v3
 CONFIG		+= airspy
 CONFIG		+= dabstick
@@ -234,29 +232,18 @@ dabstick {
 	                   ./devices/rtlsdr-handler/dongleselect.cpp
 }
 #
-#	the SDRplay
+#	the SDRplay	too old to use
 #
-sdrplay {
-	DEFINES		+= HAVE_SDRPLAY
-	FORMS		+= ./devices/sdrplay-handler/sdrplay-widget.ui
-	INCLUDEPATH	+= ./devices/sdrplay-handler
-	HEADERS		+= ./devices/sdrplay-handler/sdrplay-handler.h \
-	                   ./devices/sdrplay-handler/sdrplayselect.h
-	SOURCES		+= ./devices/sdrplay-handler/sdrplay-handler.cpp \
-	                   ./devices/sdrplay-handler/sdrplayselect.cpp
-}
+#sdrplay {
+#	DEFINES		+= HAVE_SDRPLAY
+#	FORMS		+= ./devices/sdrplay-handler/sdrplay-widget.ui
+#	INCLUDEPATH	+= ./devices/sdrplay-handler
+#	HEADERS		+= ./devices/sdrplay-handler/sdrplay-handler.h \
+#	                   ./devices/sdrplay-handler/sdrplayselect.h
+#	SOURCES		+= ./devices/sdrplay-handler/sdrplay-handler.cpp \
+#	                   ./devices/sdrplay-handler/sdrplayselect.cpp
+#}
 #	the SDRplay
-#
-sdrplay-v3-old {
-	DEFINES		+= HAVE_SDRPLAY_V3
-	DEPENDPATH	+= ./devices/sdrplay-handler-v3
-	INCLUDEPATH	+= ./devices/sdrplay-handler-v3 \
-	                   ./devices/sdrplay-handler-v3/include
-        HEADERS         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.h \
-                           ./devices/sdrplay-handler-v3/sdrplay-commands.h 
-        SOURCES         += ./devices/sdrplay-handler-v3/sdrplay-handler-v3.cpp 
-	FORMS		+= ./devices/sdrplay-handler-v3/sdrplay-widget-v3.ui
-}
 #
 sdrplay-v3 {
 	DEFINES		+= HAVE_SDRPLAY_V3
@@ -293,8 +280,7 @@ airspy {
 	SOURCES		+= ./devices/airspy/airspy-handler.cpp 
 }
 #
-#
-#	the AIRSPY
+#	the hackrf
 #
 hackrf {
 	DEFINES		+= HAVE_HACKRF
@@ -305,7 +291,8 @@ hackrf {
 	HEADERS		+= ./devices/hackrf-handler/hackrf-handler.h 
 	SOURCES		+= ./devices/hackrf-handler/hackrf-handler.cpp 
 }
-
+#
+#	Lime devices
 #
 lime  {
         DEFINES         += HAVE_LIME
@@ -316,7 +303,9 @@ lime  {
                            ./devices/lime-handler/LMS7002M_parameters.h
         SOURCES         += ./devices/lime-handler/lime-handler.cpp
 }
-
+#
+#	Adalm pluto
+#
 pluto	{
 	DEFINES		+= HAVE_PLUTO
 	QT              += network
@@ -327,24 +316,24 @@ pluto	{
         FORMS           += ./devices/pluto-handler/pluto-widget.ui
 #	LIBS            += -liio -lad9361
 }
-
 #
-#	the elad-s1
+#	the elad-s1 NEVER TESTED
 #
-elad_s1 {
-	DEFINES		+= HAVE_ELAD_S1
-	FORMS		+= ./devices/sw-elad-s1/elad_widget.ui
-	DEPENDPATH	+= ./devices/sw-elad-s1
-	INCLUDEPATH	+= ./devices/sw-elad-s1 
-	HEADERS		+= ./devices/sw-elad-s1/elad-s1.h \
-	                   ./devices/sw-elad-s1/elad-worker.h \
-	                   ./devices/sw-elad-s1/elad-loader.h
-	SOURCES		+= ./devices/sw-elad-s1/elad-s1.cpp \
-	                   ./devices/sw-elad-s1/elad-worker.cpp \
-	                   ./devices/sw-elad-s1/elad-loader.cpp
-}
+#elad_s1 {
+#	DEFINES		+= HAVE_ELAD_S1
+#	FORMS		+= ./devices/sw-elad-s1/elad_widget.ui
+#	DEPENDPATH	+= ./devices/sw-elad-s1
+#	INCLUDEPATH	+= ./devices/sw-elad-s1 
+#	HEADERS		+= ./devices/sw-elad-s1/elad-s1.h \
+#	                   ./devices/sw-elad-s1/elad-worker.h \
+#	                   ./devices/sw-elad-s1/elad-loader.h
+#	SOURCES		+= ./devices/sw-elad-s1/elad-s1.cpp \
+#	                   ./devices/sw-elad-s1/elad-worker.cpp \
+#	                   ./devices/sw-elad-s1/elad-loader.cpp
+#}
 #
 #	extio dependencies, windows only
+#
 #
 extio {
 	DEFINES		+= HAVE_EXTIO
@@ -359,29 +348,5 @@ extio {
 	           	   ./devices/extio-handler/extio-handler.cpp \
 	           	   ./devices/extio-handler/common-readers.cpp \
 	           	   ./devices/extio-handler/card-reader.cpp 
-}
-
-pmsdr {
-	DEFINES		+= HAVE_PMSDR
-	FORMS		+= ./devices/pmsdr/pmsdr-widget.ui
-	INCLUDEPATH	+= ./devices/pmsdr
-	DEPENDPATH	+= ./devices/pmsdr
-	HEADERS		+= ./devices/pmsdr/pmsdr.h \
-	                   ./devices/pmsdr/pmsdr-usb.h \
-	                   ./devices/pmsdr/pmsdr-comm.h \
-	                   ./devices/pmsdr/pa-reader.h
-	SOURCES		+= ./devices/pmsdr/pmsdr.cpp \
-	                   ./devices/pmsdr/pmsdr-usb.cpp \
-	                   ./devices/pmsdr/pmsdr-comm.cpp \
-	                   ./devices/pmsdr/pa-reader.cpp
-}
-
-colibri {
-        DEFINES         += HAVE_COLIBRI
-        DEPENDPATH      += ./devices/colibri-handler
-        INCLUDEPATH     += ./devices/colibri-handler
-        HEADERS         += ./devices/colibri-handler/colibri-handler.h 
-        SOURCES         += ./devices/colibri-handler/colibri-handler.cpp 
-        FORMS           += ./devices/colibri-handler/colibri-widget.ui
 }
 

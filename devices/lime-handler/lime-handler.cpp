@@ -23,6 +23,7 @@
 
 #include	<QTime>
 #include	"lime-handler.h"
+#include	"device-exceptions.h"
 
 #define	FIFO_SIZE	32768
 static
@@ -38,35 +39,34 @@ lms_info_str_t limedevices [10];
 
 #ifdef  __MINGW32__
         const char *libraryString = "LimeSuite.dll";
-        Handle          = LoadLibrary ((wchar_t *)L"LimeSuite.dll");
 #elif  __clang__
         const char *libraryString = "/opt/local/lib/libLimeSuite.dylib";
-        Handle		= dlopen (libraryString, RTLD_NOW);
 #else
         const char *libraryString = "libLimeSuite.so";
-        Handle          = dlopen (libraryString, RTLD_NOW);
 #endif
 
-        if (Handle == nullptr) {
-           fprintf (stderr, "failed to open %s\n", libraryString);
-           throw (20);
+	library_p	= new QLibrary (libraryString);
+	library_p	-> load ();
+
+	if (!library_p -> isLoaded ()) {
+           throw (device_exception (std::string ("failed to open ") +
+                                        std::string (libraryString)));
         }
 
         libraryLoaded   = true;
 	if (!load_limeFunctions()) {
-#ifdef __MINGW32__
-           FreeLibrary (Handle);
-#else
-           dlclose (Handle);
-#endif
-           throw (21);
+	delete library_p;
+           throw (device_exception (std::string ("functions missing in ") +
+                                        std::string (libraryString)));
+	
         }
 //
 //      From here we have a library available
 
 	int ndevs	= LMS_GetDeviceList (limedevices);
 	if (ndevs == 0) {	// no devices found
-	   throw (21);
+	   delete library_p;
+           throw (device_exception (std::string ("no devices found ")));
 	}
 
 	for (int i = 0; i < ndevs; i ++)
@@ -74,19 +74,22 @@ lms_info_str_t limedevices [10];
 
 	int res		= LMS_Open (&theDevice, nullptr, nullptr);
 	if (res < 0) {	// some error
-	   throw (22);
+	   delete library_p;
+	   throw (device_exception (std::string ("device open problem ")));
 	}
 
 	res		= LMS_Init (theDevice);
 	if (res < 0) {	// some error
 	   LMS_Close (&theDevice);
-	   throw (23);
+	   delete library_p;
+	   throw (device_exception (std::string ("device init problem")));
 	}
 
 	res		= LMS_GetNumChannels (theDevice, LMS_CH_RX);
 	if (res < 0) {	// some error
 	   LMS_Close (&theDevice);
-	   throw (24);
+	   delete library_p;
+	   throw (device_exception (std::string ("device channel problem")));
 	}
 
 	fprintf (stderr, "device %s supports %d channels\n",
@@ -94,13 +97,15 @@ lms_info_str_t limedevices [10];
 	res		= LMS_EnableChannel (theDevice, LMS_CH_RX, 0, true);
 	if (res < 0) {	// some error
 	   LMS_Close (theDevice);
-	   throw (24);
+	   delete library_p;
+	   throw (device_exception (std::string ("device channel problem")));
 	}
 
 	res	= LMS_SetSampleRate (theDevice, 2304000.0, 0);
 	if (res < 0) {
 	   LMS_Close (theDevice);
-	   throw (25);
+	   delete library_p;
+	   throw (device_exception (std::string ("samplerate problem")));
 	}
 
 	float_type host_Hz, rf_Hz;
@@ -133,14 +138,16 @@ lms_info_str_t limedevices [10];
 	                                                 0, 220000000.0);
 	if (res < 0) {
 	   LMS_Close (theDevice);
-	   throw (26);
+	   delete library_p;
+	   throw (device_exception (std::string ("frequency problem")));
 	}
 
 	res		= LMS_SetLPFBW (theDevice, LMS_CH_RX,
 	                                               0, 1536000.0);
 	if (res < 0) {
 	   LMS_Close (theDevice);
-	   throw (27);
+	   delete library_p;
+	   throw (device_exception (std::string ("bandwidth problem")));
 	}
 
 	LMS_SetGaindB (theDevice, LMS_CH_RX, 0, 50);
@@ -170,6 +177,7 @@ lms_info_str_t limedevices [10];
 	limeSettings	-> setValue ("gain", gainSelector -> value());
 	limeSettings	-> endGroup();
 	LMS_Close (theDevice);
+	delete library_p;
 }
 
 int32_t	limeHandler::getRate		() {
@@ -185,6 +193,7 @@ void	limeHandler::setVFOFrequency	(int32_t f) {
 int32_t	limeHandler::getVFOFrequency	() {
 float_type freq;
 	int res = LMS_GetLOFrequency (theDevice, LMS_CH_RX, 0, &freq);
+	(void)res;
 	return (int)freq;
 }
 
@@ -193,6 +202,7 @@ uint8_t	limeHandler::myIdentity		() {
 }
 
 bool	limeHandler::legalFrequency	(int32_t f) {
+	(void)f;
 	return true;
 }
 
@@ -289,7 +299,6 @@ int	res;
 lms_stream_status_t streamStatus;
 int	underruns	= 0;
 int	overruns	= 0;
-int	dropped		= 0;
 int	amountRead	= 0;
 
 	running. store (true);
@@ -315,163 +324,163 @@ int	amountRead	= 0;
 bool	limeHandler::load_limeFunctions() {
 
 	this	-> LMS_GetDeviceList = (pfn_LMS_GetDeviceList)
-	                    GETPROCADDRESS (Handle, "LMS_GetDeviceList");
+	                    library_p -> resolve ("LMS_GetDeviceList");
 	if (this -> LMS_GetDeviceList == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetdeviceList\n");
 	   return false;
 	}
 	this	-> LMS_Open = (pfn_LMS_Open)
-	                    GETPROCADDRESS (Handle, "LMS_Open");
+	                    library_p -> resolve ("LMS_Open");
 	if (this -> LMS_Open == nullptr) {
 	   fprintf (stderr, "could not find LMS_Open\n");
 	   return false;
 	}
 	this	-> LMS_Close = (pfn_LMS_Close)
-	                    GETPROCADDRESS (Handle, "LMS_Close");
+	                    library_p -> resolve ("LMS_Close");
 	if (this -> LMS_Close == nullptr) {
 	   fprintf (stderr, "could not find LMS_Close\n");
 	   return false;
 	}
 	this	-> LMS_Init = (pfn_LMS_Init)
-	                    GETPROCADDRESS (Handle, "LMS_Init");
+	                    library_p -> resolve ("LMS_Init");
 	if (this -> LMS_Init == nullptr) {
 	   fprintf (stderr, "could not find LMS_Init\n");
 	   return false;
 	}
 	this	-> LMS_GetNumChannels = (pfn_LMS_GetNumChannels)
-	                    GETPROCADDRESS (Handle, "LMS_GetNumChannels");
+	                    library_p -> resolve ("LMS_GetNumChannels");
 	if (this -> LMS_GetNumChannels == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetNumChannels\n");
 	   return false;
 	}
 	this	-> LMS_EnableChannel = (pfn_LMS_EnableChannel)
-	                    GETPROCADDRESS (Handle, "LMS_EnableChannel");
+	                    library_p -> resolve ("LMS_EnableChannel");
 	if (this -> LMS_EnableChannel == nullptr) {
 	   fprintf (stderr, "could not find LMS_EnableChannel\n");
 	   return false;
 	}
 	this	-> LMS_SetSampleRate = (pfn_LMS_SetSampleRate)
-	                    GETPROCADDRESS (Handle, "LMS_SetSampleRate");
+	                    library_p -> resolve ("LMS_SetSampleRate");
 	if (this -> LMS_SetSampleRate == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetSampleRate\n");
 	   return false;
 	}
 	this	-> LMS_GetSampleRate = (pfn_LMS_GetSampleRate)
-	                    GETPROCADDRESS (Handle, "LMS_GetSampleRate");
+	                    library_p -> resolve ("LMS_GetSampleRate");
 	if (this -> LMS_GetSampleRate == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetSampleRate\n");
 	   return false;
 	}
 	this	-> LMS_SetLOFrequency = (pfn_LMS_SetLOFrequency)
-	                    GETPROCADDRESS (Handle, "LMS_SetLOFrequency");
+	                    library_p -> resolve ("LMS_SetLOFrequency");
 	if (this -> LMS_SetLOFrequency == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetLOFrequency\n");
 	   return false;
 	}
 	this	-> LMS_GetLOFrequency = (pfn_LMS_GetLOFrequency)
-	                    GETPROCADDRESS (Handle, "LMS_GetLOFrequency");
+	                    library_p -> resolve ("LMS_GetLOFrequency");
 	if (this -> LMS_GetLOFrequency == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetLOFrequency\n");
 	   return false;
 	}
 	this	-> LMS_GetAntennaList = (pfn_LMS_GetAntennaList)
-	                    GETPROCADDRESS (Handle, "LMS_GetAntennaList");
+	                    library_p -> resolve ("LMS_GetAntennaList");
 	if (this -> LMS_GetAntennaList == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetAntennaList\n");
 	   return false;
 	}
 	this	-> LMS_SetAntenna = (pfn_LMS_SetAntenna)
-	                    GETPROCADDRESS (Handle, "LMS_SetAntenna");
+	                    library_p -> resolve ("LMS_SetAntenna");
 	if (this -> LMS_SetAntenna == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetAntenna\n");
 	   return false;
 	}
 	this	-> LMS_GetAntenna = (pfn_LMS_GetAntenna)
-	                    GETPROCADDRESS (Handle, "LMS_GetAntenna");
+	                    library_p -> resolve ("LMS_GetAntenna");
 	if (this -> LMS_GetAntenna == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetAntenna\n");
 	   return false;
 	}
 	this	-> LMS_GetAntennaBW = (pfn_LMS_GetAntennaBW)
-	                    GETPROCADDRESS (Handle, "LMS_GetAntennaBW");
+	                    library_p -> resolve ("LMS_GetAntennaBW");
 	if (this -> LMS_GetAntennaBW == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetAntennaBW\n");
 	   return false;
 	}
 	this	-> LMS_SetNormalizedGain = (pfn_LMS_SetNormalizedGain)
-	                    GETPROCADDRESS (Handle, "LMS_SetNormalizedGain");
+	                    library_p -> resolve ("LMS_SetNormalizedGain");
 	if (this -> LMS_SetNormalizedGain == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetNormalizedGain\n");
 	   return false;
 	}
 	this	-> LMS_GetNormalizedGain = (pfn_LMS_GetNormalizedGain)
-	                    GETPROCADDRESS (Handle, "LMS_GetNormalizedGain");
+	                    library_p -> resolve ("LMS_GetNormalizedGain");
 	if (this -> LMS_GetNormalizedGain == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetNormalizedGain\n");
 	   return false;
 	}
 	this	-> LMS_SetGaindB = (pfn_LMS_SetGaindB)
-	                    GETPROCADDRESS (Handle, "LMS_SetGaindB");
+	                    library_p -> resolve ("LMS_SetGaindB");
 	if (this -> LMS_SetGaindB == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetGaindB\n");
 	   return false;
 	}
 	this	-> LMS_GetGaindB = (pfn_LMS_GetGaindB)
-	                    GETPROCADDRESS (Handle, "LMS_GetGaindB");
+	                    library_p -> resolve ("LMS_GetGaindB");
 	if (this -> LMS_GetGaindB == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetGaindB\n");
 	   return false;
 	}
 	this	-> LMS_SetLPFBW = (pfn_LMS_SetLPFBW)
-	                    GETPROCADDRESS (Handle, "LMS_SetLPFBW");
+	                    library_p -> resolve ("LMS_SetLPFBW");
 	if (this -> LMS_SetLPFBW == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetLPFBW\n");
 	   return false;
 	}
 	this	-> LMS_GetLPFBW = (pfn_LMS_GetLPFBW)
-	                    GETPROCADDRESS (Handle, "LMS_GetLPFBW");
+	                    library_p -> resolve ("LMS_GetLPFBW");
 	if (this -> LMS_GetLPFBW == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetLPFBW\n");
 	   return false;
 	}
 	this	-> LMS_Calibrate = (pfn_LMS_Calibrate)
-	                    GETPROCADDRESS (Handle, "LMS_Calibrate");
+	                    library_p -> resolve ("LMS_Calibrate");
 	if (this -> LMS_Calibrate == nullptr) {
 	   fprintf (stderr, "could not find LMS_Calibrate\n");
 	   return false;
 	}
 	this	-> LMS_SetupStream = (pfn_LMS_SetupStream)
-	                    GETPROCADDRESS (Handle, "LMS_SetupStream");
+	                    library_p -> resolve ("LMS_SetupStream");
 	if (this -> LMS_SetupStream == nullptr) {
 	   fprintf (stderr, "could not find LMS_SetupStream\n");
 	   return false;
 	}
 	this	-> LMS_DestroyStream = (pfn_LMS_DestroyStream)
-	                    GETPROCADDRESS (Handle, "LMS_DestroyStream");
+	                    library_p -> resolve ("LMS_DestroyStream");
 	if (this -> LMS_DestroyStream == nullptr) {
 	   fprintf (stderr, "could not find LMS_DestroyStream\n");
 	   return false;
 	}
 	this	-> LMS_StartStream = (pfn_LMS_StartStream)
-	                    GETPROCADDRESS (Handle, "LMS_StartStream");
+	                    library_p -> resolve ("LMS_StartStream");
 	if (this -> LMS_StartStream == nullptr) {
 	   fprintf (stderr, "could not find LMS_StartStream\n");
 	   return false;
 	}
 	this	-> LMS_StopStream = (pfn_LMS_StopStream)
-	                    GETPROCADDRESS (Handle, "LMS_StopStream");
+	                    library_p -> resolve ("LMS_StopStream");
 	if (this -> LMS_StopStream == nullptr) {
 	   fprintf (stderr, "could not find LMS_StopStream\n");
 	   return false;
 	}
 	this	-> LMS_RecvStream = (pfn_LMS_RecvStream)
-	                    GETPROCADDRESS (Handle, "LMS_RecvStream");
+	                    library_p -> resolve ("LMS_RecvStream");
 	if (this -> LMS_RecvStream == nullptr) {
 	   fprintf (stderr, "could not find LMS_RecvStream\n");
 	   return false;
 	}
 	this	-> LMS_GetStreamStatus = (pfn_LMS_GetStreamStatus)
-	                    GETPROCADDRESS (Handle, "LMS_GetStreamStatus");
+	                    library_p -> resolve ("LMS_GetStreamStatus");
 	if (this -> LMS_GetStreamStatus == nullptr) {
 	   fprintf (stderr, "could not find LMS_GetStreamStatus\n");
 	   return false;

@@ -42,9 +42,6 @@
 #include	"program-list.h"
 #include	"device-handler.h"
 #include	"filereader.h"
-#ifdef HAVE_SDRPLAY
-#include	"sdrplay-handler.h"
-#endif
 #ifdef HAVE_SDRPLAY_V3
 #include	"sdrplay-handler-v3.h"
 #endif
@@ -54,9 +51,6 @@
 #ifdef HAVE_DABSTICK
 #include	"rtlsdr-handler.h"
 #endif
-#ifdef HAVE_EXTIO
-#include	"extio-handler.h"
-#endif
 #ifdef HAVE_HACKRF
 #include	"hackrf-handler.h"
 #endif
@@ -65,9 +59,6 @@
 #endif
 #ifdef HAVE_PLUTO
 #include	"pluto-handler.h"
-#endif
-#ifdef HAVE_ELAD_S1
-#include	"elad-s1.h"
 #endif
 #ifdef __MINGW32__
 #include	<iostream>
@@ -764,16 +755,6 @@ bool    success;
 	ExtioLock	= false;
 	success		= true;		// default for now
 
-#ifdef HAVE_SDRPLAY
-	if (s == D_SDRPLAY) {
-	   try {
-	      theDevice = new sdrplayHandler (fmSettings);
-	   } catch (int e) {
-	      success = false;
-	   }
-	}
-	else
-#endif
 #ifdef HAVE_SDRPLAY_V3
 	if (s == D_SDRPLAY_V3) {
 	   try {
@@ -824,16 +805,6 @@ bool    success;
 	}
 	else
 #endif
-#ifdef HAVE_ELAD_S1
-	if (s == D_ELAD_S1) {
-	   try {
-	      theDevice = new eladHandler (fmSettings, true, &success);
-	   } catch (int e) {
-	      success = false;
-	   }
-	}
-	else
-#endif
 #ifdef HAVE_DABSTICK
 	if (s == D_RTLSDR) {
 	   try {
@@ -841,15 +812,6 @@ bool    success;
 	   } catch (int e) {
 	      success = false;
 	   }
-	}
-	else
-#endif
-#ifdef HAVE_EXTIO
-	if (s == D_EXTIO) {
-	   try {
-	      theDevice = new ExtioHandler (fmSettings, theSelector, &success);
-	   } catch (int e) {
-	      success = false;
 	}
 	else
 #endif
@@ -1991,7 +1953,8 @@ std::complex<float> tempBuffer [displaySize];
 	hfScope		-> setNeedle (loFrequency);
 	hfScope		-> setAmplification (
 	                   spectrumAmplitudeSlider_hf -> value ());
-	while (hfBuffer. GetRingBufferReadAvailable () > displaySize) {
+	while ((int16_t)(hfBuffer. GetRingBufferReadAvailable ()) >
+	                                             displaySize) {
 	   hfBuffer. getDataFromBuffer (tempBuffer, displaySize);
 	   hfScope -> addElements (tempBuffer, displaySize);
 	}
@@ -2003,7 +1966,7 @@ void	RadioInterface::lfBufferLoaded (bool showFull,
 std::vector<std::complex<float>> v (spectrumSize);
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
-	while (lfBuffer. GetRingBufferReadAvailable () > spectrumSize) {
+	while ((int)(lfBuffer. GetRingBufferReadAvailable ()) > spectrumSize) {
 	   lfBuffer.  getDataFromBuffer (v. data (), spectrumSize);
 	   lfScope -> processLFSpectrum (v, 
 	                                 zoomFactor,

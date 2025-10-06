@@ -27,23 +27,19 @@
 #include	<QFrame>
 #include	<QSettings>
 #include	<QSemaphore>
+#include	<QLibrary>
 #include	<atomic>
 #include	<stdio.h>
 #include	<queue>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
 #include	"device-handler.h"
+#include	"device-exceptions.h"
 #include	"ui_sdrplay-widget-v3.h"
 #include	<sdrplay_api.h>
 
 class	Rsp_device;
 class	generalCommand;
-
-#ifdef __MINGW32__
-#define GETPROCADDRESS  GetProcAddress
-#else
-#define GETPROCADDRESS  dlsym
-#endif
 
 class	sdrplayHandler_v3: public deviceHandler, public Ui_sdrplayWidget_v3 {
 Q_OBJECT
@@ -118,11 +114,10 @@ public:
 	int			GRdBValue;
 	int			lnaState;
 	int			ppmValue;
-	HINSTANCE		Handle;
+	QLibrary		*library_p;
 	bool			biasT;
 	std::queue<generalCommand *> server_queue;
 	QSemaphore		serverjobs;
-	HINSTANCE		fetchLibrary		();
 	void			releaseLibrary		();
 	bool			loadFunctions		();
 	int			errorCode;

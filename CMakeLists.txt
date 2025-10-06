@@ -52,13 +52,11 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
 #	set(NO_SSE_SUPPORT true)
 #
 option(AIRSPY OFF)       
-option(SDRPLAY OFF)
 option(SDRPLAY_V3 OFF)
 option(HACKRF OFF)
 option(LIMESDR OFF) 
 option(RTL_TCP OFF) 
 option(PLUTO OFF) 
-option(UHD OFF)      
 
 
 ########################################################################

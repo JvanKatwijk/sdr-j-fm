@@ -21,16 +21,17 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __DABSTICK__
-#define	__DABSTICK__
+#pragma once
 
 #include	<QObject>
 #include	<QSettings>
 #include	<QFrame>
+#include	<QLibrary>
 #include	<vector>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
 #include	"device-handler.h"
+#include	"device-exceptions.h"
 #include	"dongleselect.h"
 #include	"ui_dabstick-widget.h"
 
@@ -95,6 +96,7 @@ public:
 	int32_t		sampleCounter;
 private:
 	QFrame		myFrame;
+	QLibrary	*library_p;
 	QSettings	*dabSettings;
 	dongleSelect	*dongleSelector;
 	int32_t		inputRate;
@@ -133,5 +135,4 @@ private slots:
 	void		setHzOffset	(int);
 	void		set_biasControl	(int);
 };
-#endif
 

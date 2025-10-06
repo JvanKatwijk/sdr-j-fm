@@ -26,40 +26,35 @@
 #include	<QLabel>
 #include	<QDebug>
 #include	"hackrf-handler.h"
+#include	"device-exceptions.h"
 
 #define	DEFAULT_GAIN	30
 
 	hackrfHandler::hackrfHandler  (QSettings *s):
 	                               _I_Buffer (1024 * 1024) {
-int	err;
 int	res;
 	hackrfSettings			= s;
-	this	-> myFrame		= new QFrame (NULL);
+	this	-> myFrame		= new QFrame (nullptr);
 	setupUi (this -> myFrame);
 	this	-> myFrame	-> show ();
 	this	-> inputRate		= Khz (12 * 192);
 
 #ifdef  __MINGW32__
 	const char *libraryString = "libhackrf.dll";
-	Handle          = LoadLibrary ((wchar_t *)L"libhackrf.dll");
 #else
 	const char *libraryString = "libhackrf.so";
-	Handle          = dlopen (libraryString, RTLD_NOW);
 #endif
 
-	if (Handle == NULL) {
-	   fprintf (stderr, "failed to open %s\n", libraryString);
-	   delete myFrame;
-	   throw (20);
+	library_p	= new QLibrary (libraryString);
+	library_p	-> load ();
+	if (!library_p -> isLoaded ()) {
+           throw (device_exception ("failed to open " +
+                                        std::string (libraryString)));
 	}
 
 	libraryLoaded   = true;
 	if (!load_hackrfFunctions ()) {
-#ifdef __MINGW32__
-	   FreeLibrary (Handle);
-#else
-	   dlclose (Handle);
-#endif
+	   delete library_p;
 	   delete myFrame;
 	   throw (21);
 	}
@@ -95,8 +90,10 @@ int	res;
 	   fprintf (stderr, "Problem with hackrf_init:");
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
+	   delete library_p;
 	   delete myFrame;
-	   throw (21);
+	   throw (device_exception (std::string ("problem with hackrf init ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
 
 	res	= this	-> hackrf_open (&theDevice);
@@ -104,7 +101,11 @@ int	res;
 	   fprintf (stderr, "Problem with hackrf_open:");
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
+	   
 	   delete myFrame;
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with hackrf opem ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	   throw (22);
 	}
 
@@ -114,7 +115,10 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (23);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with set samplerate ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
+	
 	}
 
 	int bandWidth = this -> hackrf_compute_baseband_filter_bw (256000);
@@ -126,7 +130,9 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (24);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with set bw ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
 
 	res	= this -> hackrf_set_freq (theDevice, 220000000);
@@ -135,18 +141,10 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (25);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with set freq ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
-
-	res     = this -> hackrf_set_freq (theDevice, 220000000);
-	if (res != HACKRF_SUCCESS) {
-	   fprintf (stderr, "Problem with hackrf_set_freq: ");
-	   fprintf (stderr, "%s \n",
-	                 this -> hackrf_error_name (hackrf_error (res)));
-	   delete myFrame;
-	   throw (25);
-	}
-
 
 	res = this -> hackrf_set_antenna_enable (theDevice, 1);
 	if (res != HACKRF_SUCCESS) {
@@ -154,15 +152,20 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	                this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (26);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with set ntennaa ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
-     res = this -> hackrf_set_amp_enable (theDevice, 1);
+
+	res = this -> hackrf_set_amp_enable (theDevice, 1);
 	if (res != HACKRF_SUCCESS) {
-	   fprintf (stderr, "Problem with hackrf_set_antenna_enable: ");
+	   fprintf (stderr, "Problem with hackrf_set_amp_enable: ");
 	   fprintf (stderr, "%s \n",
 	                this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (27);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with set amp enable ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
 
 	uint16_t regValue;
@@ -172,7 +175,9 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	             this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (28);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with si5351 ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
 
 	res = this -> hackrf_si5351c_write (theDevice, 162, regValue);
@@ -181,7 +186,9 @@ int	res;
 	   fprintf (stderr, "%s \n",
 	              this -> hackrf_error_name (hackrf_error (res)));
 	   delete myFrame;
-	   throw (29);
+	   delete library_p;
+	   throw (device_exception (std::string ("problem with si5351 ") +
+	                 this -> hackrf_error_name (hackrf_error (res))));
 	}
 
 	setLNAGain	(lnagainSlider	-> value ());
@@ -236,6 +243,7 @@ int	res;
 }
 //
 bool    hackrfHandler::legalFrequency (int32_t f) {
+	(void)f;
 	return true;
 }
 
@@ -386,7 +394,7 @@ int	res;
 
 	res	= this -> hackrf_stop_rx (theDevice);
 	if (res != HACKRF_SUCCESS) {
-	   fprintf (stderr, "Problem with hackrf_stop_rx :\n", res);
+	   fprintf (stderr, "Problem with hackrf_stop_rx : %d\n", res);
 	   fprintf (stderr, "%s \n",
 	                 this -> hackrf_error_name (hackrf_error (res)));
 	   return;
@@ -399,6 +407,7 @@ int	res;
 //	size still in I/Q pairs
 int32_t	hackrfHandler::getSamples (std::complex<float> *V,
 	                                 int32_t size, uint8_t Mode) { 
+	(void)Mode;
 	return _I_Buffer. getDataFromBuffer (V, size);
 }
 
@@ -426,49 +435,49 @@ bool	hackrfHandler::load_hackrfFunctions () {
 //
 //	link the required procedures
 	this -> hackrf_init	= (pfn_hackrf_init)
-	                       GETPROCADDRESS (Handle, "hackrf_init");
+	                       library_p -> resolve  ("hackrf_init");
 	if (this -> hackrf_init == NULL) {
 	   fprintf (stderr, "Could not find hackrf_init\n");
 	   return false;
 	}
 
 	this -> hackrf_open	= (pfn_hackrf_open)
-	                       GETPROCADDRESS (Handle, "hackrf_open");
+	                       library_p -> resolve ("hackrf_open");
 	if (this -> hackrf_open == NULL) {
 	   fprintf (stderr, "Could not find hackrf_open\n");
 	   return false;
 	}
 
 	this -> hackrf_close	= (pfn_hackrf_close)
-	                       GETPROCADDRESS (Handle, "hackrf_close");
+	                       library_p -> resolve ("hackrf_close");
 	if (this -> hackrf_close == NULL) {
 	   fprintf (stderr, "Could not find hackrf_close\n");
 	   return false;
 	}
 
 	this -> hackrf_exit	= (pfn_hackrf_exit)
-	                       GETPROCADDRESS (Handle, "hackrf_exit");
+	                       library_p -> resolve ("hackrf_exit");
 	if (this -> hackrf_exit == NULL) {
 	   fprintf (stderr, "Could not find hackrf_exit\n");
 	   return false;
 	}
 
 	this -> hackrf_start_rx	= (pfn_hackrf_start_rx)
-	                       GETPROCADDRESS (Handle, "hackrf_start_rx");
+	                       library_p -> resolve ("hackrf_start_rx");
 	if (this -> hackrf_start_rx == NULL) {
 	   fprintf (stderr, "Could not find hackrf_start_rx\n");
 	   return false;
 	}
 
 	this -> hackrf_stop_rx	= (pfn_hackrf_stop_rx)
-	                       GETPROCADDRESS (Handle, "hackrf_stop_rx");
+	                       library_p -> resolve ("hackrf_stop_rx");
 	if (this -> hackrf_stop_rx == NULL) {
 	   fprintf (stderr, "Could not find hackrf_stop_rx\n");
 	   return false;
 	}
 
 	this -> hackrf_device_list	= (pfn_hackrf_device_list)
-	                       GETPROCADDRESS (Handle, "hackrf_device_list");
+	                        library_p -> resolve  ("hackrf_device_list");
 	if (this -> hackrf_device_list == NULL) {
 	   fprintf (stderr, "Could not find hackrf_device_list\n");
 	   return false;
@@ -476,7 +485,7 @@ bool	hackrfHandler::load_hackrfFunctions () {
 
 	this -> hackrf_set_baseband_filter_bandwidth	=
 	                      (pfn_hackrf_set_baseband_filter_bandwidth)
-	                      GETPROCADDRESS (Handle,
+	                      library_p -> resolve (
 	                         "hackrf_set_baseband_filter_bandwidth");
 	if (this -> hackrf_set_baseband_filter_bandwidth == NULL) {
 	   fprintf (stderr, "Could not find hackrf_set_baseband_filter_bandwidth\n");
@@ -485,7 +494,7 @@ bool	hackrfHandler::load_hackrfFunctions () {
 
 	this	-> hackrf_compute_baseband_filter_bw	=
 	                       (pfn_hackrf_compute_baseband_filter_bw)
-	                       GETPROCADDRESS (Handle,
+	                       library_p -> resolve (
 	                          "hackrf_compute_baseband_filter_bw");
 	if (this -> hackrf_compute_baseband_filter_bw	== NULL) {
 	   fprintf (stderr, "Could not find hackrf_compute_baseband_filter_bw\n");
@@ -493,49 +502,49 @@ bool	hackrfHandler::load_hackrfFunctions () {
 	}
 
 	this -> hackrf_set_lna_gain	= (pfn_hackrf_set_lna_gain)
-	                       GETPROCADDRESS (Handle, "hackrf_set_lna_gain");
+	                       library_p -> resolve ("hackrf_set_lna_gain");
 	if (this -> hackrf_set_lna_gain == NULL) {
 	   fprintf (stderr, "Could not find hackrf_set_lna_gain\n");
 	   return false;
 	}
 
 	this -> hackrf_set_vga_gain	= (pfn_hackrf_set_vga_gain)
-	                       GETPROCADDRESS (Handle, "hackrf_set_vga_gain");
+	                       library_p -> resolve ("hackrf_set_vga_gain");
 	if (this -> hackrf_set_vga_gain == NULL) {
 	   fprintf (stderr, "Could not find hackrf_set_vga_gain\n");
 	   return false;
 	}
 
 	this -> hackrf_set_freq	= (pfn_hackrf_set_freq)
-	                       GETPROCADDRESS (Handle, "hackrf_set_freq");
+	                       library_p -> resolve ("hackrf_set_freq");
 	if (this -> hackrf_set_freq == NULL) {
 	   fprintf (stderr, "Could not find hackrf_set_freq\n");
 	   return false;
 	}
 
 	this -> hackrf_set_sample_rate	= (pfn_hackrf_set_sample_rate)
-	                       GETPROCADDRESS (Handle, "hackrf_set_sample_rate");
+	                       library_p -> resolve ("hackrf_set_sample_rate");
 	if (this -> hackrf_set_sample_rate == NULL) {
 	   fprintf (stderr, "Could not find hackrf_set_sample_rate\n");
 	   return false;
 	}
 
 	this -> hackrf_is_streaming	= (pfn_hackrf_is_streaming)
-	                       GETPROCADDRESS (Handle, "hackrf_is_streaming");
+	                       library_p -> resolve ("hackrf_is_streaming");
 	if (this -> hackrf_is_streaming == NULL) {
 	   fprintf (stderr, "Could not find hackrf_is_streaming\n");
 	   return false;
 	}
 
 	this -> hackrf_error_name	= (pfn_hackrf_error_name)
-	                       GETPROCADDRESS (Handle, "hackrf_error_name");
+	                       library_p -> resolve ("hackrf_error_name");
 	if (this -> hackrf_error_name == NULL) {
 	   fprintf (stderr, "Could not find hackrf_error_name\n");
 	   return false;
 	}
 
 	this -> hackrf_usb_board_id_name = (pfn_hackrf_usb_board_id_name)
-	                       GETPROCADDRESS (Handle, "hackrf_usb_board_id_name");
+	                       library_p -> resolve ("hackrf_usb_board_id_name");
 	if (this -> hackrf_usb_board_id_name == NULL) {
 	   fprintf (stderr, "Could not find hackrf_usb_board_id_name\n");
 	   return false;
@@ -543,27 +552,27 @@ bool	hackrfHandler::load_hackrfFunctions () {
 
 // Aggiunta Fabio
 	this -> hackrf_set_antenna_enable = (pfn_hackrf_set_antenna_enable)
-	                  GETPROCADDRESS (Handle, "hackrf_set_antenna_enable");
+	                  library_p -> resolve ("hackrf_set_antenna_enable");
 	if (this -> hackrf_set_antenna_enable == nullptr) {
 	   fprintf (stderr, "Could not find hackrf_set_antenna_enable\n");
 	   return false;
 	}
 
 	this -> hackrf_set_amp_enable = (pfn_hackrf_set_amp_enable)
-	                  GETPROCADDRESS (Handle, "hackrf_set_amp_enable");
+	                  library_p -> resolve ("hackrf_set_amp_enable");
 	if (this -> hackrf_set_amp_enable == nullptr) {
 	   fprintf (stderr, "Could not find hackrf_set_amp_enable\n");
 	   return false;
 	}
 	this -> hackrf_si5351c_read = (pfn_hackrf_si5351c_read)
-	                 GETPROCADDRESS (Handle, "hackrf_si5351c_read");
+	                 library_p -> resolve ("hackrf_si5351c_read");
 	if (this -> hackrf_si5351c_read == nullptr) {
 	   fprintf (stderr, "Could not find hackrf_si5351c_read\n");
 	   return false;
 	}
 
 	this -> hackrf_si5351c_write = (pfn_hackrf_si5351c_write)
-	                 GETPROCADDRESS (Handle, "hackrf_si5351c_write");
+	                 library_p -> resolve ("hackrf_si5351c_write");
 	if (this -> hackrf_si5351c_write == nullptr) {
 	   fprintf (stderr, "Could not find hackrf_si5351c_write\n");
 	   return false;

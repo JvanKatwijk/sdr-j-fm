@@ -14,15 +14,16 @@
  *	jan van Katwijk
  *	Lazy Chair Computing
  */
-#ifndef __AIRSPY_RADIO__
-#define	__AIRSPY_RADIO__
+#pragma once
 
 #include	<QObject>
 #include	<QSettings>
 #include	<QFrame>
+#include	<QLibrary>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
 #include	"device-handler.h"
+#include	"device-exceptions.h"
 #include	"ui_airspy-widget.h"
 #include	"airspy.h"
 
@@ -111,7 +112,8 @@ private slots:
 private:
 	QFrame		myFrame;
 	RingBuffer<DSPCOMPLEX> _I_Buffer;
-	bool		load_airspyFunctions	(void);
+	QLibrary		*library_p;
+	bool		load_airspyFunctions	();
 //	The functions to be extracted from the dll/.so file
 	pfn_airspy_init		   my_airspy_init;
 	pfn_airspy_exit		   my_airspy_exit;
@@ -170,4 +172,3 @@ const	char *		getSerial	();
 	int	open			();
 };
 
-#endif

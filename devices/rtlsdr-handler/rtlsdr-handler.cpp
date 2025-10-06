@@ -31,12 +31,6 @@
 #include	"rtl-sdr.h"
 #include	"rtlsdr-handler.h"
 
-#ifdef	__MINGW32__
-#define	GETPROCADDRESS	GetProcAddress
-#else
-#define	GETPROCADDRESS	dlsym
-#endif
-
 #define	READLEN_DEFAULT	8192
 //
 //	For the callback, we do need some environment which
@@ -90,9 +84,7 @@ virtual void	run (void) {
 int16_t	deviceCount;
 int32_t	r;
 int16_t	deviceIndex;
-int16_t	i;
 QString	h;
-int	k;
 
 	dabSettings		= s;
 	setupUi (& myFrame);
@@ -105,25 +97,24 @@ int	k;
 
 #ifdef	__MINGW32__
 	const char *libraryString = "rtlsdr.dll";
-	Handle		= LoadLibrary ((wchar_t *)L"librtlsdr.dll");
-	if (Handle == nullptr)
-	   Handle = LoadLibrary ((wchar_t *)L"rtlsdr.dll");
 #else
 	const char *libraryString = "librtlsdr.so";
-	Handle		= dlopen ("librtlsdr.so", RTLD_NOW);
 #endif
+	
+        library_p	= new QLibrary (libraryString);
+        library_p	-> load ();
+        if (!library_p -> isLoaded ()) {
+           throw (device_exception ("failed to open " +
+                                        std::string (libraryString)));
+        }
 
-	if (Handle == nullptr) {
-	   fprintf (stderr, "failed to open %s\n", libraryString);
-	   throw (21);
-	}
+        if (!load_rtlFunctions ()) {
+           delete library_p;
+           throw (device_exception ("could not find one or more library functions"));
+        }
 
 	if (!load_rtlFunctions ()) {
-#ifdef __MINGW32__
-	   FreeLibrary (Handle);
-#else
-	   dlclose (Handle);
-#endif
+	   delete library_p;
 	   throw (22);
 	}
 //
@@ -177,7 +168,7 @@ int	k;
 	   gains. resize (gainsCount);
 	   (void)rtlsdr_get_tuner_gains (device, ll);
 	   gainSlider	-> setMaximum (gainsCount);
-	   for (i = gainsCount; i > 0; i--) {
+	   for (int i = gainsCount; i > 0; i--) {
 	      fprintf (stderr, "%.1f ", ll [i - 1] / 10.0);
 	      gains [i - 1] = ll [i - 1];
 	   }
@@ -216,6 +207,7 @@ int	k;
 	dabSettings	-> setValue ("HzOffset", HzOffset -> value ());
 	dabSettings	-> endGroup ();
 	myFrame. hide ();
+	delete library_p;
 }
 
 void	rtlsdrHandler::setVFOFrequency	(int32_t f) {
@@ -328,124 +320,127 @@ bool	rtlsdrHandler::load_rtlFunctions () {
 //
 //	link the required procedures
 	rtlsdr_open	= (pfnrtlsdr_open)
-	                       GETPROCADDRESS (Handle, "rtlsdr_open");
+	                       library_p -> resolve ("rtlsdr_open");
 	if (rtlsdr_open == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_open\n");
 	   return false;
 	}
 	rtlsdr_close	= (pfnrtlsdr_close)
-	                     GETPROCADDRESS (Handle, "rtlsdr_close");
+	                     library_p -> resolve ("rtlsdr_close");
 	if (rtlsdr_close == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_close\n");
 	   return false;
 	}
 
 	rtlsdr_set_sample_rate =
-	    (pfnrtlsdr_set_sample_rate)GETPROCADDRESS (Handle, "rtlsdr_set_sample_rate");
+	    (pfnrtlsdr_set_sample_rate)
+	                     library_p -> resolve ("rtlsdr_set_sample_rate");
 	if (rtlsdr_set_sample_rate == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_sample_rate\n");
 	   return false;
 	}
 
 	rtlsdr_get_sample_rate	=
-	    (pfnrtlsdr_get_sample_rate)GETPROCADDRESS (Handle, "rtlsdr_get_sample_rate");
+	    (pfnrtlsdr_get_sample_rate)
+	                      library_p -> resolve ("rtlsdr_get_sample_rate");
 	if (rtlsdr_get_sample_rate == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_sample_rate\n");
 	   return false;
 	}
 
 	rtlsdr_set_agc_mode =
-	    (pfnrtlsdr_set_agc_mode)GETPROCADDRESS (Handle, "rtlsdr_set_agc_mode");
+	    (pfnrtlsdr_set_agc_mode)
+	                      library_p -> resolve ("rtlsdr_set_agc_mode");
 	if (rtlsdr_set_agc_mode == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_agc_mode\n");
 	   return false;
 	}
 
 	rtlsdr_get_tuner_gains		= (pfnrtlsdr_get_tuner_gains)
-	                     GETPROCADDRESS (Handle, "rtlsdr_get_tuner_gains");
+	                      library_p -> resolve ("rtlsdr_get_tuner_gains");
 	if (rtlsdr_get_tuner_gains == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_tuner_gains\n");
 	   return false;
 	}
 
 	rtlsdr_set_tuner_gain_mode	= (pfnrtlsdr_set_tuner_gain_mode)
-	                     GETPROCADDRESS (Handle, "rtlsdr_set_tuner_gain_mode");
+	                      library_p -> resolve ("rtlsdr_set_tuner_gain_mode");
 	if (rtlsdr_set_tuner_gain_mode == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_tuner_gain_mode\n");
 	   return false;
 	}
 
 	rtlsdr_set_tuner_gain	= (pfnrtlsdr_set_tuner_gain)
-	                     GETPROCADDRESS (Handle, "rtlsdr_set_tuner_gain");
+	                     library_p -> resolve ("rtlsdr_set_tuner_gain");
 	if (rtlsdr_set_tuner_gain == nullptr) {
 	   fprintf (stderr, "Cound not find rtlsdr_set_tuner_gain\n");
 	   return false;
 	}
 
 	rtlsdr_get_tuner_gain	= (pfnrtlsdr_get_tuner_gain)
-	                     GETPROCADDRESS (Handle, "rtlsdr_get_tuner_gain");
+	                     library_p -> resolve ("rtlsdr_get_tuner_gain");
 	if (rtlsdr_get_tuner_gain == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_tuner_gain\n");
 	   return false;
 	}
 	rtlsdr_set_center_freq	= (pfnrtlsdr_set_center_freq)
-	                     GETPROCADDRESS (Handle, "rtlsdr_set_center_freq");
+	                     library_p -> resolve ("rtlsdr_set_center_freq");
 	if (rtlsdr_set_center_freq == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_center_freq\n");
 	   return false;
 	}
 
 	rtlsdr_get_center_freq	= (pfnrtlsdr_get_center_freq)
-	                     GETPROCADDRESS (Handle, "rtlsdr_get_center_freq");
+	                     library_p -> resolve ("rtlsdr_get_center_freq");
 	if (rtlsdr_get_center_freq == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_center_freq\n");
 	   return false;
 	}
 
 	rtlsdr_reset_buffer	= (pfnrtlsdr_reset_buffer)
-	                     GETPROCADDRESS (Handle, "rtlsdr_reset_buffer");
+	                     library_p -> resolve ("rtlsdr_reset_buffer");
 	if (rtlsdr_reset_buffer == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_reset_buffer\n");
 	   return false;
 	}
 
 	rtlsdr_read_async	= (pfnrtlsdr_read_async)
-	                     GETPROCADDRESS (Handle, "rtlsdr_read_async");
+	                     library_p -> resolve ("rtlsdr_read_async");
 	if (rtlsdr_read_async == nullptr) {
 	   fprintf (stderr, "Cound not find rtlsdr_read_async\n");
 	   return false;
 	}
 
 	rtlsdr_get_device_count	= (pfnrtlsdr_get_device_count)
-	                     GETPROCADDRESS (Handle, "rtlsdr_get_device_count");
+	                     library_p -> resolve ("rtlsdr_get_device_count");
 	if (rtlsdr_get_device_count == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_device_count\n");
 	   return false;
 	}
 
 	rtlsdr_cancel_async	= (pfnrtlsdr_cancel_async)
-	                     GETPROCADDRESS (Handle, "rtlsdr_cancel_async");
+	                     library_p -> resolve ("rtlsdr_cancel_async");
 	if (rtlsdr_cancel_async == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_cancel_async\n");
 	   return false;
 	}
 
 	rtlsdr_set_direct_sampling = (pfnrtlsdr_set_direct_sampling)
-	                  GETPROCADDRESS (Handle, "rtlsdr_set_direct_sampling");
+	                     library_p -> resolve ("rtlsdr_set_direct_sampling");
 	if (rtlsdr_set_direct_sampling == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_direct_sampling\n");
 	   return false;
 	}
 
 	rtlsdr_set_freq_correction = (pfnrtlsdr_set_freq_correction)
-	                  GETPROCADDRESS (Handle, "rtlsdr_set_freq_correction");
+	                    library_p -> resolve ("rtlsdr_set_freq_correction");
 	if (rtlsdr_set_freq_correction == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_set_freq_correction\n");
 	   return false;
 	}
 	
 	rtlsdr_get_device_name = (pfnrtlsdr_get_device_name)
-	                  GETPROCADDRESS (Handle, "rtlsdr_get_device_name");
+	                  library_p -> resolve ("rtlsdr_get_device_name");
 	if (rtlsdr_get_device_name == nullptr) {
 	   fprintf (stderr, "Could not find rtlsdr_get_device_name\n");
 	   return false;
@@ -453,7 +448,7 @@ bool	rtlsdrHandler::load_rtlFunctions () {
 
 	rtlsdr_set_bias_tee =
                    (pfnrtlsdr_set_bias_tee)
-	                   GETPROCADDRESS (Handle, "rtlsdr_set_bias_tee");
+	                   library_p -> resolve ("rtlsdr_set_bias_tee");
         if (rtlsdr_set_bias_tee == nullptr) {
 	   fprintf (stderr, "Could not resolve rtlsdr_set_bias_tee\n");
 	}
@@ -475,6 +470,7 @@ int32_t	rtlsdrHandler::getRate	() {
 }
 
 void	rtlsdrHandler::set_Agc	(int state) {
+	(void)state;
 	if (agcChecker -> isChecked ())
 	   (void)rtlsdr_set_agc_mode (device, 1);
 	else

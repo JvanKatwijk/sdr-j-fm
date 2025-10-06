@@ -36,6 +36,8 @@
 	                         bool biasT,
 	                         double ppmValue) {
 sdrplay_api_ErrT        err;
+
+	(void)ppmValue;
 	this	-> parent	= parent;
 	this	-> chosenDevice	=  chosenDevice;
 	this	-> sampleRate	= sampleRate;

@@ -31,6 +31,7 @@
 	KeyboardFilter::~KeyboardFilter () {}
 
 bool	KeyboardFilter::eventFilter (QObject *dist, QEvent *event) {
+	(void)dist;
 	if (event -> type () == QEvent::KeyPress) {
 	   QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 	   emit KeyPressed (keyEvent -> key ());

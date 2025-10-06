@@ -2,25 +2,22 @@
 /*
  *    Copyright (C) 2014
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
- *    Lazy Chair Programming
+ *    Lazy Chair Computing
  *
- *    This file is part of the SDR-J.
- *    Many of the ideas as implemented in SDR-J are derived from
- *    other work, made available through the GNU general Public License. 
- *    All copyrights of the original authors are recognized.
+ *    This file is part of the FM software
  *
- *    SDR-J is free software; you can redistribute it and/or modify
+ *    FM software is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    SDR-J is distributed in the hope that it will be useful,
+ *    FM software is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with SDR-J; if not, write to the Free Software
+ *    along with FM software; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
@@ -28,8 +25,8 @@
 //	We use a straightforward class "eladLoader"  both as
 //	loader and as container	for the dll functions.
 
-#ifndef	__ELAD_LOADER
-#define	__ELAD_LOADER
+#pragma once
+
 #include	"fm-constants.h"
 #include	<stdint.h>
 #include	<libusb-1.0/libusb.h>
@@ -67,7 +64,7 @@ STOP_HW			StopHW;
 CLOSE_HW		CloseHW;
 FDMS1_HW_INIT		Init;
 private:
-	libusb_device_handle *startUSB	(void);
+	libusb_device_handle *startUSB	();
 	HINSTANCE	hwHandle;
 	HINSTANCE	cwHandle;
 	libusb_device_handle	*dev_handle;
@@ -80,6 +77,5 @@ const	char		*cwLibname;
 	int32_t		theRate;
 };
 
-#endif
 
 

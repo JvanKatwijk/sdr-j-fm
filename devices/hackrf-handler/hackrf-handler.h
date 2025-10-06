@@ -20,12 +20,12 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __HACKRF_HANDLER__
-#define	__HACKRF_HANDLER__
+#pragma once
 
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
+#include	<QLibrary>
 #include	<atomic>
 #include	"fm-constants.h"
 #include	"ringbuffer.h"
@@ -99,7 +99,8 @@ public:
 	hackrf_device	*theDevice;
 private:
 
-	bool			load_hackrfFunctions	(void);
+	QLibrary		*library_p;
+	bool			load_hackrfFunctions	();
 	pfn_hackrf_init		hackrf_init;
 	pfn_hackrf_open		hackrf_open;
 	pfn_hackrf_close	hackrf_close;
@@ -132,7 +133,6 @@ private:
 	int32_t		inputRate;
 	int32_t		vfoFrequency;
 	std::atomic<bool>	running;
-	HINSTANCE	Handle;
 	bool		libraryLoaded;
 private slots:
 	void		setLNAGain	(int);
@@ -143,5 +143,3 @@ private slots:
         void            set_ppmCorrection (int);
 // Fine aggiunta
 };
-#endif
-
