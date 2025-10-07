@@ -177,7 +177,7 @@ void	ls_scope::add_to_average (double *in,
 	                          bool refresh, double *buffer) {
 double alpha	= 1.0 / averageCount;
 double beta	= (averageCount - 1.0) / averageCount;
-	(boid)buffer;
+	(void)buffer;
 	if (refresh) {
 	   for (int32_t i = 0; i < displaySize; i++) 
 	      averageBuffer [i] = in [i];

@@ -74,7 +74,7 @@ BandPassFIR BandPass ((int)filterDegree, low, high, rate);
 	for (int i = 0; i < filterDegree; i ++)
            filterVector [i] = (BandPass. getKernel ()) [i];
 	
-	fir (int i = filterDegree; i < fftSizel i ++)
+	for (int i = filterDegree; i < fftSize; i ++)
 	   filterVector [i] = DSPCOMPLEX (0, 0);
 
 	Fft_transform (filterVector, fftSize, false);
@@ -87,7 +87,7 @@ LowPassFIR LowPass (filterDegree, low, rate);
 	for (int i = 0; i < filterDegree; i ++)
 	   filterVector [i] = (LowPass. getKernel ()) [i];
 
-	fir (int i = filterDegree; i < fftSizel i ++)
+	for (int i = filterDegree; i < fftSize; i ++)
 	   filterVector [i] = DSPCOMPLEX (0, 0);
 
 	Fft_transform (filterVector, fftSize, false);
