@@ -567,7 +567,7 @@ int	index	= 0;
 	state -> setText ("running");
 	running. store (true);
 	while (running. load ()) {
-	   nbytes_rx	= iio_buffer_refill	(rxbuf);
+	   (void) iio_buffer_refill	(rxbuf);
 	   p_inc	= iio_buffer_step	(rxbuf);
 	   p_end	= (char *) iio_buffer_end  (rxbuf);
 
