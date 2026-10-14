@@ -1,5 +1,6 @@
+#
 /*
- *    Copyright (C) 2008, 2009, 2010
+ *    Copyright (C)  2018, 2026
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -22,22 +23,23 @@
 
 #include "fft-filters.h"
 #include "fir-filters.h"
-#include	"fft-complex.h"
 
 #include <cstring>
 
-	fftFilter::fftFilter (int32_t size, int degree) {
+	fftFilter::fftFilter (int32_t size, int degree):
+	   fftForward	(size, false),
+	   fftBackwards	(size, true) {
 
 	fftSize		= size;
 	filterDegree	= degree;
 	OverlapSize	= filterDegree;
 	NumofSamples	= fftSize - OverlapSize;
 
-	FFT_A		= new std::complex<float> [fftSize];
-	FFT_C		= new std::complex<float> [fftSize];
-	filterVector	= new std::complex<float> [fftSize];
-	RfilterVector	= new DSPFLOAT [fftSize];
-	Overloop	= new DSPCOMPLEX [OverlapSize];
+	FFT_A		= new Complex [fftSize];
+	FFT_C		= new Complex [fftSize];
+	filterVector	= new Complex [fftSize];
+	RfilterVector	= new float [fftSize];
+	Overloop	= new Complex [OverlapSize];
 	inp		= 0;
 	for (int i = 0; i < fftSize; i ++) {
 	   FFT_A [i] = 0;
@@ -64,7 +66,7 @@ BasicBandPass BandPass (filterDegree, low, high, rate);
 	for (int i = filterDegree; i < fftSize; i ++)
 	   filterVector [i] = DSPCOMPLEX (0, 0);
 
-	Fft_transform (filterVector, fftSize, false);
+	fftForward. fft (filterVector);
         inp             = 0;
 }
 
@@ -77,7 +79,7 @@ BandPassFIR BandPass ((int)filterDegree, low, high, rate);
 	for (int i = filterDegree; i < fftSize; i ++)
 	   filterVector [i] = DSPCOMPLEX (0, 0);
 
-	Fft_transform (filterVector, fftSize, false);
+	fftForward. fft (filterVector);
         inp             = 0;
 }
 
@@ -90,12 +92,12 @@ LowPassFIR LowPass (filterDegree, low, rate);
 	for (int i = filterDegree; i < fftSize; i ++)
 	   filterVector [i] = DSPCOMPLEX (0, 0);
 
-	Fft_transform (filterVector, fftSize, false);
+	fftForward. fft (filterVector);
 	inp	= 0;
 }
 
-DSPFLOAT	fftFilter::Pass (DSPFLOAT x) {
-DSPFLOAT	sample;
+float	fftFilter::Pass (float x) {
+float	sample;
 
 	sample	= real (FFT_C [inp]);
 	FFT_A [inp] = x;
@@ -105,18 +107,17 @@ DSPFLOAT	sample;
 	   for (int i = NumofSamples; i < fftSize; i ++)
 	      FFT_A [i] = DSPCOMPLEX (0, 0);
 
-	   Fft_transform (FFT_A, fftSize, false);
+	   fftForward. fft (FFT_A);
 
 	   for (int j = 0; j < fftSize; j ++) {
 	      FFT_C [j] = FFT_A [j] * filterVector [j];
-              FFT_C [j] = DSPCOMPLEX (real (FFT_C [j]) * 3,
-                                      imag (FFT_C [j]) * 3);
+              FFT_C [j] = Complex (real (FFT_C [j]) * 3, imag (FFT_C [j]) * 3);
 	   }
 //
 //	cheating to get the inverse
 	   for (int j = 0; j < fftSize; j ++)
 	      FFT_C [j] = conj (FFT_C [j]);
-	   Fft_transform (FFT_C, fftSize, false);
+	   fftForward. fft (FFT_C);
 //	   MyIFFT	-> do_IFFT ();
 	   for (int j = 0; j < fftSize; j ++)
 	      FFT_C [j] = conj (FFT_C [j]) * (float) (1.0f / fftSize);
@@ -129,31 +130,31 @@ DSPFLOAT	sample;
 	return sample;
 }
 
-DSPCOMPLEX	fftFilter::Pass (DSPCOMPLEX z) {
-DSPCOMPLEX	sample;
-int		j;
+Complex	fftFilter::Pass (Complex z) {
+Complex	sample;
+
 	sample	= FFT_C [inp];
-	FFT_A [inp] = DSPCOMPLEX (real (z), imag (z));
+	FFT_A [inp] = z;
 
 	if (++inp >= NumofSamples) {
 	   inp = 0;
 	   for (int i = NumofSamples; i < fftSize; i ++)
-	      FFT_A [i] = DSPCOMPLEX (0, 0);
+	      FFT_A [i] = Complex (0, 0);
 
-	   Fft_transform (FFT_A, fftSize, false);
+	   fftForward. fft (FFT_A);
 
-	   for (j = 0; j < fftSize; j ++) 
+	   for (int j = 0; j < fftSize; j ++) 
 	      FFT_C [j] = FFT_A [j] * filterVector [j];
 //
 //	cheating to get the inverse
 //	IFFT (X) = conj (FFT (conj (X)) / N
 	  for (int j = 0; j < fftSize; j ++)
 	      FFT_C [j] = conj (FFT_C [j]);
-	   Fft_transform (FFT_C, fftSize, false);
+	   fftForward. fft (FFT_C);
 	   float factor = 1.0 / fftSize;
 	   for (int j = 0; j < fftSize; j ++)
 	      FFT_C [j] =  conj (FFT_C [j]) * factor;
-	   for (j = 0; j < OverlapSize; j ++) {
+	   for (int j = 0; j < OverlapSize; j ++) {
 	      FFT_C [j] += Overloop [j];
 	      Overloop [j] = FFT_C [NumofSamples + j];
 	   }
@@ -162,7 +163,6 @@ int		j;
 	return sample;
 }
 
-
 	fftFilterHilbert::fftFilterHilbert (int32_t size, int degree):
 	                                              fftFilter (size, degree) {
 	setHilbert ();
@@ -170,12 +170,13 @@ int		j;
 
 	fftFilterHilbert::~fftFilterHilbert	() {}
 
-DSPCOMPLEX	fftFilterHilbert::Pass (DSPFLOAT x) {
-	return fftFilter::Pass (DSPCOMPLEX (x, 0));
+Complex	fftFilterHilbert::Pass (float x) {
+	return fftFilter::Pass (Complex (x, 0));
 }
 
 void	fftFilterHilbert::setHilbert () {
-//	set the frequency coefficients directly (set negative spectrum to zero)
+//	set the frequency coefficients directly
+//	(set negative spectrum to zero)
 
 	if ((fftSize & 0x1) == 0) {		// even fftSize
 	   filterVector [0] = 1.0f;

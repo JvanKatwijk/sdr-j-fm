@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C)  2011, 2012, 2013
+ *    Copyright (C)  2013, 2026
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -23,6 +23,7 @@
 #
 #pragma once
 
+#include	<QString>
 #include	<math.h>
 #include	<complex>
 #include	<stdint.h>
@@ -54,7 +55,6 @@
 #include	"dlfcn.h"
 typedef	void	*HINSTANCE;
 #endif
-
  
 #ifndef M_PI
 # define M_PI           3.14159265358979323846  /* pi */
@@ -70,8 +70,15 @@ typedef	float	DSPFLOAT;
 //
 //
 typedef	std::complex<DSPFLOAT>	DSPCOMPLEX;
+typedef	std::complex<float>	Complex;
 
 using namespace std;
+
+ 
+typedef struct {
+        int offset;
+        QString text;
+} markType;
 
 #define	Hz(x)		(x)
 #define	Khz(x)		(x * 1000)
@@ -80,6 +87,9 @@ using namespace std;
 #define	MHz(x)		(KHz (x) * 1000)
 /*
  */
+
+#define dynVec(t, v)    static_cast<t *>(alloca (v * sizeof (t)))
+
 #define	MINIMUM(x, y)	((x) < (y) ? x : y)
 #define	MAXIMUM(x, y)	((x) > (y) ? x : y)
 
@@ -88,7 +98,7 @@ using namespace std;
 #define I_Only		0102
 #define	Q_Only		0104
 
-#define	CURRENT_VERSION	"3.20"
+#define	CURRENT_VERSION	"4.10"
 
 #define	MSECFORTIMER	10
 //

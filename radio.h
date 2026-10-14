@@ -38,7 +38,6 @@
 #include	"fm-processor.h"
 #include	"iqdisplay.h"
 #include	"ringbuffer.h"
-#include	"iqdisplay.h"
 #include	"ui_radio.h"
 #include	"rds-decoder.h"
 #include	<atomic>
@@ -49,12 +48,11 @@
 class	QSettings;
 class	fmProcessor;
 class	rdsDecoder;
-class	hs_scope;
-class	ls_scope;
+class	spectrumScope;
+class	halfScope;
 class	audioSink;
 class	deviceHandler;
 class	programList;
-class	ThemeChoser;
 
 #define	IQ_SCOPE_SIZE	64
 
@@ -70,7 +68,6 @@ Q_OBJECT
 public:
 		RadioInterface (QSettings *,
 	                        QString,
-	                        ThemeChoser *,
 	                        int32_t,
 	                        QWidget *parent = nullptr);
 		~RadioInterface ();
@@ -80,7 +77,7 @@ private:
 	RingBuffer<std::complex<float>>	hfBuffer;
 	RingBuffer<std::complex<float>>	lfBuffer;
 	fm_Demodulator		theDemodulator;
-	IQDisplay	*iqScope;
+	iqDisplay	*iqScope;
 
 //	Processing modes
 	enum class ERunStates {
@@ -90,7 +87,6 @@ private:
 	   STOPPING	= 0103
 	};
 
-	ThemeChoser		*themeChooser;
 	bool			ExtioLock;
 	int16_t			outputDevice;
 	void			localConnects		();
@@ -98,8 +94,8 @@ private:
 
 	Ui_configWidget		configWidget;
 	QFrame			configDisplay;
-	hs_scope		*hfScope;
-	ls_scope		*lfScope;
+	spectrumScope		*hfScope;
+	halfScope		*lfScope;
 //
 	keyPad			mykeyPad;
 	QTimer			autoIncrementTimer;
@@ -237,7 +233,6 @@ private slots:
 	void		handle_fmStereoBalanceSlider	(int);
 	void		handle_fmStereoPanoramaSlider	(int);
 	void		handle_plotTypeSelector	(const QString &s);
-	void		handle_cbThemes		(int);
 	void		handle_PlotZoomFactor	(const QString &s);
 	void		handle_sbDispDelay	(int);
 	void		handle_cbTestTone	(int v);
@@ -277,13 +272,4 @@ public slots:
 
 	void		showPeakLevel		(const float, const float);
 	void		showMetaData		(const fmProcessor::SMetaData *);
-  //
-  //	and for the extio handling NOT AVAILABLE IN THIS VERSION
-	void		set_ExtFrequency	(int);
-	void		set_ExtLO		(int);
-	void		set_lockLO		();
-	void		set_unlockLO		();
-	void		set_stopHW		();
-	void		set_startHW		();
-//	void		set_changeRate		(int);
 };

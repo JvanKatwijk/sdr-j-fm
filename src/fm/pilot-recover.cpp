@@ -26,8 +26,8 @@
 #define M_PI_4 0.78539816339744830962 
 #endif
 	pilotRecovery::pilotRecovery	(int32_t Rate_in,
-	                                 DSPFLOAT omega,
-	                                 DSPFLOAT gain,
+	                                 float omega,
+	                                 float gain,
 	                                 SinCos * mySinCos) {
 	this	-> Rate_in		= Rate_in;
 	this	-> omega		= omega;
@@ -51,14 +51,14 @@ float	pilotRecovery::getLockedStrength () const {
 	return pilot_Lock;
 }
 
-DSPFLOAT pilotRecovery::getPilotPhase (const DSPFLOAT pilot) {
-DSPFLOAT OscillatorValue	= mySinCos -> getSin (pilot_OscillatorPhase);
-DSPFLOAT PhaseError		= pilot * OscillatorValue;
+float pilotRecovery::getPilotPhase (const float pilot) {
+float OscillatorValue	= mySinCos -> getSin (pilot_OscillatorPhase);
+float PhaseError		= pilot * OscillatorValue;
 constexpr float alpha		= 1.0f / 3000.0f;
 
-	pilot_OscillatorPhase += PhaseError * gain;
-	const DSPFLOAT currentPhase = PI_Constrain (pilot_OscillatorPhase);
-	pilot_OscillatorPhase = PI_Constrain (pilot_OscillatorPhase + omega);
+	pilot_OscillatorPhase	+= PhaseError * gain;
+	const float currentPhase = PI_Constrain (pilot_OscillatorPhase);
+	pilot_OscillatorPhase	= PI_Constrain (pilot_OscillatorPhase + omega);
 	quadRef	= (OscillatorValue - pilot_oldValue) / omega;
 
 	pilot_oldValue = OscillatorValue;

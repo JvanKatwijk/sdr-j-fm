@@ -41,8 +41,8 @@
 	                                            0.02f/16.0f, 10.0f),
 	                            my_AGC (2e-3f, 0.38f, 9.0f) {
 	decoder_1	= new rdsDecoder_1 (myRadioInterface, rate);
-	decoder_2 	= new rdsDecoder_2 (myRadioInterface, rate);
-	decoder_3 	= new rdsDecoder_3 (myRadioInterface, rate,
+	decoder_3 	= new rdsDecoder_3 (myRadioInterface, rate);
+	decoder_2 	= new rdsDecoder_2 (myRadioInterface, rate,
 	                                    &my_rdsBlockSync,
 	                                    &my_rdsGroup,
 	                                    &my_rdsGroupDecoder);
@@ -83,17 +83,17 @@ uint8_t	theBit;
 	         processBit (theBit, ptyLocale);
 	      return b;
 
-	   case rdsDecoder::ERdsMode::RDS_2:
-	      b = decoder_2 -> doDecode (v, m, &theBit);
+	   case rdsDecoder::ERdsMode::RDS_3:
+	      b = decoder_3 -> doDecode (v, m, &theBit);
 	      if (b)
 	         processBit (theBit, ptyLocale);
 	      return b;
 
-	   case rdsDecoder::ERdsMode::RDS_3:
+	   case rdsDecoder::ERdsMode::RDS_2:
 	      v	= my_costas. process_sample (v);
 	      *m = v * 4.0f;
 //	      *m	= my_AGC. process_sample (v);
-	      b = decoder_3 -> doDecode (real (v), &theBit);
+	      b = decoder_2 -> doDecode (real (v), &theBit);
 	      if (b)
 	         processBit (theBit, ptyLocale);
 	      return b;

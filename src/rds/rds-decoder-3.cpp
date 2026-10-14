@@ -24,131 +24,134 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<cassert>
-#include	"rds-decoder-3.h"
 #include	"radio.h"
+#include	"rds-decoder-3.h"
+#include	"shaping_filter.h"
 #include	<cmath>
 #include	<vector>
 #include	<fstream>
 
-#define RDS_BITCLK_HZ 1187.5
+constexpr uint32_t TAPS_MF_RRC = 45; // should be odd
+constexpr float RDS_BITCLK_HZ = 1187.5;
 
-//	decoder_2 is based on the FMstack software of Michael Feilen
 /*
  *	RDS is a bpsk-like signal, with a baudrate 1187.5
  *	on a carrier of  3 * 19 k.
  *	48 cycles per bit, 1187.5 bits per second.
- *	With a reduced sample rate of 24k this would mean
- *	24000 / 1187.5 samples per bit, i.e. just over 20
+ *	with a samplerate of 24000 this leads to just over 20
  *	samples per bit.
  */
 	rdsDecoder_3::rdsDecoder_3 (RadioInterface	*myRadio,
-	                            int32_t             rate,
-                                    rdsBlockSynchronizer  *my_rdsBlockSync,
-                                    RDSGroup            *my_rdsGroup,
-                                    rdsGroupDecoder     *my_rdsGroupDecoder):
-	                               mySinCos  (rate), 
-	                               rdsFilter (21, RDS_WIDTH, rate) {
-
-float	synchronizerSamples;
+	                            int32_t		rate):
+	                               my_AGC (2e-3f, 0.38f, 9.0f),
+	                               my_Costas (rate, 1.0f, 0.02f, 10.0f) {
 
 	this	-> myRadioInterface	= myRadio;
 	this	-> sampleRate		= rate;
-	this	-> my_rdsBlockSync	= my_rdsBlockSync;
-	this	-> my_rdsGroup		= my_rdsGroup;
-	this	-> my_rdsGroupDecoder	= my_rdsGroupDecoder;
 
-        synchronizerSamples		= sampleRate / (float)RDS_BITCLK_HZ;
-        symbolCeiling			= ceil (synchronizerSamples); 
-        symbolFloor			= floor (synchronizerSamples);
-//
+	this	-> samplesPerSymbol 	= rate / (float)RDS_BITCLK_HZ;
+	for (int i = 0; i < 3; i ++) {
+	   sampleBuffer [i] = std::complex<float> (0, 0);
+	   sampleBufferRail [i] = std::complex<float> (0, 0);
+	}
+	this	-> sampleCount		= 0;
+	this	-> mMu			= 0;
+	this	-> alpha		= 0.01;
+	this	-> skipNrSamples	= 3;
+	   
+//	Tomneda: a double inverted pulse (manchester code)
+//	I used a matched RRC filter design with Ts = 1 / (2 * 1187.5 Hz)
+//	one side of the bi phase filter
+	my_matchedFltKernelVec =
+	            ShapingFilter ().
+	                root_raised_cosine (1.0, sampleRate,
+	                                    2 * RDS_BITCLK_HZ,
+	                                    1.0, TAPS_MF_RRC);
 
-	previousBit		= 0;
-	my_rdsGroup	->  clear ();
-	my_rdsBlockSync	-> setFecEnabled (true);
-
-	omegaRDS                = (2 * M_PI * RDS_BITCLK_HZ) / (float)rate;
-//
-//      for the decoder a la FMStack we need:
-        syncBuffer. resize (symbolCeiling);
-	memset ((void*)syncBuffer. data (), 0,
-	                 symbolCeiling * sizeof (float));
-        p                       = 0;
-        bitIntegrator           = 0;
-        bitClkPhase             = 0;
-        prev_clkState           = 0;
-        Resync                  = true;
+	my_matchedFltBufSize	= my_matchedFltKernelVec. size ();
+//	assert (my_matchedFltBufSize & 1); // is it odd?
+	my_matchedFltBuf. resize (my_matchedFltBufSize);
+	memset ((void*)my_matchedFltBuf. data (), 0,
+	                my_matchedFltBufSize * sizeof (DSPCOMPLEX));
+	my_matchedFltBufIdx	= 0;
 }
 
 	rdsDecoder_3::~rdsDecoder_3 () {
+//	symsync_crf_destroy (q);
+}
+
+Complex	rdsDecoder_3::doMatchFiltering (Complex v) {
+Complex tmp = 0;
+
+	my_matchedFltBuf [my_matchedFltBufIdx] = v;
+
+	for (int16_t i = 0; i < my_matchedFltBufSize; i++) {
+	   int16_t index = (my_matchedFltBufIdx - i);
+	   if (index < 0) {
+	      index += my_matchedFltBufSize; // wrap around index
+	   }
+	   tmp += my_matchedFltBuf [index] * my_matchedFltKernelVec [i];
+	}
+
+	my_matchedFltBufIdx = (my_matchedFltBufIdx + 1) % my_matchedFltBufSize;
+	return tmp;
 }
 
 //
-bool	rdsDecoder_3::doDecode	(float v, uint8_t *d) {
-float clkState;
-std::complex<float> tt;
-bool	res	= false;
+bool	rdsDecoder_3::doDecode (Complex v, Complex *m, uint8_t *d) {
+std::complex<float> r;
 
-	syncBuffer [p]	= rdsFilter. Pass (v);
-	p		= (p + 1) % symbolCeiling;
-
-	if (Resync || (my_rdsBlockSync -> getNumSyncErrors () > 3)) {
-	   synchronizeOnBitClk (syncBuffer, p);
-	   my_rdsBlockSync -> resync ();
-	   my_rdsBlockSync -> resetResyncErrorCounter ();
-	   Resync = false;
-	}
-
-	clkState	= mySinCos. getSin (bitClkPhase);
-	bitIntegrator	+= clkState * v;
-//
-//	rising edge -> look at integrator
-	if (prev_clkState <= 0 && clkState > 0) {
-	   bool theBit	= bitIntegrator >= 0;
+	v = doMatchFiltering (v);
+	v	= my_AGC. process_sample (v);
+	if (process_sample (v, r)) {
+#ifndef	DO_STEREO_SEPARATION_TEST
+	   r = my_Costas. process_sample (r);
+#endif
+	   bool theBit	= (real (r) >= 0);
 	   *d	= theBit ^ previousBit;
-	   bitIntegrator	= 0;		// we start all over
-	   previousBit		= theBit;
-	   res		= true;
+	   previousBit	= theBit;
+	   *m		= r;
+	   return true; // tell caller a changed m value
 	}
-
-	prev_clkState	= clkState;
-	bitClkPhase	= fmod (bitClkPhase + omegaRDS, 2 * M_PI);
-	return res;
+	return false;
 }
 
+bool	rdsDecoder_3::process_sample (const Complex iZ, Complex &oZ) {
 
-void	rdsDecoder_3::synchronizeOnBitClk (std::vector<float> &v,
-                                                           int16_t first) {
-bool isHigh	= false;
-int32_t	k	= 0;
-float phase;
-float correlationVector [symbolCeiling];
+	sampleBuffer [0] = sampleBuffer [1];
+	sampleBuffer [1] = sampleBuffer [2];
+	sampleBuffer [2] = iZ;
 
-	memset (correlationVector, 0, symbolCeiling * sizeof (float));
-
-//	synchronizerSamples	= sampleRate / (float)RDS_BITCLK_HZ;
-	for (int i = 0; i < symbolCeiling; i ++) {
-	   phase = fmod (i * (omegaRDS / 2), 2 * M_PI);
-//	reset index on phase change
-	   if (mySinCos. getSin (phase) > 0 && !isHigh) {
-	      isHigh = true;
-	      k = 0;
-	   }
-	   else
-	   if (mySinCos. getSin (phase) < 0 && isHigh) {
-	      isHigh = false;
-	      k = 0;
+	if (++sampleCount >= skipNrSamples) {
+//	get hard decision values (rail to rail)
+	   for (int32_t i = 0; i < 3; ++i) {
+	      sampleBufferRail [i] =
+	          DSPCOMPLEX ((real (sampleBuffer [i]) > 0.0f ? 1.0f : -1.0f),
+	                      (imag (sampleBuffer [i]) > 0.0f ? 1.0f : -1.0f));
 	   }
 
-	   correlationVector [k ++] += v [(first + i) % symbolCeiling];
+	   const DSPFLOAT x =
+	                real (sampleBufferRail [2] - sampleBufferRail [0]) *
+	                            real (sampleBuffer [1])  +
+	                imag (sampleBufferRail [2] - sampleBufferRail[0]) *
+	                           imag (sampleBuffer [1]);
+	   const DSPFLOAT y =
+	                real (sampleBuffer [2] - sampleBuffer [0]) *
+	                           real (sampleBufferRail [1]) +
+	                imag (sampleBuffer [2] - sampleBuffer [0]) *
+	                            imag (sampleBufferRail [1]);
+
+	   const DSPFLOAT mm_val = y - x;
+
+	   mMu	+= samplesPerSymbol + alpha * mm_val;
+//	round down to nearest int since we are using it as an index:
+	   skipNrSamples = (int32_t)(mMu);
+	   mMu	-= skipNrSamples; // remove the integer part of mu
+
+	   oZ = sampleBuffer [2];
+	   sampleCount	 = 0;
+	   return true;
 	}
-
-//	detect rising edge in correlation window
-	int32_t iMin	= 0;
-	while (iMin < symbolFloor && correlationVector [iMin ++] > 0);
-	while (iMin < symbolFloor && correlationVector [iMin ++] < 0);
-
-//	set the phase, previous sample (iMin - 1) is obviously the one
-	bitClkPhase = fmod (-omegaRDS * (iMin - 1), 2 * M_PI);
-	while (bitClkPhase < 0)
-	   bitClkPhase += 2 * M_PI;
+	return false;
 }
+

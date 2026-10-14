@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2008, 2009, 2010
+ *    Copyright (C) 2020, 2026
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -23,6 +23,7 @@
 #pragma once
 
 #include	"fm-constants.h"
+#include	"fft-handler.h"
 
 class fftFilter {
 public:
@@ -32,19 +33,21 @@ public:
 	void		setBand		(int32_t, int32_t, int32_t);
 	void		setSimple	(int32_t, int32_t, int32_t);
 	void		setLowPass	(int32_t, int32_t);
-	DSPCOMPLEX	Pass		(DSPCOMPLEX);
-	DSPFLOAT	Pass		(DSPFLOAT);
+	float		Pass		(float);
+	Complex		Pass		(Complex);
 
 protected:
+	fftHandler	fftForward;
+	fftHandler	fftBackwards;
 	int32_t		fftSize;
 	int		filterDegree;
 	int		OverlapSize;
 	int		NumofSamples;
-	DSPCOMPLEX	*FFT_A;
-	DSPCOMPLEX	*FFT_C;
-	DSPCOMPLEX	*filterVector;
-	DSPFLOAT	* RfilterVector;
-	DSPCOMPLEX	*Overloop;
+	Complex		*FFT_A;
+	Complex		*FFT_C;
+	Complex		*filterVector;
+	float		* RfilterVector;
+	Complex		*Overloop;
 	int32_t		inp;
 };
 
@@ -53,7 +56,7 @@ class fftFilterHilbert : public fftFilter {
 public:
 			fftFilterHilbert	(int32_t, int);
 			~fftFilterHilbert	();
-	DSPCOMPLEX	Pass			(DSPFLOAT);
+	Complex		Pass			(float);
 
 private:
 	void		setHilbert		();

@@ -26,7 +26,8 @@
 #include	"fm-processor.h"
 #include	"audiosink.h"
 #include	"device-handler.h"
-#include	"fft-complex.h"
+#include	"down-converter.h"
+#include	"fft-handler.h"
 
 #define PILOT_FREQUENCY		19000
 #define RDS_FREQUENCY		(3 * PILOT_FREQUENCY)
@@ -57,9 +58,9 @@
 	                          int	  spectrumSize,
 	                          int32_t repeatRate,
 	                          int	ptyLocale,
-	                          RingBuffer<std::complex<float>> *hfBuffer,
-	                          RingBuffer<std::complex<float>> *lfBuffer,
-	                          RingBuffer<std::complex<float>> *iqBuffer,
+	                          RingBuffer<Complex> *hfBuffer,
+	                          RingBuffer<Complex> *lfBuffer,
+	                          RingBuffer<Complex> *iqBuffer,
 	                          int16_t thresHold):
 	                             myRdsDecoder (RI, RDS_RATE),
 	                             localOscillator (inputRate),
@@ -132,7 +133,7 @@
 
 	this	-> rdsModus		= rdsDecoder::ERdsMode::RDS_OFF;
 	this	-> DCREnabled		= true;
-	this	-> RfDC			= DSPCOMPLEX (0, 0);
+	this	-> RfDC			= Complex (0, 0);
 
 	this	-> lfPlotType		= ELfPlot::DEMODULATOR;
 	this	-> showFullSpectrum	= false;
@@ -300,9 +301,9 @@ void	fmProcessor::setVolume (const float iVolGainDb) {
 	volumeFactor = std::pow (10.0f, iVolGainDb / 20.0f);
 }
 
-DSPCOMPLEX fmProcessor::audioGainCorrection (DSPCOMPLEX z) {
-const float left  = volumeFactor * leftChannel * real(z);
-const float right = volumeFactor * rightChannel * imag(z);
+Complex	fmProcessor::audioGainCorrection (Complex z) {
+const float left  = volumeFactor * leftChannel * real (z);
+const float right = volumeFactor * rightChannel * imag (z);
 
 #if 0
 	{
@@ -332,7 +333,7 @@ const float right = volumeFactor * rightChannel * imag(z);
 	   }
 	}
 #endif
-	return { left, right };
+	return Complex (left, right);
 }
 
 void	fmProcessor::startDumping (SNDFILE *f) {
@@ -372,16 +373,18 @@ void	fmProcessor::stopScanning () {
 
 void	fmProcessor::run () {
 const int32_t bufferSize	= 2 * 8192;
-DSPCOMPLEX	dataBuffer [bufferSize];
+Complex		dataBuffer [bufferSize];
 int32_t		lfCount		= 0;
 int32_t		scanPointer	= 0;
-DSPCOMPLEX	scanBuffer	[1024];
+Complex		scanBuffer	[1024];
 float		rfDcAlpha = 1.0f / inputRate;
 newConverter	audioDecimator (fmRate,  workingRate,  fmRate / 1000);
-DSPCOMPLEX	audioOut [audioDecimator. getOutputsize ()];
-DecimatingFIR	rdsDecimator	(11, RDS_RATE / 2, fmRate, fmRate / RDS_RATE);
+Complex		audioOut [audioDecimator. getOutputsize ()];
+//DecimatingFIR	rdsDecimator	(11, RDS_RATE / 2, fmRate, fmRate / RDS_RATE);
+new_downConverter rdsDecimator (fmRate / RDS_RATE, 12, fmRate, 1400);
 int		iqCounter	= 0;
 
+fftHandler	fftForward (1024, false);
 	running. store (true); // will be set to false from the outside
 
 	while (running. load ()) {
@@ -482,7 +485,8 @@ int		iqCounter	= 0;
 
 	         if (scanPointer >= 1024) {
 	            scanPointer = 0;
-	            Fft_transform (scanBuffer, 1024, false);
+	            fftForward. fft (scanBuffer);
+//	            Fft_transform (scanBuffer, 1024, false);
 	            float signal	= getSignal (scanBuffer, 1024);
 	            float Noise		= getNoise (scanBuffer, 1024);
 	            if (get_db (signal, 256) - get_db (Noise, 256) > thresHold) {
@@ -550,7 +554,8 @@ int		iqCounter	= 0;
 
 	      if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF) {
 	         std::complex<float> rdsSample;
-	         if (rdsDecimator. Pass (rdsDataCplx, &rdsSample)) {
+//	         if (rdsDecimator. Pass (rdsDataCplx, &rdsSample)) {
+	         if (rdsDecimator. process (rdsDataCplx, rdsSample)) {
 	            static std::complex<float> magCplx;
 	            if (myRdsDecoder. doDecode (rdsSample,
 	                                        &magCplx,
@@ -723,11 +728,10 @@ void	fmProcessor::process_signal_with_rds (const float demod,
 	                      mySinCos. getSin (phaseforLRDiff) :
 	                      mySinCos. getCos (phaseforLRDiff)) * demod;
 	   float LRPlus = demod;
-	   *audioOut = DSPCOMPLEX (LRPlus, LRDiff);
+	   *audioOut = Complex (LRPlus, LRDiff);
 	}
-	else {
-	   *audioOut = DSPCOMPLEX (demod, 0);
-	}
+	else 
+	   *audioOut = Complex (demod, 0);
 
 //	process RDS
 	if (rdsModus != rdsDecoder::ERdsMode::RDS_OFF ) {
@@ -769,7 +773,7 @@ void	fmProcessor::setlfcutoff (int32_t Hz) {
 	};
 }
 
-void	fmProcessor::evaluatePeakLevel (const DSPCOMPLEX s) {
+void	fmProcessor::evaluatePeakLevel (const Complex s) {
 const float absLeft  = std::abs (real (s));
 const float absRight = std::abs (imag (s));
 
@@ -788,8 +792,8 @@ const float absRight = std::abs (imag (s));
 	                   20.0f * std::log10 (absPeakRight) : -40.0f);
 
 //	correct audio sample buffer delay for peak display
-	   DSPCOMPLEX delayed = delayLine.
-	                   get_set_value (DSPCOMPLEX (leftDb, rightDb));
+	   Complex delayed = delayLine.
+	                   get_set_value (Complex (leftDb, rightDb));
 
 	   emit showPeakLevel (real (delayed), imag (delayed));
 	   absPeakLeft	= 0.0f;
@@ -797,7 +801,7 @@ const float absRight = std::abs (imag (s));
 	}
 }
 
-void	fmProcessor::insertTestTone (DSPCOMPLEX & ioS) {
+void	fmProcessor::insertTestTone (Complex & ioS) {
 float toneFreqHz = 1000.0f;
 float level = 0.9f;
 
@@ -810,7 +814,7 @@ float level = 0.9f;
 	   testTone. CurPhase		+= testTone. PhaseIncr;
 	   testTone. CurPhase		= PI_Constrain (testTone. CurPhase);
 	   const float smpl		= sin (testTone. CurPhase);
-	   ioS += level * DSPCOMPLEX (smpl, smpl);
+	   ioS		+= level * Complex (smpl, smpl);
 	}
 	else
 	if (++testTone.TimePeriodCounter >
@@ -822,13 +826,13 @@ float level = 0.9f;
 	}
 }
 
-void	fmProcessor::sendSampletoOutput (DSPCOMPLEX s) {
+void	fmProcessor::sendSampletoOutput (Complex s) {
 	if (audioRate == workingRate) {
 	   theSink -> putSample (s);
 	   return;
 	}
 
-	DSPCOMPLEX out [theConverter. getOutputsize ()];
+	Complex out [theConverter. getOutputsize ()];
 	int32_t    amount;
 	if (theConverter. convert (s, out, &amount)) {
 	   for (int32_t i = 0; i < amount; i++) {
@@ -883,7 +887,7 @@ void	fmProcessor::set_squelchMode	(ESqMode iSqMode) {
 	squelchMode = iSqMode;
 }
 
-float	fmProcessor::getSignal	(DSPCOMPLEX *v, int32_t size) {
+float	fmProcessor::getSignal	(Complex *v, int32_t size) {
 float sum = 0;
 
 	for (int i = 5; i < 25; i++)
@@ -893,7 +897,7 @@ float sum = 0;
 	return sum / 40;
 }
 
-float	fmProcessor::getNoise	(DSPCOMPLEX *v, int32_t size) {
+float	fmProcessor::getNoise	(Complex *v, int32_t size) {
 float sum = 0;
 
 	for (int i = 5; i < 25; i++)

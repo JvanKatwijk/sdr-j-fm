@@ -247,13 +247,13 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;cpu load . This number tells the overall CPU load.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Shape::NoFrame</enum>
        </property>
        <property name="digitCount">
         <number>6</number>
        </property>
        <property name="segmentStyle">
-        <enum>QLCDNumber::Flat</enum>
+        <enum>QLCDNumber::SegmentStyle::Flat</enum>
        </property>
       </widget>
      </item>
@@ -325,9 +325,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <item>
       <widget class="QComboBox" name="streamOutSelector"/>
-     </item>
-     <item>
-      <widget class="QComboBox" name="cbThemes"/>
      </item>
     </layout>
    </item>

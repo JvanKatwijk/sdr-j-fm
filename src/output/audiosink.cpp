@@ -124,7 +124,7 @@ PaError err;
 	return true;
 }
 
-void	audioSink::restart	(void) {
+void	audioSink::restart	() {
 PaError err;
 
 	if (!Pa_IsStreamStopped (ostream))
@@ -136,7 +136,7 @@ PaError err;
 	   writerRunning	= true;
 }
 
-void	audioSink::stop	(void) {
+void	audioSink::stop	() {
 	if (Pa_IsStreamStopped (ostream))
 	   return;
 

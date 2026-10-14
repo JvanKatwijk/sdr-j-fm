@@ -64,8 +64,8 @@ public:
 	        RDS_3
 	};
 
-	bool	doDecode	(const DSPCOMPLEX,
-	                         DSPCOMPLEX * const,
+	bool	doDecode	(const Complex,
+	                         Complex * const,
 	                         ERdsMode mode, int ptyLocale);
 	void	reset		();
 

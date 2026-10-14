@@ -28,7 +28,6 @@
 #include	<unistd.h>
 #include	"fm-constants.h"
 #include	"radio.h"
-#include	"themechoser.h"
 
 #define	DEFAULT_INI	".jsdr-fm.ini"
 #define	STATION_LIST	".sdr-j-fm-stations.xml"
@@ -43,8 +42,6 @@ int32_t	outputRate	= 48000;
 RadioInterface		*myRadioInterface;
 QString iniFile		= QDir::homePath ();
 QString stationList     = QDir::homePath ();
-
-ThemeChoser	themeChooser;
 
         iniFile. append ("/");
         iniFile. append (DEFAULT_INI);
@@ -74,35 +71,22 @@ ThemeChoser	themeChooser;
 #if QT_VERSION < QT_VERSION_CHECK (6, 0, 0)
 	QGuiApplication::setAttribute (Qt::AA_EnableHighDpiScaling);
 #endif
-	QString styleSheetText	=
-	                   ISettings -> value ("styleSheet",
-	                                     "globstyle"). toString();
-	int styleSheet		= themeChooser.
-	                          get_idx_of_sheet_name (styleSheetText);
 
-	themeChooser. set_curr_style_sheet_idx (styleSheet);
+	QString skin	= ":res/globstyle.qss";
+	QApplication a (argc, argv);
+	QFile file (skin);
+	if (file .open (QFile::ReadOnly | QFile::Text)) {   
+	   a. setStyleSheet (file.readAll ());
+	   file.close ();
+	} 
 
-	int exitCode = 0;
-
-	do {
-	   QApplication a (argc, argv);
-	   a. setStyleSheet (themeChooser. get_curr_style_sheet_string ());
-	   myRadioInterface = new RadioInterface (ISettings,
-		                                  stationList,
-	                                          &themeChooser,
-	                                          outputRate);
+	myRadioInterface = new RadioInterface (ISettings,
+		                               stationList,
+	                                       outputRate);
 	
-	   myRadioInterface -> show ();
-
-	   a.setWindowIcon (QIcon (":fm-icon.ico"));
-	   exitCode = a. exec ();
-	   delete myRadioInterface;
-	   myRadioInterface	= nullptr;
-	} while (exitCode == PROGRAM_RESTART_EXIT_CODE );
-
-/*
- *	done:
- */
+	myRadioInterface -> show ();
+	a.setWindowIcon (QIcon (":fm-icon.ico"));
+	a. exec ();
 	fflush (stdout);
 	fflush (stderr);
 	if (myRadioInterface != nullptr)
@@ -110,6 +94,6 @@ ThemeChoser	themeChooser;
 	qDebug ("It is done\n");
 	ISettings	-> sync ();
 	delete ISettings;
-	return exitCode;
+	return 1;
 }
 

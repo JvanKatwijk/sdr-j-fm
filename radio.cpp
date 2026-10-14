@@ -1,6 +1,6 @@
 #
 /*
- *    Copyright (C) 2014
+ *    Copyright (C) 2014, 2026
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
@@ -32,13 +32,13 @@
 #include	<iostream>
 #include	<array>
 #include	"radio.h"
-#include	"hs-scope.h"
-#include	"ls-scope.h"
+#include	"spectrum-scope.h"
+#include	"half-scope.h"
 #include	"audiosink.h"
 #include	"fm-constants.h"
 #include	"fm-demodulator.h"
 #include	"rds-decoder.h"
-#include	"themechoser.h"
+#include	"position-handler.h"
 #include	"program-list.h"
 #include	"device-handler.h"
 #include	"filereader.h"
@@ -111,16 +111,12 @@ bool get_cpu_times (size_t &idle_time, size_t &total_time) {
 
 #define	D_SDRPLAY	"sdrplay"
 #define	D_SDRPLAY_V3	"sdrplay-v3"
-#define	D_RTL_TCP	"rtl_tcp"
+#define	D_RTLSDR	"dabstick"
 #define	D_HACKRF	"hackrf"
 #define	D_LIME		"lime"
-#define	D_COLIBRI	"colibri"
 #define	D_AIRSPY	"airspy"
-#define	D_RTLSDR	"dabstick"
 #define	D_PLUTO		"pluto"
-#define	D_ELAD_S1	"elad-s1"
-#define	D_EXTIO		"extio"
-#define	D_PMSDR		"pmsdr"
+#define	D_RTL_TCP	"rtl_tcp"
 #define	D_FILEREADER	"filereader"
 
 static 
@@ -158,14 +154,11 @@ const char *deviceTable [] = {
 #define D_RTL_TCP       "rtl_tcp"
 #define D_HACKRF        "hackrf"
 #define D_LIME          "lime"
-#define D_COLIBRI       "colibri"
 #define D_AIRSPY        "airspy"
 #define D_RTLSDR        "dabstick"
 #define D_PLUTO         "pluto"
-#define D_ELAD_S1       "elad-s1"
-#define D_EXTIO         "extio"
-#define D_PMSDR         "pmsdr"
 #define D_FILEREADER    "filereader"
+
 static int startKnop;
 static	QTimer	*starter;
 constexpr int16_t delayTable [] = { 1, 3, 5, 7, 9, 10, 15 };
@@ -179,7 +172,6 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
  */
 		RadioInterface::RadioInterface (QSettings	*Si,
 						QString		saveName,
-						ThemeChoser	*themeChooser,
 						int32_t		outputRate,
 						QWidget		*parent):
 							QDialog (parent),
@@ -192,30 +184,22 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 							configDisplay (nullptr),
 							mykeyPad () {
 
-	int16_t i;
 	QString h;
 	int     k;
 
 	setupUi (this);
 	fmSettings		= Si;
-	this	-> themeChooser	= themeChooser;
+	setPositionAndSize (fmSettings, this);
+
 
 	configWidget. setupUi (&configDisplay);
 	runMode. store (ERunStates::IDLE);
 	squelchMode		= false;
-//
-//	Added: cannot compile on Ubuntu 16, the system where
-//	I build the appImage
-//
-//	with QT 5.15.2 and Ubuntu 22.04.1 LTS it works
-//	so, feel free to uncomment, but leave it commented out for me
-//	setWindowFlag (Qt::WindowContextHelpButtonHint, false);
-//	setWindowFlag (Qt::WindowMinMaxButtonsHint, true);
 
-	thermoPeakLevelLeft	-> setFillBrush (QColor ("white"));
-        thermoPeakLevelRight	-> setFillBrush (QColor ("white"));
-	thermoPeakLevelLeft	-> setValue (-30);
-	thermoPeakLevelRight	-> setValue (-30);
+	this	-> setWindowTitle ("fm receiver 4.0");
+
+	leftChannel	-> setLevel (-30);
+	rightChannel	-> setLevel (-30);
 	
 	reset_afc ();
 //
@@ -272,7 +256,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	myFMprocessor	= nullptr;
 	our_audioSink	= new audioSink (this -> audioRate, 16384);
 	outTable. resize (our_audioSink -> numberofDevices () + 1);
-	for (i = 0; i < our_audioSink -> numberofDevices (); i++) 
+	for (int i = 0; i < our_audioSink -> numberofDevices (); i++) 
 	   outTable [i] = -1;
 
 	if (!setupSoundOut (configWidget. streamOutSelector,
@@ -351,7 +335,7 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	systemindicator -> setText (v);
 	copyrightLabel	-> setToolTip (footText ());
 
-	ExtioLock		= false;
+//	ExtioLock		= false;
 	logFile			= nullptr;
 	pauseButton		-> setText (QString ("Pause"));
 
@@ -369,9 +353,6 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	currentFreq		= setTuner (Khz (94700));
 	inputRate		= theDevice -> getRate ();
 
-	hfScope		-> setBitDepth (theDevice -> bitDepth ());
-	lfScope		-> setBitDepth (theDevice -> bitDepth ());
-//
 	connect (configWidget. fm_increment, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_fm_increment (int)));
 	connect (configWidget. minimumSelect, SIGNAL (valueChanged (int)),
@@ -427,10 +408,6 @@ constexpr int16_t delayTableSize = ((int)(sizeof(delayTable) / sizeof(int16_t)))
 	   if (setDevice (fmSettings) == nullptr)
 	      TerminateProcess ();
 	}
-
-	for (auto name : themeChooser -> get_style_sheet_names ())
-	   configWidget. cbThemes -> addItem (name);
-	configWidget. cbThemes -> setCurrentIndex (themeChooser -> get_curr_style_sheet_idx());
 }
 
 
@@ -438,12 +415,13 @@ QString RadioInterface::footText () {
 QString versionText = "sdr-j-FM version: " + QString(CURRENT_VERSION) + "\n";
 	versionText += "Built on " + QString(__TIMESTAMP__) + QString (", Commit ") + QString (GITHASH) + "\n";
 	versionText += "Copyright Jan van Katwijk, mailto:J.vanKatwijk@gmail.com\n";
-	versionText += "with significant input from Tomneda\n";
+	versionText += "with input from Tomneda\n";
 	versionText += "Rights of Qt, fftw, portaudio, libfaad, libsamplerate and libsndfile gratefully acknowledged\n";
 	versionText += "Rights of developers of RTLSDR library, SDRplay libraries, AIRspy library and others gratefully acknowledged\n";
 	versionText += "Rights of other contributors gratefully acknowledged";
 	return versionText;
 }
+
 void	RadioInterface::quickStart () {
 	disconnect (starter, SIGNAL (timeout ()),
 	            this, SLOT (quickStart ()));
@@ -457,6 +435,7 @@ void	RadioInterface::quickStart () {
 //
 //	The end of all
 	RadioInterface::~RadioInterface () {
+//	storeWidgetPosition (fmSettings, this);
 }
 
 //
@@ -521,9 +500,6 @@ void	RadioInterface::dumpControlState	(QSettings *s) {
 
 	s	-> setValue ("peakLevelDelaySteps",
 				     configWidget. sbDispDelay	-> value ());
-
-	s	-> setValue ("styleSheet",
-	                        configWidget. cbThemes -> currentText ());
 
 	s	-> sync ();
 }
@@ -602,6 +578,7 @@ bool r = false;
 //
 //	always tricky to kill tasks
 void	RadioInterface::TerminateProcess () {
+	storeWidgetPosition (fmSettings, this);
 	runMode. store (ERunStates::STOPPING);
 	if (myFMprocessor == nullptr)
 	   exit (1);
@@ -648,88 +625,6 @@ void	RadioInterface::abortSystem (int d) {
 	qDebug ("aborting for reason %d\n", d);
 	accept ();
 }
-//
-//	The following signals originate from the Winrad Extio interface
-//
-//	Note: the extio interface provides two signals
-//	one ExtLO signals that the external LO is set
-//	to a different value,
-//	the other one, ExtFreq, requests the client program
-//	to adapt its (local) tuning settings to a new frequency
-void	RadioInterface::set_ExtFrequency (int f) {
-int32_t vfo	= theDevice -> getVFOFrequency ();
-	(void)f;
-	currentFreq	= vfo + inputRate / 4;
-	loFrequency	= inputRate / 4;
-	displayFrequency (currentFreq);
-	if (myFMprocessor != nullptr) {
-	   myFMprocessor	-> set_localOscillator (loFrequency);
-	   myFMprocessor	-> triggerFrequencyChange ();
-	}
-}
-//
-//	From our perspective, the external device only provides us
-//	with a vfo
-void	RadioInterface::set_ExtLO	(int f) {
-	set_ExtFrequency (f);
-}
-
-void	RadioInterface::set_lockLO	() {
-//	fprintf (stderr, "ExtioLock is true\n");
-	ExtioLock	= true;
-}
-
-void	RadioInterface::set_unlockLO	() {
-//	fprintf (stderr, "ExtioLock is false\n");
-	ExtioLock	= false;
-}
-
-void	RadioInterface::set_stopHW	() {
-	theDevice	-> stopReader ();
-}
-
-void	RadioInterface::set_startHW	() {
-	if (runMode. load () == ERunStates::RUNNING)
-	   theDevice -> restartReader();
-}
-//
-////	This is a difficult one, everything should go down first
-////	and then restart with the new samplerate
-//void	RadioInterface::set_changeRate	(int r) {
-//	if (r == inputRate)
-//	   return;
-//	fprintf (stderr, "request for changerate\n");
-//	theDevice	-> stopReader ();
-//	if (myFMprocessor != nullptr) {
-//	   myFMprocessor	-> stop();
-//	   delete myFMprocessor;
-//	   myFMprocessor	= nullptr;
-//	}
-//
-//	runMode. store (ERunStates::IDLE);
-////
-////	Now we need to rebuild the prerequisites for the "new" processor
-//	inputRate = r;
-//	if (inputRate < Khz (176)) { // rather arbitrarily
-//	   QMessageBox::warning (this, tr("sdr"),
-//	                         tr("Sorry, rate low\n"));
-//	   delete theDevice;
-//	   theDevice	= new deviceHandler ();
-//	   inputRate	= theDevice -> getRate ();
-//	}
-////
-////	compute the new fmRate
-////	fmRate			= mapRates (inputRate);
-////	ask the new for the frequency
-//	currentFreq		= theDevice -> getVFOFrequency () + fmRate / 4;
-////	and show everything
-//	Display (currentFreq);
-//	lcd_fmRate		-> display ((int)this -> fmRate);
-//	lcd_inputRate		-> display ((int)this -> inputRate);
-//	lcd_OutputRate		-> display ((int)this -> audioRate);
-////
-////	The device is still the same, so now we wait for a start
-//}
 //
 //	@brief setDevice is called upon pressing the device button
 //	@params: the name (string) on the button
@@ -834,16 +729,15 @@ bool    success;
 	}
 
 	inputRate = theDevice -> getRate ();
-	if (inputRate < Khz (176)) { // rather arbitrarily
+	if (inputRate != INPUT_RATE) { // rather arbitrarily
 	   QMessageBox::warning (this, tr ("sdr"),
-	                               tr ("Sorry, rate low\n"));
+	                               tr ("Sorry, wrong rate\n"));
 	   delete theDevice;
 	   theDevice	= new deviceHandler ();
 	   inputRate	= theDevice -> getRate ();
 	}
 //
 //	ask the new rig for the frequency
-//	fmRate		= mapRates (inputRate);
 	currentFreq	= theDevice -> defaultFrequency () + fmRate / 4;
 	currentFreq	= fmSettings -> value ("currentFreq",
 	                                        currentFreq). toInt ();
@@ -851,28 +745,7 @@ bool    success;
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
 	lcd_OutputRate		-> display ((int)this -> audioRate);
-//	connect (theDevice, SIGNAL (set_changeRate (int)),
-//	         this, SLOT (set_changeRate (int)));
 
-#ifdef __MINGW32__
-//	communication from the dll to the main program is through signals
-	if (s == D_EXTIO) {
-//	and for the extio:
-//	The following signals originate from the Winrad Extio interface
-	   connect (theDevice, SIGNAL (set_ExtFrequency (int)),
-	            this, SLOT (set_ExtFrequency (int)));
-	   connect (theDevice, SIGNAL (set_ExtLO (int)),
-	            this, SLOT (set_ExtLO (int)));
-	   connect (theDevice, SIGNAL (set_lockLO ()),
-	            this, SLOT (set_lockLO ()));
-	   connect (theDevice, SIGNAL (set_unlockLO ()),
-	            this, SLOT (set_unlockLO ()));
-	   connect (theDevice, SIGNAL (set_stopHW ()),
-	            this, SLOT (set_stopHW ()));
-	   connect (theDevice, SIGNAL (set_startHW ()),
-	            this, SLOT (set_startHW ()));
-	}
-#endif
 	theDevice -> setVFOFrequency (currentFreq);
 	setStart ();
 	fmSettings	-> setValue ("device", s);
@@ -931,7 +804,6 @@ void	RadioInterface::make_newProcessor () {
 	lcd_fmRate		-> display ((int)this -> fmRate);
 	lcd_inputRate		-> display ((int)this -> inputRate);
 	lcd_OutputRate		-> display ((int)this -> audioRate);
-	hfScope			-> setBitDepth (theDevice -> bitDepth ());
 
 	handle_fmFilterSelect	(configWidget. fmFilterSelect	-> currentText ());
 	handle_fmModeSelector	(fmModeSelector		-> currentText ());
@@ -941,7 +813,6 @@ void	RadioInterface::make_newProcessor () {
 	handle_squelchSlider	(squelchSlider		-> value ());
 	handle_fmLFcutoff	(fmLFcutoff		-> currentText ());
 	handle_loggingButton	(configWidget. loggingButton	-> currentText ());
-	hfScope			->setBitDepth		(theDevice	-> bitDepth ());
 
 	handle_sbDispDelay	(configWidget. sbDispDelay	-> value ());
 	handle_fmStereoBalanceSlider	(fmStereoBalanceSlider	-> value ());
@@ -1050,8 +921,8 @@ int32_t	vfo;
 	   vfo = theDevice -> getVFOFrequency ();
 //
 //	we create a new spectrum on a different frequency
-	   if (runMode. load () == ERunStates::RUNNING) 
-	      hfScope -> clearAverage ();
+//	   if (runMode. load () == ERunStates::RUNNING) 
+//	      hfScope -> clearAverage ();
 	}
 	loFrequency = n - vfo;
 
@@ -1482,9 +1353,6 @@ void    RadioInterface::localConnects () {
                     qOverload<const QString &> (&QComboBox::activated),
 #endif
 	         this, &RadioInterface::handle_fmDeemphasis);
-
-	connect (configWidget. cbThemes, SIGNAL (activated (int)),
-	         this, SLOT (handle_cbThemes(int)));
 }
 
 void	RadioInterface::handle_fmStereoPanoramaSlider (int n) {
@@ -1650,17 +1518,6 @@ void	RadioInterface::handle_plotTypeSelector (const QString &s) {
 	   Q_ASSERT(0);
 }
 
-void	RadioInterface::handle_cbThemes (int idx) {
-const int idxCur = themeChooser -> get_curr_style_sheet_idx ();
-	themeChooser -> set_curr_style_sheet_idx (idx);
-
-// restart program if theme changed
-	if (idx != idxCur) {
-	   TerminateProcess ();
-	   qApp -> exit (PROGRAM_RESTART_EXIT_CODE);
-	}
-}
-
 void	RadioInterface::handle_PlotZoomFactor (const QString &s) {
 	if (myFMprocessor == nullptr)
 	   return;
@@ -1721,8 +1578,8 @@ void	RadioInterface::showPeakLevel (const float iPeakLeft,
 	peak_avr (iPeakLeft,  peakLeftDamped);
 	peak_avr (iPeakRight, peakRightDamped);
 
-	thermoPeakLevelLeft	-> setValue (peakLeftDamped);
-	thermoPeakLevelRight	-> setValue (peakRightDamped);
+	leftChannel	-> setLevel (peakLeftDamped);
+	rightChannel	-> setLevel (peakRightDamped);
 
 //	simple overflow avoidance ->
 //	reduce volume slider about -0.5dB (one step)
@@ -1758,7 +1615,6 @@ bool triggerLog = false;
 	rf_dc_component -> display (QString ("%1").arg(ipMD -> DcValRf, 0, 'f', 2));
 	demod_dc_component -> display (QString("%1").arg(ipMD -> DcValIf, 0, 'f', 2));
 
-	//thermoDcComponent -> setValue ((ipMD -> DcValIf < 0.0f ? 1 : -1) * w * std::log10(std::abs(ipMD -> DcValIf) + 1.0f));
 	thermoDcComponent -> setValue (-ipMD -> DcValIf);
 
 	switch (ipMD -> PssState) {
@@ -1944,79 +1800,70 @@ void	RadioInterface::handle_squelchSlider (int n) {
 //
 void	RadioInterface::hfBufferLoaded () {
 int32_t vfoFrequency;
-std::complex<float> tempBuffer [displaySize];
+std::vector<Complex> tempBuffer (displaySize);
+static int delayCounter= 0;
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
 
 	vfoFrequency	= theDevice -> getVFOFrequency ();
-	hfScope		-> setZero (vfoFrequency);
-	hfScope		-> setNeedle (loFrequency);
-	hfScope		-> setAmplification (
-	                   spectrumAmplitudeSlider_hf -> value ());
-	while ((int16_t)(hfBuffer. GetRingBufferReadAvailable ()) >
-	                                             displaySize) {
-	   hfBuffer. getDataFromBuffer (tempBuffer, displaySize);
-	   hfScope -> addElements (tempBuffer, displaySize);
+//	hfScope		-> setZero (vfoFrequency);
+//	hfScope		-> setNeedle (loFrequency);
+//	hfScope		-> setAmplification (
+//	                   spectrumAmplitudeSlider_hf -> value ());
+	while (hfBuffer. GetRingBufferReadAvailable () >= displaySize) {
+	   hfBuffer. getDataFromBuffer (tempBuffer. data (), displaySize);
+	   if (++ delayCounter < 30)
+	      return;
+	   delayCounter = 0;
+	   hfScope	-> display (tempBuffer, 
+	                            vfoFrequency - INPUT_RATE / 2,
+	                            vfoFrequency + INPUT_RATE / 2, 
+                                    spectrumAmplitudeSlider_hf -> value ());
 	}
 }
 
 void	RadioInterface::lfBufferLoaded (bool showFull,
 	                                bool refresh,
 	                                int	zoomFactor) {
-std::vector<std::complex<float>> v (spectrumSize);
+std::vector<Complex> v (spectrumSize);
 	if (runMode. load () != ERunStates::RUNNING) 
 	   return;
-	while ((int)(lfBuffer. GetRingBufferReadAvailable ()) > spectrumSize) {
+	while (lfBuffer. GetRingBufferReadAvailable () > spectrumSize) {
 	   lfBuffer.  getDataFromBuffer (v. data (), spectrumSize);
-	   lfScope -> processLFSpectrum (v, 
-	                                 zoomFactor,
-	                                 showFull,
-	                                 refresh,
-	                                 spectrumAmplitudeSlider_lf -> value ());
+	   lfScope	-> display (v, 0,  FM_RATE / 2,
+	                            spectrumAmplitudeSlider_lf -> value ());
 	}
 }
 
 void	RadioInterface::iqBufferLoaded () {
-std::complex<float> iq_values [IQ_SCOPE_SIZE];
-int32_t sizeRead = iqBuffer. getDataFromBuffer (iq_values, IQ_SCOPE_SIZE);
-	iqScope -> DisplayIQVec (iq_values, sizeRead, 1.0f);
+std::vector<Complex> iq_values (IQ_SCOPE_SIZE);
+int32_t sizeRead = iqBuffer. getDataFromBuffer (iq_values. data (),
+	                                                  IQ_SCOPE_SIZE);
+	iqScope -> displayIQ	(iq_values, 40.0);
 }
 
 void	RadioInterface::setHFplotterView (int offset) {
 	(void)offset;
-	if (hfScope ->  currentMode () == WATERFALL_MODE)
-	   hfScope -> SelectView (SPECTRUM_MODE);
-	else
-	   hfScope -> SelectView (WATERFALL_MODE);
 }
 
 void	RadioInterface::setup_HFScope () {
-	hfScope		= new hs_scope (hfscope,
-	                                this -> displaySize,
-	                                1,
-	                                this -> rasterSize,
-	                                2304000,
-	                                8);
-	HFviewMode	= SPECTRUM_MODE;
-	hfScope		-> SelectView (SPECTRUM_MODE);
+	hfScope		= new spectrumScope (hfscope,
+	                                     this -> displaySize,
+	                                     fmSettings,
+	                                     "hf scope");
 	connect (hfScope, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (adjustFrequency (int)));
-	connect (hfScope, SIGNAL (clickedwithRight (int)),
-	         this, SLOT (setHFplotterView (int)));
 }
 
 void	RadioInterface::setup_LFScope () {
-	lfScope		= new ls_scope (lfscope,
-	                                8,
-//	                                this	-> averageCount,
-	                                this	-> displaySize,
-	                                this	-> spectrumSize,
-	                                this	-> fmRate);
-	lfScope		-> SelectView (SPECTRUM_MODE);
+	lfScope		= new halfScope (lfscope,
+	                                 this	-> displaySize,
+	                                 fmSettings,
+	                                 "lf scope");
 }
 
 void	RadioInterface::setup_IQPlot () {
-	iqScope		= new IQDisplay (iqscope, IQ_SCOPE_SIZE);
+	iqScope		= new iqDisplay (iqscope, fmSettings);
 }
 
 //
@@ -2140,28 +1987,6 @@ int     k;
 	k	= s -> value ("peakLevelDelaySteps", 20). toInt ();
 	configWidget. sbDispDelay -> setValue (k);
 }
-
-//	For different input rates we select different rates for the
-//	fm decoding (the fmrate). Decimating from inputRate to fmRate
-//	is always integer. Decimating from fmRate to audioRate maybe
-//	fractional which costs a lot of power.
-//	NOT USED IN THIS VERSION
-//int32_t	RadioInterface::mapRates (int32_t inputRate) {
-//int32_t res;
-//
-//	res	= inputRate % 256000 == 0 ? 256000 :
-//	          inputRate % 192000 == 0 ? 192000 :
-//	          inputRate < Khz(400) ? inputRate :
-//	          inputRate < Khz(850) ? inputRate / 4 :
-//	          inputRate < Khz(1300) ? inputRate / 6 :
-//	          inputRate < Khz(1900) ? inputRate / 8 :
-//	          inputRate < Khz(3000) ? inputRate / 10 :
-//	          inputRate < Khz(4000) ? inputRate / 15 :
-//	          inputRate < Khz(5000) ? inputRate / 20 :
-//	          inputRate < Khz(6000) ? inputRate / 25 :
-//	          inputRate / 30;
-//	return res;
-//}
 
 void	RadioInterface::handle_freqButton () {
 	if (mykeyPad. isVisible ())

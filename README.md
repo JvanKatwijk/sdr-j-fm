@@ -1,8 +1,8 @@
 
-    FM receiver V3.20
+    FM receiver V4.0
 -------------------------
 
-In version 3.20, the software was made ready for compilation using either Qt5 or  Qt6, while furthermore the SDRplay driver was adapted to handle tuner switches with the SDRplay RSPDuo, and the software for saving and restoring the stationlist was rewritten, now the stationlist is maintained as a regular xml file.
+In version 4.0  , the software was made ready for compilation using Qt6, while furthermore the SDRplay driver was adapted to handle tuner switches with the SDRplay RSPDuo, and the software for saving and restoring the stationlist was rewritten, now the stationlist is maintained as a regular xml file.
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 

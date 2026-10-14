@@ -30,44 +30,41 @@
 #include	<cmath>
 #include	<vector>
 #include	<fstream>
-#include	"rds-group.h"
-#include	"rds-blocksynchronizer.h"
-#include	"rds-groupdecoder.h"
-#include	"fir-filters.h"
-#include	"sincos.h"
+#include	"rds-decoder.h"
+#include        "rds-group.h"
+#include        "rds-blocksynchronizer.h"
+#include        "rds-groupdecoder.h"
+#include        "agc.h"
+#include        "costas.h"
 
 class	rdsDecoder_3: public QObject {
 Q_OBJECT
 public:
 		rdsDecoder_3	(RadioInterface	*myRadio,
-	                         int32_t	rate,
-	                         rdsBlockSynchronizer  *my_rdsBlockSync,
-                                 RDSGroup            *my_rdsGroup,
-                                 rdsGroupDecoder     *my_rdsGroupDecoder);
+	                         int32_t	rate);
 		~rdsDecoder_3	();
-	bool	doDecode	(float, uint8_t *);
+	bool	doDecode	(Complex, Complex *, uint8_t *);
 private:
-	SinCos			mySinCos;
-	LowPassFIR		rdsFilter;
 
-	RDSGroup		*my_rdsGroup;
-	rdsBlockSynchronizer	*my_rdsBlockSync;
-        rdsGroupDecoder		*my_rdsGroupDecoder;
-        std::vector<float>      syncBuffer;
-        void                    synchronizeOnBitClk (std::vector<float> &,
-	                                                          int16_t);
-//
-        RadioInterface          *myRadioInterface;
-        int                     sampleRate;
+	AGC			my_AGC;
+	Costas			my_Costas;
+	Complex			doMatchFiltering	(Complex);
+	bool			process_sample		(const Complex iZ,
+	                                                      Complex & oZ); 
+	RadioInterface		*myRadioInterface;
+	int			sampleRate;
+	std::vector<float>      my_matchedFltKernelVec;
+        std::vector<DSPCOMPLEX> my_matchedFltBuf;
+        int16_t                 my_matchedFltBufIdx;
+        int16_t                 my_matchedFltBufSize;
+	bool			previousBit;
 
-	float			omegaRDS;
-	int			symbolCeiling;
-	int			symbolFloor;
-	float			bitIntegrator;
-	float			bitClkPhase;
-        bool                    previousBit;
-	float			prev_clkState;
-	bool			Resync;
-	int16_t			p;
+	std::complex<float>	sampleBuffer [3]; // current and last 2 samples
+	std::complex<float>	sampleBufferRail [3]; // current and last 2 samp
+	float			mMu;		// 0.01;
+	float			samplesPerSymbol;
+	float			alpha;
+	int32_t			skipNrSamples;  // 2 to fill out buffer
+	int32_t			sampleCount;
 };
 

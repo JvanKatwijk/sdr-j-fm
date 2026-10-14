@@ -108,15 +108,15 @@ QStringList res;
 	return res;
 }
 
-DSPFLOAT	fm_Demodulator::demodulate (DSPCOMPLEX z) {
-DSPFLOAT res;
-DSPFLOAT I, Q;
+float	fm_Demodulator::demodulate (Complex z) {
+float res;
+float I, Q;
 //	DC filter after FM demodulator (frequency offset)
 float carrierAlpha = 0.0010f;
 //	DC filter after AM demodulator (carrier level)
 float fmDcAlpha    = 0.0001f;
 
-	DSPFLOAT zAbs = abs (z);
+	float zAbs = abs (z);
 	if (zAbs <= 0.001) {
 	   I = Q = 0.001;  // do not make these 0 too often
 	}
@@ -155,7 +155,7 @@ float fmDcAlpha    = 0.0001f;
 	}
 //
 //	Now for FM
-	z = DSPCOMPLEX (I, Q);
+	z	= Complex (I, Q);
 	int	index	= 0;
 	float	Scaler	= sqrt (2);
 	switch (selectedDecoder) {
@@ -172,7 +172,7 @@ float fmDcAlpha    = 0.0001f;
 	      break;
 
 	   case COMPLEX_BB_DECODER: // ComplexBasebandDelay
-	      res = myAtan. argX (z * DSPCOMPLEX (Imin1, -Qmin1));
+	      res = myAtan. argX (z * Complex (Imin1, -Qmin1));
 //	is same as MixedDemodulator
 	      break;
 
@@ -204,7 +204,7 @@ float fmDcAlpha    = 0.0001f;
 	return res;
 }
 
-DSPFLOAT fm_Demodulator::get_DcComponent() {
+float	fm_Demodulator::get_DcComponent() {
 	return fm_afc;
 }
 

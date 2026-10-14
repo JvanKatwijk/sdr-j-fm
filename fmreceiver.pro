@@ -5,8 +5,8 @@
 ######################################################################
 
 TEMPLATE	= app 
-TARGET		= fmreceiver-3.20
-QT		+= widgets xml
+TARGET		= fmreceiver-4.0
+QT		+= widgets xml charts
 #CONFIG		+= console
 CONFIG		-= console
 QMAKE_CXXFLAGS  += -std=c++17
@@ -33,77 +33,71 @@ DEPENDPATH += . \
 	      ../.. \
 	      ../../../ \
 	      ./src \
+	      ./scopes \
 	      ./includes \
-	      ./includes/output \
-	      ./includes/various \
-	      ./includes/fm \
-	      ./includes/rds \
-	      ./includes/scopes-qwt6 \
 	      ./src \
 	      ./src/output \
 	      ./src/various \
+	      ./src/various/filters \
 	      ./src/fm \
 	      ./src/rds \
-	      ./src/scopes-qwt6 \
 	      ./devices \
 	      ./devices/filereader
 
 INCLUDEPATH += . \
 	      ..\
 	      ../.. \
+	      ./scopes \
 	      ./includes \
-	      ./includes/output \
-	      ./includes/various \
-	      ./includes/fm \
-	      ./includes/rds \
-	      ./includes/scopes-qwt6 \
 	      ./src \
 	      ./src/output \
 	      ./src/various \
+	      ./src/various/filters \
 	      ./src/fm \
 	      ./src/rds \
-	      ./src/scopes-qwt6 \
 	      ./devices \
 	      ./devices/filereader
 
 # Input
 HEADERS += ./radio.h \
-	   ./includes/popup-keypad.h \
-	   ./includes/fm-constants.h \
-	   ./includes/various/program-list.h \
-	   ./includes/various/keyboardfilter.h \
-	   ./includes/various/squelchClass.h \
-	   ./includes/various/oscillator.h \
-           ./includes/various/ringbuffer.h \
-	   ./includes/various/pllC.h \
-	   ./includes/various/sincos.h \
-	   ./includes/various/newconverter.h \
-	   ./includes/various/fft-complex.h \
-	   ./includes/various/fft-filters.h \
-	   ./includes/various/fir-filters.h \
-	   ./includes/various/iir-filters.h \
-	   ./includes/various/agc.h  \
-	   ./includes/various/costas.h  \
-	   ./includes/various/shaping_filter.h  \
-	   ./includes/various/Xtan2.h \
-	   ./includes/various/themechoser.h \
-	   ./includes/output/audiosink.h \
-	   ./includes/scopes-qwt6/iqdisplay.h \
-	   ./includes/scopes-qwt6/scope.h \
-           ./includes/scopes-qwt6/spectrogramdata.h \
-	   ./includes/scopes-qwt6/hs-scope.h \
-	   ./includes/scopes-qwt6/ls-scope.h \
-	   ./includes/fm/fm-demodulator.h \
-	   ./includes/fm/pilot-recover.h \
-	   ./includes/fm/stereo-separation.h \
-	   ./includes/fm/fm-processor.h \
-	   ./includes/rds/rds-decoder.h \
-	   ./includes/rds/rds-decoder-1.h \
-	   ./includes/rds/rds-decoder-2.h \
-	   ./includes/rds/rds-decoder-3.h \
-	   ./includes/rds/rds-blocksynchronizer.h \
-	   ./includes/rds/rds-group.h \
-	   ./includes/rds/rds-groupdecoder.h  \
+	   ./fm-constants.h \
+	   ./scopes/clickable-chart.h \
+	   ./scopes/iqdisplay.h \
+	   ./scopes/basic-scope.h \
+	   ./scopes/spectrum-scope.h \
+	   ./scopes/half-scope.h \
+	   ./src/popup-keypad.h \
+	   ./src/various/position-handler.h \
+	   ./src/various/program-list.h \
+	   ./src/various/keyboardfilter.h \
+	   ./src/various/squelchClass.h \
+	   ./src/various/oscillator.h \
+           ./src/various/ringbuffer.h \
+	   ./src/various/pllC.h \
+	   ./src/various/sincos.h \
+	   ./src/various/newconverter.h \
+	   ./src/various/fft-handler.h \
+	   ./src/various/filters/fft-filters.h \
+	   ./src/various/filters/fir-filters.h \
+	   ./src/various/filters/iir-filters.h \
+	   ./src/various/filters/down-converter.h \
+	   ./src/various/agc.h  \
+	   ./src/various/costas.h  \
+	   ./src/various/shaping_filter.h  \
+	   ./src/various/audioLevel-meter.h \
+	   ./src/various/Xtan2.h \
+	   ./src/output/audiosink.h \
+	   ./src/fm/fm-demodulator.h \
+	   ./src/fm/pilot-recover.h \
+	   ./src/fm/stereo-separation.h \
+	   ./src/fm/fm-processor.h \
+	   ./src/rds/rds-decoder.h \
+	   ./src/rds/rds-decoder-1.h \
+	   ./src/rds/rds-decoder-2.h \
+	   ./src/rds/rds-decoder-3.h \
+	   ./src/rds/rds-blocksynchronizer.h \
+	   ./src/rds/rds-group.h \
+	   ./src/rds/rds-groupdecoder.h  \
 	   ./devices/device-handler.h \
 	   ./devices/device-exceptions.h \
 	   ./devices/deviceselect.h \
@@ -116,7 +110,13 @@ FORMS +=   ./forms/radio.ui \
 
 SOURCES += ./main.cpp \
 	   ./radio.cpp \
+	   ./scopes/clickable-chart.cpp \
+	   ./scopes/iqdisplay.cpp \
+	   ./scopes/basic-scope.cpp \
+	   ./scopes/spectrum-scope.cpp \
+	   ./scopes/half-scope.cpp \
 	   ./src/popup-keypad.cpp \
+	   ./src/various/position-handler.cpp \
 	   ./src/various/program-list.cpp \
 	   ./src/various/keyboardfilter.cpp \
 	   ./src/various/squelchClass.cpp \
@@ -124,18 +124,15 @@ SOURCES += ./main.cpp \
 	   ./src/various/oscillator.cpp \
 	   ./src/various/sincos.cpp \
 	   ./src/various/newconverter.cpp \
-	   ./src/various/fft-complex.cpp \
-	   ./src/various/fft-filters.cpp \
-	   ./src/various/fir-filters.cpp \
-	   ./src/various/iir-filters.cpp \
+	   ./src/various/fft-handler.cpp \
+	   ./src/various/filters/fft-filters.cpp \
+	   ./src/various/filters/fir-filters.cpp \
+	   ./src/various/filters/iir-filters.cpp \
+	   ./src/various/filters/down-converter.cpp \
 	   ./src/various/Xtan2.cpp \
-	   ./src/various/themechoser.cpp \
 	   ./src/various/shaping_filter.cpp \
+	   ./src/various/audioLevel-meter.cpp \
 	   ./src/output/audiosink.cpp \
-	   ./src/scopes-qwt6/iqdisplay.cpp \
-	   ./src/scopes-qwt6/scope.cpp \
-	   ./src/scopes-qwt6/hs-scope.cpp \
-	   ./src/scopes-qwt6/ls-scope.cpp \
 	   ./src/fm/fm-demodulator.cpp \
 	   ./src/fm/pilot-recover.cpp \
 	   ./src/fm/stereo-separation.cpp \
@@ -176,7 +173,7 @@ CONFIG	+= pluto
 # includes in mingw differ from the includes in fedora linux
 LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
-INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
+#INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 LIBS	+= -lportaudio
 LIBS	+= -lqwt-qt6
 #LIBS	+= -lsndfile
@@ -217,6 +214,7 @@ CONFIG		+= qwt
 #for fedora 21
 LIBS += -lusb-1.0 -lrt -lportaudio -lsndfile -ldl
 LIBS += -lsamplerate
+LIBS += -lfftw3f
 #QMAKE_CXXFLAGS += -Wno-hicpp-signed-bitwise
 }
 
