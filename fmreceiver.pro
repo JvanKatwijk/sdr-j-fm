@@ -175,7 +175,7 @@ LIBS            += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
 INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include
 #INCLUDEPATH 	+= /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 LIBS	+= -lportaudio
-LIBS	+= -lqwt-qt6
+#LIBS	+= -lqwt-qt6
 #LIBS	+= -lsndfile
 #LIBS	+= -lsamplerate
 LIBS            += /usr/i686-w64-mingw32/sys-root/mingw/bin/libsndfile-1.dll
@@ -206,7 +206,7 @@ CONFIG		+= dabstick
 CONFIG		+= hackrf
 CONFIG		+= lime
 CONFIG		+= pluto
-CONFIG		+= qwt
+#CONFIG		+= qwt
 #INCLUDEPATH 	+= /usr/include/qt5/qwt
 #INCLUDEPATH 	+= /usr/local/qwt-6.2.0/include
 #for ubuntu the first line

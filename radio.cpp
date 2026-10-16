@@ -1596,8 +1596,6 @@ bool triggerLog = false;
 	if (runMode. load () != ERunStates::RUNNING)
 	   return;
 
-	//static const float w = 1.0f / std::log10(2.0f);
-
 	if ((logTime > 0) && (++teller == logTime)) {
 	   triggerLog = true;
 	   teller = 0;
@@ -1615,7 +1613,7 @@ bool triggerLog = false;
 	rf_dc_component -> display (QString ("%1").arg(ipMD -> DcValRf, 0, 'f', 2));
 	demod_dc_component -> display (QString("%1").arg(ipMD -> DcValIf, 0, 'f', 2));
 
-	thermoDcComponent -> setValue (-ipMD -> DcValIf);
+//	thermoDcComponent -> setValue (-ipMD -> DcValIf);
 
 	switch (ipMD -> PssState) {
 	case fmProcessor::SMetaData::EPssState::OFF:
@@ -1636,7 +1634,7 @@ bool triggerLog = false;
 	pss_phase_error -> display (QString("%1").arg(ipMD -> PssPhaseChange, 0, 'f', 2));
 
 //	thermoPSSCorr -> setValue ((ipMD -> PssPhaseChange < 0.0f ? -1 : 1) * w * std::log10(std::abs(ipMD -> PssPhaseChange) + 1.0f));
-	thermoPSSCorr -> setValue (ipMD -> PssPhaseChange);
+//	thermoPSSCorr -> setValue (ipMD -> PssPhaseChange);
 
 //	some kind of AFC
 	if (afcActive) {
@@ -1851,8 +1849,8 @@ void	RadioInterface::setup_HFScope () {
 	                                     this -> displaySize,
 	                                     fmSettings,
 	                                     "hf scope");
-	connect (hfScope, SIGNAL (clickedwithLeft (int)),
-	         this, SLOT (adjustFrequency (int)));
+//	connect (hfScope, SIGNAL (clickedwithLeft (int)),
+//	         this, SLOT (adjustFrequency (int)));
 }
 
 void	RadioInterface::setup_LFScope () {

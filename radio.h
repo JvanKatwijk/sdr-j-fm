@@ -32,7 +32,7 @@
 #include	<QQueue>
 #include	<QTimer>
 #include	<QWheelEvent>
-#include	<qwt.h>
+//#include	<qwt.h>
 #include	<sndfile.h>
 #include	"fm-constants.h"
 #include	"fm-processor.h"

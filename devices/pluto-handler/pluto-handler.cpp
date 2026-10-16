@@ -241,11 +241,12 @@ int	ret;
 //
 //	step 1: establish a context
 //
-	ctx	= iio_create_default_context ();
-	if (ctx == nullptr) {
-	   ctx = iio_create_local_context ();
-	}
+//	ctx	= iio_create_default_context ();
+//	if (ctx == nullptr) {
+//	   ctx = iio_create_local_context ();
+//	}
 
+	ctx	= nullptr;
 	if (ctx == nullptr) {
 	   ctx = iio_create_network_context ("pluto.local");
 	}

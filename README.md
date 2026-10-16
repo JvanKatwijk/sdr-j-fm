@@ -2,13 +2,14 @@
     FM receiver V4.0
 -------------------------
 
-In version 4.0  , the software was made ready for compilation using Qt6, while furthermore the SDRplay driver was adapted to handle tuner switches with the SDRplay RSPDuo, and the software for saving and restoring the stationlist was rewritten, now the stationlist is maintained as a regular xml file.
+In version 4.0, the software was made ready for compilation using Qt6 
+without the use or Qwt.
+Furthermore the SDRplay driver was adapted to handle tuner switches with the SDRplay RSPDuo, and the software for saving and restoring the stationlist was rewritten, now the stationlist is maintained as a regular xml file.
 
 ![fm receiver](/fm-mainwidget.png?raw=true)
 
 New is a so-called PSS (perfect stereo separation) control on the main widget,
-contributed by TomNeda, who made quite a number of contributions to the
-code.
+contributed by TomNeda, who made  a number of contributions to the code.
 
 In computing the 38 Khz signal to decode the L-R signal, from the 19
 KHz pilot signal, an error may occur, an offset of a few Hz.

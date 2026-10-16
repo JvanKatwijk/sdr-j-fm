@@ -757,61 +757,6 @@
         </layout>
        </item>
        <item>
-        <widget class="QwtThermo" name="thermoDcComponent">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>15</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates the relative carrier position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LayoutDirection::LeftToRight</enum>
-         </property>
-         <property name="lowerBound">
-          <double>-1.000000000000000</double>
-         </property>
-         <property name="upperBound">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="scaleMaxMajor">
-          <number>5</number>
-         </property>
-         <property name="scaleStepSize">
-          <double>0.000000000000000</double>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="scalePosition">
-          <enum>QwtThermo::ScalePosition::NoScale</enum>
-         </property>
-         <property name="originMode">
-          <enum>QwtThermo::OriginMode::OriginCustom</enum>
-         </property>
-         <property name="alarmEnabled">
-          <bool>false</bool>
-         </property>
-         <property name="borderWidth">
-          <number>1</number>
-         </property>
-         <property name="pipeWidth">
-          <number>13</number>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="pss_state">
          <property name="maximumSize">
           <size>
@@ -972,58 +917,6 @@
           </widget>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QwtThermo" name="thermoPSSCorr">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>15</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the mean PSS phase error (between -1 and 1).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LayoutDirection::LeftToRight</enum>
-         </property>
-         <property name="lowerBound">
-          <double>-1.000000000000000</double>
-         </property>
-         <property name="upperBound">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="scaleStepSize">
-          <double>0.000000000000000</double>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="scalePosition">
-          <enum>QwtThermo::ScalePosition::NoScale</enum>
-         </property>
-         <property name="originMode">
-          <enum>QwtThermo::OriginMode::OriginCustom</enum>
-         </property>
-         <property name="alarmEnabled">
-          <bool>false</bool>
-         </property>
-         <property name="borderWidth">
-          <number>1</number>
-         </property>
-         <property name="pipeWidth">
-          <number>13</number>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btnRestartPSS">
@@ -2231,11 +2124,6 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QwtThermo</class>
-   <extends>QWidget</extends>
-   <header>qwt_thermo.h</header>
-  </customwidget>
-  <customwidget>
    <class>clickableChart</class>
    <extends>QGraphicsView</extends>
    <header>clickable-chart.h</header>
@@ -2248,13 +2136,6 @@
   </customwidget>
  </customwidgets>
  <includes>
-  <include location="local">qwt_plot.h</include>
-  <include location="local">qwt_scale_widget.h</include>
-  <include location="local">qwt_scale_widget.h</include>
-  <include location="local">qwt_plot.h</include>
-  <include location="local">qwt_scale_widget.h</include>
-  <include location="local">qwt_scale_widget.h</include>
-  <include location="local">qwt_text_label.h</include>
  </includes>
  <resources/>
  <connections/>
